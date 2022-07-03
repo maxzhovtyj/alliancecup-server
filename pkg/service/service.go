@@ -1,8 +1,13 @@
 package service
 
-import "allincecup-server/pkg/repository"
+import (
+	server "allincecup-server"
+	"allincecup-server/pkg/repository"
+)
 
 type Authorization interface {
+	CreateUser(user server.User) (int, error)
+	GenerateToken(email string, password string) (string, error)
 }
 
 type ShopItemCup interface {
@@ -21,6 +26,6 @@ type Service struct {
 	Category
 }
 
-func NewService(repository *repository.Repository) *Service {
-	return &Service{}
+func NewService(repos *repository.Repository) *Service {
+	return &Service{Authorization: NewAuthService(repos.Authorization)}
 }
