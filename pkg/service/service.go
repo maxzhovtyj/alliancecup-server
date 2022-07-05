@@ -8,6 +8,7 @@ import (
 type Authorization interface {
 	CreateUser(user server.User) (int, error)
 	GenerateToken(email string, password string) (string, error)
+	ParseToken(token string) (int, int, error)
 }
 
 type ShopItemCup interface {
@@ -16,16 +17,25 @@ type ShopItemCup interface {
 type ShopList interface {
 }
 
-type Category interface {
+type Categories interface {
+}
+
+type Products interface {
+	AddProduct(product server.Product) (int, error)
 }
 
 type Service struct {
 	Authorization
 	ShopItemCup
 	ShopList
-	Category
+	Categories
+	Products
 }
 
 func NewService(repos *repository.Repository) *Service {
-	return &Service{Authorization: NewAuthService(repos.Authorization)}
+	return &Service{
+		Authorization: NewAuthService(repos.Authorization),
+		Products:      NewProductsService(repos.Products),
+		Categories:    NewCategoriesService(repos.Categories),
+	}
 }

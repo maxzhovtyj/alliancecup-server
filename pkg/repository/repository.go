@@ -16,18 +16,25 @@ type ShopItemCup interface {
 type ShopList interface {
 }
 
-type Category interface {
+type Categories interface {
+}
+
+type Products interface {
+	AddProduct(product server.Product) (int, error)
 }
 
 type Repository struct {
 	Authorization
 	ShopItemCup
 	ShopList
-	Category
+	Categories
+	Products
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
+		Products:      NewProductsPostgres(db),
+		Categories:    NewCategoriesPostgres(db),
 	}
 }
