@@ -7,12 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"math/rand"
 	"time"
 )
 
 const (
 	salt       = "dsadkasdi212312mdmacmxz00"
-	tokenTTL   = 12 * time.Hour
+	tokenTTL   = 15 * time.Minute
 	signingKey = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
 )
 
@@ -34,10 +35,10 @@ func (s *AuthService) CreateUser(user server.User) (int, error) {
 	return s.repo.CreateUser(user)
 }
 
-func (s *AuthService) GenerateToken(email, password string) (string, error) {
+func (s *AuthService) GenerateTokens(email, password string) (string, string, error) {
 	user, err := s.repo.GetUser(email, generatePasswordHash(password))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
@@ -49,7 +50,30 @@ func (s *AuthService) GenerateToken(email, password string) (string, error) {
 		user.RoleId,
 	})
 
-	return token.SignedString([]byte(signingKey))
+	refreshToken, err := s.GenerateRefreshToken()
+	if err != nil {
+		return "", "", err
+	}
+
+	accessToken, err := token.SignedString([]byte(signingKey))
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
+}
+
+func (s *AuthService) GenerateRefreshToken() (string, error) {
+	b := make([]byte, 32)
+
+	src := rand.NewSource(time.Now().Unix())
+	r := rand.New(src)
+
+	if _, err := r.Read(b); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", b), nil
 }
 
 func (s *AuthService) ParseToken(accessToken string) (int, int, error) {

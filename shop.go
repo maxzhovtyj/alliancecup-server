@@ -1,9 +1,10 @@
 package server
 
-type ShopList struct {
-}
+import "time"
 
 type Category struct {
+	Id    int    `json:"-" db:"id"`
+	Title string `json:"title"`
 }
 
 type Product struct {
@@ -16,4 +17,13 @@ type Product struct {
 	Description    string  `json:"description"`
 	Amount         int     `json:"amount"`
 	InStock        bool    `json:"in_stock"`
+}
+
+type Order struct {
+	Id        int
+	ProductId int
+	UserId    int
+	OrderDate time.Time
+	Amount    int
+	EndStatus bool
 }

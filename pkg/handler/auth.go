@@ -4,6 +4,7 @@ import (
 	server "allincecup-server"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"net/mail"
 )
 
 func (h *Handler) signUp(ctx *gin.Context) {
@@ -11,6 +12,13 @@ func (h *Handler) signUp(ctx *gin.Context) {
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// email, password validation
+	_, err := mail.ParseAddress(input.Email)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, "incorrect email or password")
 		return
 	}
 
@@ -37,13 +45,15 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	token, err := h.services.Authorization.GenerateToken(input.Email, input.Password)
+	accessToken, refreshToken, err := h.services.Authorization.GenerateTokens(input.Email, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"token": token,
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
 	})
+
 }
