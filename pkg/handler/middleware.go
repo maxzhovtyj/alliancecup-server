@@ -15,11 +15,14 @@ const (
 func (h *Handler) userIdentity(ctx *gin.Context) {
 	header := ctx.GetHeader(authorizationHeader)
 	if header == "" {
+		ctx.Set(userCtx, 0)
+		ctx.Set(userRoleIdCtx, 0)
 		return
 	}
 
 	headerParts := strings.Split(header, " ")
-	if len(headerParts) != 2 {
+	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+		newErrorResponse(ctx, http.StatusBadRequest, "invalid token")
 		return
 	}
 
@@ -32,32 +35,6 @@ func (h *Handler) userIdentity(ctx *gin.Context) {
 
 	ctx.Set(userCtx, userId)
 	ctx.Set(userRoleIdCtx, userRoleId)
-}
-
-func (h *Handler) userAuthorized(ctx *gin.Context) {
-	header := ctx.GetHeader(authorizationHeader)
-	if header == "" {
-		newErrorResponse(ctx, http.StatusUnauthorized, "empty auth header")
-		return
-	}
-
-	headerParts := strings.Split(header, " ")
-	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-		newErrorResponse(ctx, http.StatusUnauthorized, "invalid auth header")
-		return
-	}
-
-	if len(headerParts[1]) == 0 {
-		newErrorResponse(ctx, http.StatusUnauthorized, "token is empty")
-		return
-	}
-
-	//parse token
-	_, _, err := h.services.Authorization.ParseToken(headerParts[1])
-	if err != nil {
-		newErrorResponse(ctx, http.StatusUnauthorized, err.Error())
-		return
-	}
 }
 
 func (h *Handler) userHasPermission(ctx *gin.Context) {
@@ -73,7 +50,8 @@ func (h *Handler) userHasPermission(ctx *gin.Context) {
 		return
 	}
 
-	if userRoleIdInt == 1 {
+	if userRoleIdInt == 0 || userRoleIdInt == 1 {
 		newErrorResponse(ctx, http.StatusForbidden, "access forbidden")
+		return
 	}
 }

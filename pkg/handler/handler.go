@@ -20,7 +20,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
-		auth.POST("/refresh-tokens")
+		auth.POST("/refresh", h.refresh)
 	}
 
 	api := router.Group("/api", h.userIdentity)
@@ -28,7 +28,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		admin := api.Group("/admin", h.userHasPermission)
 		{
 			admin.POST("/add-product", h.addProduct)
-			admin.POST("/add-category")
+			admin.POST("/add-category", h.addCategory)
 			admin.DELETE("/delete-product")
 			admin.DELETE("/delete-category")
 			admin.GET("/all-orders")
@@ -40,8 +40,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			orders := client.Group("/orders")
 			{
 				orders.POST("/new-order")
-				orders.DELETE("/cancel-order")
-
 			}
 		}
 	}

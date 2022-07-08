@@ -2,21 +2,20 @@ package repository
 
 import (
 	server "allincecup-server"
+	"allincecup-server/internal/domain"
 	"github.com/jmoiron/sqlx"
 )
 
 type Authorization interface {
 	CreateUser(user server.User) (int, error)
 	GetUser(email string, password string) (server.User, error)
+	NewSession(session domain.Session) (*domain.Session, error)
+	GetSessionByRefresh(refresh string) (*domain.Session, error)
+	DeleteSessionByRefresh(refresh string) error
 }
 
-type ShopItemCup interface {
-}
-
-type ShopList interface {
-}
-
-type Categories interface {
+type Category interface {
+	Create(title string) (int, error)
 }
 
 type Products interface {
@@ -25,9 +24,7 @@ type Products interface {
 
 type Repository struct {
 	Authorization
-	ShopItemCup
-	ShopList
-	Categories
+	Category
 	Products
 }
 
@@ -35,6 +32,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
 		Products:      NewProductsPostgres(db),
-		Categories:    NewCategoriesPostgres(db),
+		Category:      NewCategoryPostgres(db),
 	}
 }

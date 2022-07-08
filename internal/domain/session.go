@@ -1,10 +1,13 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type Session struct {
 	Id           int       `json:"-" db:"id"`
 	UserId       int       `json:"user_id" db:"user_id"`
+	RoleId       int       `json:"role_id" db:"role_id"`
 	RefreshToken string    `json:"refresh_token" db:"refresh_token"`
 	IsBlocked    bool      `json:"is_blocked" db:"is_blocked"`
 	ClientIp     string    `json:"client_ip" db:"client_ip"`

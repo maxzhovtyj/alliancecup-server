@@ -2,19 +2,21 @@ package service
 
 import (
 	server "allincecup-server"
+	"allincecup-server/internal/domain"
 	"allincecup-server/pkg/repository"
 	"crypto/sha1"
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"math/rand"
 	"time"
 )
 
 const (
-	salt       = "dsadkasdi212312mdmacmxz00"
-	tokenTTL   = 15 * time.Minute
-	signingKey = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
+	salt              = "dsadkasdi212312mdmacmxz00"
+	tokenTTL          = 1 * time.Minute
+	signingKey        = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
+	refreshTokenTTL   = 1440 * time.Hour
+	refreshSigningKey = "Sepasd213*99921@@#dsad+-=SXxassd@lLL;"
 )
 
 type tokenClaims struct {
@@ -64,16 +66,17 @@ func (s *AuthService) GenerateTokens(email, password string) (string, string, er
 }
 
 func (s *AuthService) GenerateRefreshToken() (string, error) {
-	b := make([]byte, 32)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(refreshTokenTTL).Unix(),
+		IssuedAt:  time.Now().Unix(),
+	},
+	)
 
-	src := rand.NewSource(time.Now().Unix())
-	r := rand.New(src)
-
-	if _, err := r.Read(b); err != nil {
+	refreshToken, err := token.SignedString([]byte(refreshSigningKey))
+	if err != nil {
 		return "", err
 	}
-
-	return fmt.Sprintf("%x", b), nil
+	return refreshToken, err
 }
 
 func (s *AuthService) ParseToken(accessToken string) (int, int, error) {
@@ -96,9 +99,62 @@ func (s *AuthService) ParseToken(accessToken string) (int, int, error) {
 	return claims.UserId, claims.UserRoleId, nil
 }
 
+func (s *AuthService) ParseRefreshToken(refreshToken string) error {
+	token, err := jwt.ParseWithClaims(refreshToken, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+
+		return []byte(refreshSigningKey), nil
+	})
+	if err != nil {
+		return err
+	}
+
+	_, ok := token.Claims.(*jwt.StandardClaims)
+	if !ok {
+		return errors.New("token claims are not of type *StandardClaims")
+	}
+
+	return nil
+}
+
 func generatePasswordHash(password string) string {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+}
+
+func (s *AuthService) RefreshAccessToken(refreshToken string) (string, error) {
+	session, err := s.repo.GetSessionByRefresh(refreshToken)
+
+	if err != nil {
+		return "", err
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+		session.UserId,
+		session.RoleId,
+	})
+
+	accessToken, err := token.SignedString([]byte(signingKey))
+
+	if err != nil {
+		return "", err
+	}
+
+	return accessToken, nil
+}
+
+func (s *AuthService) CreateNewSession(session *domain.Session) (*domain.Session, error) {
+	newSession, err := s.repo.NewSession(*session)
+	if err != nil {
+		return nil, err
+	}
+	return newSession, err
 }
