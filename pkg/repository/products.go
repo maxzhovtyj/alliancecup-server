@@ -2,7 +2,6 @@ package repository
 
 import (
 	server "allincecup-server"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -15,17 +14,5 @@ func NewProductsPostgres(db *sqlx.DB) *ProductsPostgres {
 }
 
 func (p *ProductsPostgres) AddProduct(product server.Product) (int, error) {
-	var id int
-	query :=
-		fmt.Sprintf(
-			"INSERT INTO %s (category_id, title, price, size, characteristic, description, amount) values ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
-			productsTable)
-	row :=
-		p.db.QueryRow(query, product.CategoryId, product.Title, product.Price, product.Size, product.Characteristic, product.Description, product.Amount)
-
-	if err := row.Scan(&id); err != nil {
-		return 0, err
-	}
-
-	return id, nil
+	return 0, nil
 }

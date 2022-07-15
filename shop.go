@@ -1,28 +1,25 @@
 package server
 
-import "time"
-
 type Category struct {
-	Id    int    `json:"-" db:"id"`
-	Title string `json:"title"`
+	Id            int    `json:"-" db:"id"`
+	CategoryTitle string `json:"category_title"`
 }
 
 type Product struct {
 	Id             int     `json:"-" db:"id"`
+	Article        string  `json:"article"`
 	CategoryId     int     `json:"category_id"`
-	Title          string  `json:"title"`
+	ProductTitle   string  `json:"product_title"`
+	ImgUrl         string  `json:"img_url"`
+	TypeId         int     `json:"-" db:"type_id"`
+	AmountInStock  int     `json:"amount_in_stock"`
 	Price          float64 `json:"price"`
-	Size           int     `json:"size"`
-	Characteristic string  `json:"characteristic"`
-	Description    string  `json:"description"`
-	Amount         int     `json:"amount"`
+	UnitsInPackage int     `json:"units_in_package"`
+	PackagesInBox  int     `json:"packages_in_box"`
 }
 
-type Order struct {
-	Id        int
-	ProductId int
-	UserId    int
-	OrderDate time.Time
-	Amount    int
-	EndStatus bool
+type ProductInfo struct {
+	ProductId   int    `json:"product_id"`
+	InfoTitle   string `json:"info_title"`
+	Description string `json:"description"`
 }

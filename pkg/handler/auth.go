@@ -19,14 +19,55 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		return
 	}
 
-	// email, password validation
+	// email, password, phone_number validation
 	_, err := mail.ParseAddress(input.Email)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, "incorrect email or password")
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid email")
+		return
+	}
+	if len(input.Password) < 4 {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid password")
+		return
+	}
+	if len(input.PhoneNumber) < 10 {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid phone_number")
 		return
 	}
 
 	id, err := h.services.Authorization.CreateUser(input)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
+}
+
+func (h *Handler) createModerator(ctx *gin.Context) {
+	var input server.User
+
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// email, password, phone_number validation
+	_, err := mail.ParseAddress(input.Email)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid email")
+		return
+	}
+	if len(input.Password) < 4 {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid password")
+		return
+	}
+	if len(input.PhoneNumber) < 10 {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid phone_number")
+		return
+	}
+
+	id, err := h.services.Authorization.CreateModerator(input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

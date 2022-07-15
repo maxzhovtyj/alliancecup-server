@@ -30,6 +30,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		admin := api.Group("/admin", h.userHasPermission)
 		{
+			admin.POST("/new-moderator")
 			admin.POST("/add-product", h.addProduct)
 			admin.POST("/add-category", h.addCategory)
 			admin.DELETE("/delete-product")

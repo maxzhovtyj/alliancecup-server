@@ -17,6 +17,8 @@ const (
 	signingKey        = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
 	refreshTokenTTL   = 1440 * time.Hour
 	refreshSigningKey = "Sepasd213*99921@@#dsad+-=SXxassd@lLL;"
+	clientRole        = "CLIENT"
+	moderatorRole     = "MODERATOR"
 )
 
 type tokenClaims struct {
@@ -34,7 +36,12 @@ func NewAuthService(repo repository.Authorization) *AuthService {
 }
 func (s *AuthService) CreateUser(user server.User) (int, error) {
 	user.Password = generatePasswordHash(user.Password)
-	return s.repo.CreateUser(user)
+	return s.repo.CreateUser(user, clientRole)
+}
+
+func (s *AuthService) CreateModerator(user server.User) (int, error) {
+	user.Password = generatePasswordHash(user.Password)
+	return s.repo.CreateUser(user, moderatorRole)
 }
 
 func (s *AuthService) GenerateTokens(email, password string) (string, string, error) {

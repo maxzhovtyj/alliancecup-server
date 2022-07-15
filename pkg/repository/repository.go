@@ -7,7 +7,7 @@ import (
 )
 
 type Authorization interface {
-	CreateUser(user server.User) (int, error)
+	CreateUser(user server.User, role string) (int, error)
 	GetUser(email string, password string) (server.User, error)
 	NewSession(session domain.Session) (*domain.Session, error)
 	GetSessionByRefresh(refresh string) (*domain.Session, error)

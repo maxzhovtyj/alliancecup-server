@@ -8,6 +8,7 @@ import (
 
 type Authorization interface {
 	CreateUser(user server.User) (int, error)
+	CreateModerator(user server.User) (int, error)
 	GenerateTokens(email string, password string) (string, string, error)
 	ParseToken(token string) (int, int, error)
 	ParseRefreshToken(refreshToken string) error
