@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -38,15 +39,9 @@ func (h *Handler) userIdentity(ctx *gin.Context) {
 }
 
 func (h *Handler) userHasPermission(ctx *gin.Context) {
-	userRoleId, ok := ctx.Get(userRoleIdCtx)
-	if !ok {
-		newErrorResponse(ctx, http.StatusInternalServerError, "user not found")
-		return
-	}
-
-	userRoleIdInt, ok := userRoleId.(int)
-	if !ok {
-		newErrorResponse(ctx, http.StatusInternalServerError, "user id is of invalid type")
+	userRoleIdInt, err := getUserRoleId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "user role not found or it's wrong type")
 		return
 	}
 
@@ -54,4 +49,49 @@ func (h *Handler) userHasPermission(ctx *gin.Context) {
 		newErrorResponse(ctx, http.StatusForbidden, "access forbidden")
 		return
 	}
+}
+
+func (h *Handler) userAuthorized(ctx *gin.Context) {
+	userRoleId, err := getUserRoleId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "no user role or it's wrong type: "+err.Error())
+		return
+	}
+
+	if userRoleId == 0 {
+		newErrorResponse(ctx, http.StatusUnauthorized, "user unauthorized")
+		return
+	}
+}
+
+func getUserId(ctx *gin.Context) (int, error) {
+	id, ok := ctx.Get(userCtx)
+	if !ok {
+		newErrorResponse(ctx, http.StatusInternalServerError, "userId not found")
+		return 0, errors.New("user id not found")
+	}
+
+	idInt, ok := id.(int)
+	if !ok {
+		newErrorResponse(ctx, http.StatusInternalServerError, "user id is not of type int")
+		return 0, errors.New("user id is not of type int")
+	}
+
+	return idInt, nil
+}
+
+func getUserRoleId(ctx *gin.Context) (int, error) {
+	id, ok := ctx.Get(userRoleIdCtx)
+	if !ok {
+		newErrorResponse(ctx, http.StatusInternalServerError, "role id not found")
+		return 0, errors.New("role id not found")
+	}
+
+	idInt, ok := id.(int)
+	if !ok {
+		newErrorResponse(ctx, http.StatusInternalServerError, "user's role id is not of type int")
+		return 0, errors.New("user's role id is not of type int")
+	}
+
+	return idInt, nil
 }

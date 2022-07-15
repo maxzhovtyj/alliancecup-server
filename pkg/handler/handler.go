@@ -25,6 +25,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api", h.userIdentity)
 	{
+		api.GET("/all-categories")
+		api.GET("/products/:category_id")
+
 		admin := api.Group("/admin", h.userHasPermission)
 		{
 			admin.POST("/add-product", h.addProduct)
@@ -33,14 +36,16 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.DELETE("/delete-category")
 			admin.GET("/all-orders")
 		}
-		client := api.Group("/client")
+
+		orders := api.Group("/orders")
 		{
-			client.GET("/all-categories")
-			client.GET("/products/:category_id")
-			orders := client.Group("/orders")
-			{
-				orders.POST("/new-order")
-			}
+			orders.POST("/new-order")
+		}
+
+		client := api.Group("/client", h.userAuthorized)
+		{
+			client.GET("/users-orders")
+			client.GET("/users-cart")
 		}
 	}
 

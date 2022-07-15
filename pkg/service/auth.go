@@ -13,7 +13,7 @@ import (
 
 const (
 	salt              = "dsadkasdi212312mdmacmxz00"
-	tokenTTL          = 1 * time.Minute
+	tokenTTL          = 30 * time.Minute
 	signingKey        = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
 	refreshTokenTTL   = 1440 * time.Hour
 	refreshSigningKey = "Sepasd213*99921@@#dsad+-=SXxassd@lLL;"

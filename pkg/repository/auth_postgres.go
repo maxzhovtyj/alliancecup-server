@@ -16,14 +16,31 @@ func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
 }
 
 func (a *AuthPostgres) CreateUser(user server.User) (int, error) {
-	var id int
-	query := fmt.Sprintf("INSERT INTO %s (role_id, name, email, password_hash, phone_number) values ($1, $2, $3, $4, $5) RETURNING id", usersTable)
-	row := a.db.QueryRow(query, user.RoleId, user.Name, user.Email, user.Password, user.PhoneNumber)
-
-	if err := row.Scan(&id); err != nil {
+	// Transaction begin
+	tx, err := a.db.Begin()
+	if err != nil {
 		return 0, err
 	}
-	return id, nil
+
+	var id int // variable for user's id
+
+	query := fmt.Sprintf("INSERT INTO %s (role_id, name, email, password_hash, phone_number) values ($1, $2, $3, $4, $5) RETURNING id", usersTable)
+	row := tx.QueryRow(query, user.RoleId, user.Name, user.Email, user.Password, user.PhoneNumber)
+	if err = row.Scan(&id); err != nil {
+		_ = tx.Rollback() // db rollback in error case
+		return 0, err
+	}
+
+	// new user's cart query
+	query = fmt.Sprintf("INSERT INTO %s (user_id) values $1", cartsTable)
+	_, err = tx.Exec(query, id)
+	if err != nil {
+		_ = tx.Rollback() // db rollback in error case
+		return 0, err
+	}
+
+	// return id and transaction commit
+	return id, tx.Commit()
 }
 
 func (a *AuthPostgres) GetUser(email, password string) (server.User, error) {

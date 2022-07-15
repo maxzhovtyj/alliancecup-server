@@ -4,7 +4,7 @@ run:
 
 .PHONY: connectDB
 connectDB:
-		docker exec -it 1e2c0c22b7e5 /bin/bash
+		docker exec -it 774ad2026048 /bin/bash
 
 # new migration files
 # migrate create -ext sql -dir ./schema -seq <migration_name>

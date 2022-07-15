@@ -16,7 +16,6 @@ type Product struct {
 	Characteristic string  `json:"characteristic"`
 	Description    string  `json:"description"`
 	Amount         int     `json:"amount"`
-	InStock        bool    `json:"in_stock"`
 }
 
 type Order struct {
