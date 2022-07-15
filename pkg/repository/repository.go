@@ -7,7 +7,7 @@ import (
 )
 
 type Authorization interface {
-	CreateUser(user server.User, role string) (int, error)
+	CreateUser(user server.User, role string) (int, int, error)
 	GetUser(email string, password string) (server.User, error)
 	NewSession(session domain.Session) (*domain.Session, error)
 	GetSessionByRefresh(refresh string) (*domain.Session, error)
@@ -15,11 +15,12 @@ type Authorization interface {
 }
 
 type Category interface {
-	Create(title string) (int, error)
+	GetAll() ([]server.Category, error)
+	Create(category server.Category) (int, error)
 }
 
 type Products interface {
-	AddProduct(product server.Product) (int, error)
+	AddProduct(product server.Product, info []server.ProductInfo) (int, error)
 }
 
 type Repository struct {

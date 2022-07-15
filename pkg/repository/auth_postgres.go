@@ -15,11 +15,11 @@ func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
 	return &AuthPostgres{db: db}
 }
 
-func (a *AuthPostgres) CreateUser(user server.User, role string) (int, error) {
+func (a *AuthPostgres) CreateUser(user server.User, role string) (int, int, error) {
 	// Transaction begin
 	tx, err := a.db.Begin()
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	var clientId int
@@ -27,16 +27,17 @@ func (a *AuthPostgres) CreateUser(user server.User, role string) (int, error) {
 	row := tx.QueryRow(query, role)
 	if err = row.Scan(&clientId); err != nil {
 		_ = tx.Rollback()
-		return 0, err
+		return 0, 0, err
 	}
 
 	var id int // variable for user's id
+	var userRoleId int
 
-	query = fmt.Sprintf("INSERT INTO %s (role_id, name, email, password_hash, phone_number) values ($1, $2, $3, $4, $5) RETURNING id", usersTable)
+	query = fmt.Sprintf("INSERT INTO %s (role_id, name, email, password_hash, phone_number) values ($1, $2, $3, $4, $5) RETURNING id, role_id", usersTable)
 	row = tx.QueryRow(query, clientId, user.Name, user.Email, user.Password, user.PhoneNumber)
-	if err = row.Scan(&id); err != nil {
+	if err = row.Scan(&id, &userRoleId); err != nil {
 		_ = tx.Rollback() // db rollback in error case
-		return 0, err
+		return 0, 0, err
 	}
 
 	// new user's cart query
@@ -44,11 +45,11 @@ func (a *AuthPostgres) CreateUser(user server.User, role string) (int, error) {
 	_, err = tx.Exec(query, id)
 	if err != nil {
 		_ = tx.Rollback() // db rollback in error case
-		return 0, err
+		return 0, 0, err
 	}
 
 	// return id and transaction commit
-	return id, tx.Commit()
+	return id, userRoleId, tx.Commit()
 }
 
 func (a *AuthPostgres) GetUser(email, password string) (server.User, error) {
@@ -72,9 +73,9 @@ func (a *AuthPostgres) NewSession(session domain.Session) (*domain.Session, erro
 		&newSession.UserId,
 		&newSession.RoleId,
 		&newSession.RefreshToken,
-		&newSession.IsBlocked,
 		&newSession.ClientIp,
 		&newSession.UserAgent,
+		&newSession.IsBlocked,
 		&newSession.ExpiresAt,
 		&newSession.CreatedAt,
 	); err != nil {
@@ -106,9 +107,9 @@ func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*domain.Session, err
 		&session.UserId,
 		&session.RoleId,
 		&session.RefreshToken,
-		&session.IsBlocked,
 		&session.ClientIp,
 		&session.UserAgent,
+		&session.IsBlocked,
 		&session.ExpiresAt,
 		&session.CreatedAt,
 	); err != nil {

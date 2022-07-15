@@ -34,13 +34,14 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		return
 	}
 
-	id, err := h.services.Authorization.CreateUser(input)
+	id, roleId, err := h.services.Authorization.CreateUser(input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
+		"id":      id,
+		"role_id": roleId,
 	})
 }
 
@@ -67,13 +68,14 @@ func (h *Handler) createModerator(ctx *gin.Context) {
 		return
 	}
 
-	id, err := h.services.Authorization.CreateModerator(input)
+	id, roleId, err := h.services.Authorization.CreateModerator(input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
+		"id":      id,
+		"role_id": roleId,
 	})
 }
 
@@ -139,7 +141,6 @@ func (h *Handler) refresh(ctx *gin.Context) {
 	}
 
 	accessToken, err := h.services.Authorization.RefreshAccessToken(input.RefreshToken)
-
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

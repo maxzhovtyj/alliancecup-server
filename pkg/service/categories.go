@@ -1,6 +1,9 @@
 package service
 
-import "allincecup-server/pkg/repository"
+import (
+	server "allincecup-server"
+	"allincecup-server/pkg/repository"
+)
 
 type CategoryService struct {
 	repo repository.Category
@@ -10,8 +13,12 @@ func NewCategoryService(repo repository.Category) *CategoryService {
 	return &CategoryService{repo: repo}
 }
 
-func (c *CategoryService) Create(title string) (int, error) {
-	id, err := c.repo.Create(title)
+func (c *CategoryService) GetAll() ([]server.Category, error) {
+	return c.repo.GetAll()
+}
+
+func (c *CategoryService) Create(category server.Category) (int, error) {
+	id, err := c.repo.Create(category)
 	if err != nil {
 		return 0, err
 	}

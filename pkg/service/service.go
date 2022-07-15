@@ -7,8 +7,8 @@ import (
 )
 
 type Authorization interface {
-	CreateUser(user server.User) (int, error)
-	CreateModerator(user server.User) (int, error)
+	CreateUser(user server.User) (int, int, error)
+	CreateModerator(user server.User) (int, int, error)
 	GenerateTokens(email string, password string) (string, string, error)
 	ParseToken(token string) (int, int, error)
 	ParseRefreshToken(refreshToken string) error
@@ -17,11 +17,12 @@ type Authorization interface {
 }
 
 type Category interface {
-	Create(title string) (int, error)
+	GetAll() ([]server.Category, error)
+	Create(category server.Category) (int, error)
 }
 
 type Products interface {
-	AddProduct(product server.Product) (int, error)
+	AddProduct(product server.Product, info []server.ProductInfo) (int, error)
 }
 
 type Service struct {

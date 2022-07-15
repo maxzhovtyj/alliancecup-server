@@ -25,12 +25,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api", h.userIdentity)
 	{
-		api.GET("/all-categories")
+		api.GET("/all-categories", h.getCategories)
 		api.GET("/products/:category_id")
 
 		admin := api.Group("/admin", h.userHasPermission)
 		{
-			admin.POST("/new-moderator")
+			admin.POST("/new-moderator", h.createModerator)
 			admin.POST("/add-product", h.addProduct)
 			admin.POST("/add-category", h.addCategory)
 			admin.DELETE("/delete-product")

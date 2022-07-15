@@ -13,11 +13,6 @@ func NewProductsService(repo repository.Products) *ProductsService {
 	return &ProductsService{repo: repo}
 }
 
-func (s *ProductsService) AddProduct(product server.Product) (int, error) {
-	id, err := s.repo.AddProduct(product)
-
-	if err != nil {
-		return 0, err
-	}
-	return id, nil
+func (s *ProductsService) AddProduct(product server.Product, info []server.ProductInfo) (int, error) {
+	return s.repo.AddProduct(product, info)
 }

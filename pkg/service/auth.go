@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	salt              = "dsadkasdi212312mdmacmxz00"
-	tokenTTL          = 30 * time.Minute
+	salt = "dsadkasdi212312mdmacmxz00"
+	//tokenTTL          = 30 * time.Minute // RELEASE VERSION
+	tokenTTL          = 120 * time.Minute
 	signingKey        = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
 	refreshTokenTTL   = 1440 * time.Hour
 	refreshSigningKey = "Sepasd213*99921@@#dsad+-=SXxassd@lLL;"
@@ -34,12 +35,12 @@ type AuthService struct {
 func NewAuthService(repo repository.Authorization) *AuthService {
 	return &AuthService{repo: repo}
 }
-func (s *AuthService) CreateUser(user server.User) (int, error) {
+func (s *AuthService) CreateUser(user server.User) (int, int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, clientRole)
 }
 
-func (s *AuthService) CreateModerator(user server.User) (int, error) {
+func (s *AuthService) CreateModerator(user server.User) (int, int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, moderatorRole)
 }
