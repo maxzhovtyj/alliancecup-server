@@ -16,6 +16,7 @@ const (
 	productTypesTable  = "products_types"
 	productsInfoTable  = "products_info"
 	cartsProductsTable = "carts_products"
+	favouritesTable    = "favourites"
 )
 
 type Config struct {

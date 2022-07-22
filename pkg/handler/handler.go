@@ -52,6 +52,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			client.POST("/add-to-cart", h.addToCart)
 			client.GET("/user-cart", h.getFromCartById)
+			client.DELETE("delete-from-cart")
+
+			client.POST("/add-to-favourites", h.addToFavourites)
+			client.GET("/get-favourites", h.getFavourites)
+
 			client.GET("/users-orders")
 		}
 	}

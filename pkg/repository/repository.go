@@ -28,9 +28,11 @@ type Products interface {
 }
 
 type Shopping interface {
-	AddToCart(userId int, info server.ProductOrder) (float64, error)
+	AddToCart(userId int, info server.CartProduct) (float64, error)
 	PriceValidation(productId, quantity int) (float64, error)
-	GetProductsInCart(userId int) ([]server.ProductOrder, error)
+	GetProductsInCart(userId int) ([]server.CartProduct, error)
+	AddToFavourites(userId, productId int) error
+	GetFavourites(userId int) ([]server.Product, error)
 }
 
 type Repository struct {

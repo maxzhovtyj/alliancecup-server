@@ -14,7 +14,7 @@ func NewShoppingService(repo repository.Shopping) *ShoppingService {
 	return &ShoppingService{repo: repo}
 }
 
-func (s *ShoppingService) AddToCart(userId int, info server.ProductOrder) (float64, error) {
+func (s *ShoppingService) AddToCart(userId int, info server.CartProduct) (float64, error) {
 	price, err := s.repo.PriceValidation(info.ProductId, info.Quantity)
 	if err != nil {
 		return 0, err
@@ -27,16 +27,24 @@ func (s *ShoppingService) AddToCart(userId int, info server.ProductOrder) (float
 	return s.repo.AddToCart(userId, info)
 }
 
-func (s *ShoppingService) GetProductsInCart(userId int) ([]server.ProductOrder, float64, error) {
+func (s *ShoppingService) GetProductsInCart(userId int) ([]server.CartProduct, float64, error) {
 	products, err := s.repo.GetProductsInCart(userId)
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	var sum float64
 	for _, e := range products {
 		sum += e.PriceForQuantity
 	}
 
 	return products, sum, err
+}
+
+func (s *ShoppingService) AddToFavourites(userId, productId int) error {
+	return s.repo.AddToFavourites(userId, productId)
+}
+
+func (s *ShoppingService) GetFavourites(userId int) ([]server.Product, error) {
+	return s.repo.GetFavourites(userId)
 }

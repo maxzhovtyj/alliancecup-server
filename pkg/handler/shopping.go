@@ -4,25 +4,26 @@ import (
 	server "allincecup-server"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
-type AddToCartInput struct {
-	UserId  int `json:"user_id"`
-	Product server.ProductOrder
-}
-
 func (h *Handler) addToCart(ctx *gin.Context) {
-	var input AddToCartInput
+	userId, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
+		return
+	}
 
-	if err := ctx.BindJSON(&input); err != nil {
+	var input server.CartProduct
+
+	if err = ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	price, err := h.services.Shopping.AddToCart(input.UserId, input.Product)
+	price, err := h.services.Shopping.AddToCart(userId, input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, map[string]interface{}{
@@ -32,7 +33,11 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 }
 
 func (h *Handler) getFromCartById(ctx *gin.Context) {
-	userId, err := strconv.Atoi(ctx.Query("user_id"))
+	userId, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
+		return
+	}
 
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -48,5 +53,51 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"products": products,
 		"sum":      sum,
+	})
+}
+
+type AddToFavouritesInput struct {
+	ProductId int `json:"product_id"`
+}
+
+func (h *Handler) addToFavourites(ctx *gin.Context) {
+	var input AddToFavouritesInput
+	userId, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
+		return
+	}
+
+	if err = ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = h.services.Shopping.AddToFavourites(userId, input.ProductId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"message": "product added to favourites",
+	})
+}
+
+func (h *Handler) getFavourites(ctx *gin.Context) {
+	userId, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
+		return
+	}
+
+	products, err := h.services.Shopping.GetFavourites(userId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"products": products,
 	})
 }

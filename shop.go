@@ -30,7 +30,7 @@ type ProductInfoDescription struct {
 	Description []ProductInfo `json:"description"`
 }
 
-type ProductOrder struct {
+type CartProduct struct {
 	CartId           int     `json:"-" db:"cart_id"`
 	ProductId        int     `json:"product_id" binding:"required" db:"product_id"`
 	Quantity         int     `json:"quantity" binding:"required" db:"quantity"`
