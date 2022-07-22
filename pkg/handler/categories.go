@@ -58,4 +58,27 @@ func (h *Handler) updateCategory(ctx *gin.Context) {
 	})
 }
 
-func (h *Handler) deleteCategory(ctx *gin.Context) {}
+func (h *Handler) deleteCategory(ctx *gin.Context) {
+	type DeleteCategoryInput struct {
+		Id            int    `json:"id"`
+		CategoryTitle string `json:"category_title"`
+	}
+
+	var input DeleteCategoryInput
+
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.services.Category.Delete(input.Id, input.CategoryTitle)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"id":      input.Id,
+		"message": "deleted",
+	})
+}

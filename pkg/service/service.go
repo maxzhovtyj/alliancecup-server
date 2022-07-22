@@ -20,6 +20,7 @@ type Category interface {
 	GetAll() ([]server.Category, error)
 	Update(category server.Category) (int, error)
 	Create(category server.Category) (int, error)
+	Delete(id int, title string) error
 }
 
 type Products interface {

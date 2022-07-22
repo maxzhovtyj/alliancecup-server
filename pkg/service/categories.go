@@ -28,3 +28,7 @@ func (c *CategoryService) Create(category server.Category) (int, error) {
 	}
 	return id, err
 }
+
+func (c *CategoryService) Delete(id int, title string) error {
+	return c.repo.Delete(id, title)
+}
