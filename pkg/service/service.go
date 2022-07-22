@@ -18,11 +18,15 @@ type Authorization interface {
 
 type Category interface {
 	GetAll() ([]server.Category, error)
+	Update(category server.Category) (int, error)
 	Create(category server.Category) (int, error)
 }
 
 type Products interface {
+	GetProductById(id int) (server.ProductInfoDescription, error)
 	AddProduct(product server.Product, info []server.ProductInfo) (int, error)
+	Update(product server.ProductInfoDescription) (int, error)
+	Delete(productId int) error
 }
 
 type Service struct {

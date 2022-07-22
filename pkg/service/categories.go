@@ -17,6 +17,10 @@ func (c *CategoryService) GetAll() ([]server.Category, error) {
 	return c.repo.GetAll()
 }
 
+func (c *CategoryService) Update(category server.Category) (int, error) {
+	return c.repo.Update(category)
+}
+
 func (c *CategoryService) Create(category server.Category) (int, error) {
 	id, err := c.repo.Create(category)
 	if err != nil {

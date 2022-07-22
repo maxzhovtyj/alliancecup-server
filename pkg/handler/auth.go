@@ -39,7 +39,7 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-	ctx.JSON(http.StatusOK, map[string]interface{}{
+	ctx.JSON(http.StatusCreated, map[string]interface{}{
 		"id":      id,
 		"role_id": roleId,
 	})
@@ -73,7 +73,7 @@ func (h *Handler) createModerator(ctx *gin.Context) {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-	ctx.JSON(http.StatusOK, map[string]interface{}{
+	ctx.JSON(http.StatusCreated, map[string]interface{}{
 		"id":      id,
 		"role_id": roleId,
 	})

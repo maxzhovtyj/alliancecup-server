@@ -21,7 +21,7 @@ CREATE TABLE products
 (
     id serial primary key,
     article varchar(32) not null unique,
-    category_id int references categories(id) on delete cascade not null,
+    category_id int references categories (id) on delete cascade not null,
     product_title varchar(255) not null,
     img_url text,
     type_id int references products_types (id) on delete cascade not null,

@@ -34,10 +34,28 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 		return
 	}
 
+	ctx.JSON(http.StatusCreated, map[string]interface{}{
+		"category_id": id,
+	})
+}
+
+func (h *Handler) updateCategory(ctx *gin.Context) {
+	var input server.Category
+
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := h.services.Category.Update(input)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"category_id": id,
 	})
 }
 
-func (h *Handler) deleteCategory(ctx *gin.Context) {
-}
+func (h *Handler) deleteCategory(ctx *gin.Context) {}

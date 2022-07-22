@@ -16,3 +16,15 @@ func NewProductsService(repo repository.Products) *ProductsService {
 func (s *ProductsService) AddProduct(product server.Product, info []server.ProductInfo) (int, error) {
 	return s.repo.AddProduct(product, info)
 }
+
+func (s *ProductsService) Update(product server.ProductInfoDescription) (int, error) {
+	return s.repo.Update(product)
+}
+
+func (s *ProductsService) Delete(productId int) error {
+	return s.repo.Delete(productId)
+}
+
+func (s *ProductsService) GetProductById(id int) (server.ProductInfoDescription, error) {
+	return s.repo.GetProductById(id)
+}
