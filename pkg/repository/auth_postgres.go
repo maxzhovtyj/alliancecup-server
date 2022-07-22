@@ -2,7 +2,6 @@ package repository
 
 import (
 	server "allincecup-server"
-	"allincecup-server/internal/domain"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 )
@@ -60,8 +59,8 @@ func (a *AuthPostgres) GetUser(email, password string) (server.User, error) {
 	return user, err
 }
 
-func (a *AuthPostgres) NewSession(session domain.Session) (*domain.Session, error) {
-	var newSession domain.Session
+func (a *AuthPostgres) NewSession(session server.Session) (*server.Session, error) {
+	var newSession server.Session
 
 	query := fmt.Sprintf(
 		"INSERT INTO %s (user_id, role_id, refresh_token, client_ip, user_agent, expires_at) values ($1, $2, $3, $4, $5, $6) RETURNING *",
@@ -97,8 +96,8 @@ func (a *AuthPostgres) DeleteSessionByRefresh(refresh string) error {
 	return nil
 }
 
-func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*domain.Session, error) {
-	var session domain.Session
+func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*server.Session, error) {
+	var session server.Session
 	query := fmt.Sprintf("SELECT * from %s WHERE refresh_token=$1 LIMIT 1", sessionsTable)
 	row := a.db.QueryRow(query, refresh)
 

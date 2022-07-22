@@ -2,7 +2,6 @@ package service
 
 import (
 	server "allincecup-server"
-	"allincecup-server/internal/domain"
 	"allincecup-server/pkg/repository"
 )
 
@@ -13,7 +12,7 @@ type Authorization interface {
 	ParseToken(token string) (int, int, error)
 	ParseRefreshToken(refreshToken string) error
 	RefreshAccessToken(refreshToken string) (string, error)
-	CreateNewSession(session *domain.Session) (*domain.Session, error)
+	CreateNewSession(session *server.Session) (*server.Session, error)
 }
 
 type Category interface {
@@ -30,10 +29,16 @@ type Products interface {
 	Delete(productId int) error
 }
 
+type Shopping interface {
+	AddToCart(userId int, info server.ProductOrder) (float64, error)
+	GetProductsInCart(userId int) ([]server.ProductOrder, float64, error)
+}
+
 type Service struct {
 	Authorization
 	Category
 	Products
+	Shopping
 }
 
 func NewService(repos *repository.Repository) *Service {
@@ -41,5 +46,6 @@ func NewService(repos *repository.Repository) *Service {
 		Authorization: NewAuthService(repos.Authorization),
 		Products:      NewProductsService(repos.Products),
 		Category:      NewCategoryService(repos.Category),
+		Shopping:      NewShoppingService(repos.Shopping),
 	}
 }

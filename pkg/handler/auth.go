@@ -2,7 +2,6 @@ package handler
 
 import (
 	server "allincecup-server"
-	"allincecup-server/internal/domain"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/mail"
@@ -104,7 +103,7 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	newSession, err := h.services.CreateNewSession(&domain.Session{
+	newSession, err := h.services.CreateNewSession(&server.Session{
 		UserId:       userId,
 		RoleId:       userRoleId,
 		RefreshToken: refreshToken,

@@ -50,8 +50,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		client := api.Group("/client", h.userAuthorized)
 		{
+			client.POST("/add-to-cart", h.addToCart)
+			client.GET("/user-cart", h.getFromCartById)
 			client.GET("/users-orders")
-			client.GET("/users-cart")
 		}
 	}
 

@@ -2,7 +2,6 @@ package service
 
 import (
 	server "allincecup-server"
-	"allincecup-server/internal/domain"
 	"allincecup-server/pkg/repository"
 	"crypto/sha1"
 	"errors"
@@ -159,7 +158,7 @@ func (s *AuthService) RefreshAccessToken(refreshToken string) (string, error) {
 	return accessToken, nil
 }
 
-func (s *AuthService) CreateNewSession(session *domain.Session) (*domain.Session, error) {
+func (s *AuthService) CreateNewSession(session *server.Session) (*server.Session, error) {
 	newSession, err := s.repo.NewSession(*session)
 	if err != nil {
 		return nil, err

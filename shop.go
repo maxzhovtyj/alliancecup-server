@@ -29,3 +29,10 @@ type ProductInfoDescription struct {
 	Info        Product       `json:"info"`
 	Description []ProductInfo `json:"description"`
 }
+
+type ProductOrder struct {
+	CartId           int     `json:"-" db:"cart_id"`
+	ProductId        int     `json:"product_id" binding:"required" db:"product_id"`
+	Quantity         int     `json:"quantity" binding:"required" db:"quantity"`
+	PriceForQuantity float64 `json:"price_for_quantity" binding:"required" db:"price_for_quantity"`
+}
