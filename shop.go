@@ -1,5 +1,7 @@
 package server
 
+import "time"
+
 type Category struct {
 	Id            int    `json:"id" db:"id"`
 	CategoryTitle string `json:"category_title" binding:"required" db:"category_title"`
@@ -7,16 +9,17 @@ type Category struct {
 }
 
 type Product struct {
-	Id             int     `json:"id" db:"id"`
-	Article        string  `json:"article" db:"article"`
-	CategoryTitle  string  `json:"category_title" db:"category_title"`
-	ProductTitle   string  `json:"product_title" db:"product_title"`
-	ImgUrl         string  `json:"img_url" db:"img_url"`
-	TypeTitle      string  `json:"type_title" db:"type_title"`
-	AmountInStock  float64 `json:"amount_in_stock" db:"amount_in_stock"`
-	Price          float64 `json:"price" db:"price"`
-	UnitsInPackage int     `json:"units_in_package" db:"units_in_package"`
-	PackagesInBox  int     `json:"packages_in_box" db:"packages_in_box"`
+	Id             int       `json:"id" db:"id"`
+	Article        string    `json:"article" db:"article"`
+	CategoryTitle  string    `json:"category_title" db:"category_title"`
+	ProductTitle   string    `json:"product_title" db:"product_title"`
+	ImgUrl         string    `json:"img_url" db:"img_url"`
+	TypeTitle      string    `json:"type_title" db:"type_title"`
+	AmountInStock  float64   `json:"amount_in_stock" db:"amount_in_stock"`
+	Price          float64   `json:"price" db:"price"`
+	UnitsInPackage int       `json:"units_in_package" db:"units_in_package"`
+	PackagesInBox  int       `json:"packages_in_box" db:"packages_in_box"`
+	CreatedAt      time.Time `json:"created_at" db:"created_at"`
 }
 
 type ProductInfo struct {
@@ -35,4 +38,11 @@ type CartProduct struct {
 	ProductId        int     `json:"product_id" binding:"required" db:"product_id"`
 	Quantity         int     `json:"quantity" binding:"required" db:"quantity"`
 	PriceForQuantity float64 `json:"price_for_quantity" binding:"required" db:"price_for_quantity"`
+}
+
+type SearchParams struct {
+	CategoryTitle  string `json:"category_title"`
+	Size           int    `json:"size"`
+	Price          string `json:"price"`
+	Characteristic string `json:"characteristic"`
 }

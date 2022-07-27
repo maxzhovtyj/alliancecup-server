@@ -23,6 +23,8 @@ type Category interface {
 }
 
 type Products interface {
+	Search(searchInput string) ([]server.Product, error)
+	GetWithParams(params server.SearchParams, lastProductCreatedAt, search string) ([]server.Product, error)
 	GetProductById(id int) (server.ProductInfoDescription, error)
 	AddProduct(product server.Product, info []server.ProductInfo) (int, error)
 	Update(product server.ProductInfoDescription) (int, error)

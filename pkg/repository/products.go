@@ -3,7 +3,10 @@ package repository
 import (
 	server "allincecup-server"
 	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	"strconv"
+	"strings"
 )
 
 type ProductsPostgres struct {
@@ -12,6 +15,75 @@ type ProductsPostgres struct {
 
 func NewProductsPostgres(db *sqlx.DB) *ProductsPostgres {
 	return &ProductsPostgres{db: db}
+}
+
+func (p *ProductsPostgres) GetWithParams(params server.SearchParams, createdAt, search string) ([]server.Product, error) {
+	price := strings.Split(params.Price, " ")
+	gtPrice, err := strconv.ParseFloat(price[0], 64)
+	ltPrice, err := strconv.ParseFloat(price[1], 64)
+	if err != nil {
+		return nil, err
+	}
+
+	var categoryId int
+	queryGetCategoryId := fmt.Sprintf("SELECT id FROM %s WHERE category_title=$1", categoriesTable)
+	err = p.db.Get(&categoryId, queryGetCategoryId, params.CategoryTitle)
+	if err != nil {
+		return nil, err
+	}
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	query := psql.Select("products.id, "+
+		"products.article, "+
+		"categories.category_title, "+
+		"products.product_title, "+
+		"products.img_url, "+
+		"products_types.type_title, "+
+		"products.amount_in_stock, "+
+		"products.price, "+
+		"products.units_in_package, "+
+		"products.packages_in_box, "+
+		"products.created_at",
+	).
+		From(
+			"products, "+
+				"categories, "+
+				"products_types",
+		).
+		Where(
+			"products.category_id=categories.id AND products_types.id=products.type_id AND products.category_id=?",
+			categoryId,
+		)
+
+	if createdAt != "" {
+		query = query.Where(sq.Lt{"products.created_at": createdAt})
+	}
+
+	if search != "" {
+		query = query.Where(sq.Like{"products.product_title": "%" + search + "%"})
+	}
+
+	query = query.Where("products.price BETWEEN ? AND ?", gtPrice, ltPrice)
+
+	ordered := query.OrderBy("products.created_at DESC").Limit(9)
+
+	querySql, args, err := ordered.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var products []server.Product
+	err = p.db.Select(&products, querySql, args...)
+
+	return products, err
+}
+
+func (p *ProductsPostgres) Search(searchInput string) ([]server.Product, error) {
+	var products []server.Product
+	querySearch := fmt.Sprintf("SELECT * FROM %s WHERE product_title LIKE $1", productsTable)
+	err := p.db.Select(products, querySearch, searchInput)
+	return products, err
 }
 
 func (p *ProductsPostgres) AddProduct(product server.Product, info []server.ProductInfo) (int, error) {
@@ -140,10 +212,9 @@ func (p *ProductsPostgres) Delete(productId int) error {
 }
 
 func (p *ProductsPostgres) GetProductById(id int) (server.ProductInfoDescription, error) {
-
 	var product server.ProductInfoDescription
 
-	queryGetProduct := fmt.Sprintf("SELECT %s.id, %s.article, %s.category_title, %s.product_title, %s.img_url, %s.type_title, %s.amount_in_stock, %s.price, %s.units_in_package, %s.packages_in_box FROM %s, %s, %s WHERE products.id=$1 AND categories.id=products.category_id AND products_types.id=products.type_id LIMIT 1",
+	queryGetProduct := fmt.Sprintf("SELECT %s.id, %s.article, %s.category_title, %s.product_title, %s.img_url, %s.type_title, %s.amount_in_stock, %s.price, %s.units_in_package, %s.packages_in_box, products.created_at FROM %s, %s, %s WHERE products.id=$1 AND categories.id=products.category_id AND products_types.id=products.type_id LIMIT 1",
 		productsTable, productsTable, categoriesTable, productsTable, productsTable, productTypesTable, productsTable, productsTable, productsTable, productsTable, productsTable, categoriesTable, productTypesTable)
 	err := p.db.Get(&product.Info, queryGetProduct, id)
 	if err != nil {

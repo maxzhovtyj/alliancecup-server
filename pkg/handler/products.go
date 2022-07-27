@@ -5,7 +5,52 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 )
+
+func (h *Handler) getProducts(ctx *gin.Context) {
+	// https://localhost:8080/products?category=1&size=110&type=Гофрований-А&price=5.44:15.2
+
+	searchBar := ctx.Query("search")
+
+	category := ctx.Query("category")
+	if category != "" {
+		if strings.Index(category, "-") != -1 {
+			category = strings.Replace(category, "-", " ", -1)
+		}
+	}
+
+	size, _ := strconv.Atoi(ctx.Query("size"))
+	if size != 0 {
+		//todo some validation
+	}
+
+	price := ctx.Query("price")
+	if price != "" {
+		if strings.Index(price, ":") != -1 {
+			split := strings.Split(price, ":")
+			gt := split[0]
+			lt := split[1]
+			price = gt + " " + lt
+		}
+	} else {
+		price = "0.00 1000.00"
+	}
+
+	createdAt := ctx.Query("created_at")
+
+	params := &server.SearchParams{CategoryTitle: category, Size: size, Price: price}
+
+	products, err := h.services.Products.GetWithParams(*params, createdAt, searchBar)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"data": products,
+	})
+}
 
 func (h *Handler) addProduct(ctx *gin.Context) {
 	var input server.ProductInfoDescription

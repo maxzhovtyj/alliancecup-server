@@ -13,3 +13,7 @@ CREATE TABLE users
     phone_number varchar(20) not null unique,
     role_id int references roles(id) not null
 );
+
+INSERT INTO roles (role_title) VALUES ('CLIENT');
+INSERT INTO roles (role_title) VALUES ('MODERATOR');
+INSERT INTO roles (role_title) VALUES ('SUPER_ADMIN');

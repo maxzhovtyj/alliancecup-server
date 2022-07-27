@@ -26,6 +26,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	api := router.Group("/api", h.userIdentity)
 	{
 		api.GET("/all-categories", h.getCategories)
+		api.GET("/get-products", h.getProducts)
 		api.GET("/product", h.getProductById)
 
 		admin := api.Group("/admin", h.userHasPermission)
