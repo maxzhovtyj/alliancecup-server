@@ -57,6 +57,12 @@ func (s *ShoppingPostgres) GetProductsInCart(userId int) ([]server.CartProduct, 
 	return productsInCart, nil
 }
 
+func (s *ShoppingPostgres) DeleteFromCart(productId int) error {
+	queryDelete := fmt.Sprintf("DELETE FROM %s WHERE product_id=$1", cartsProductsTable)
+	_, err := s.db.Exec(queryDelete, productId)
+	return err
+}
+
 func (s *ShoppingPostgres) AddToFavourites(userId, productId int) error {
 	queryAddToFavourites := fmt.Sprintf("INSERT INTO %s (user_id, product_id) values ($1, $2)", favouritesTable)
 	_, err := s.db.Exec(queryAddToFavourites, userId, productId)

@@ -127,6 +127,27 @@ func (h *Handler) signIn(c *gin.Context) {
 
 }
 
+func (h *Handler) logout(ctx *gin.Context) {
+	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusUnauthorized, "user id not found: "+err.Error())
+		return
+	}
+
+	ctx.Set(userCtx, nil)
+	ctx.Set(userRoleIdCtx, nil)
+
+	err = h.services.Authorization.Logout(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"message": "logged out, session deleted",
+	})
+}
+
 type RefreshTokensInput struct {
 	RefreshToken string `json:"refresh_token"`
 }
@@ -141,6 +162,8 @@ func (h *Handler) refresh(ctx *gin.Context) {
 
 	accessToken, err := h.services.Authorization.RefreshAccessToken(input.RefreshToken)
 	if err != nil {
+		ctx.Set(userCtx, nil)
+		ctx.Set(userRoleIdCtx, nil)
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}

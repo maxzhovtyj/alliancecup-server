@@ -56,6 +56,30 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 	})
 }
 
+func (h *Handler) deleteFromCart(ctx *gin.Context) {
+	type ProductInput struct {
+		Id int `json:"product_id"`
+	}
+
+	var product ProductInput
+
+	if err := ctx.BindJSON(&product); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, "product_id to delete was not found: "+err.Error())
+		return
+	}
+
+	err := h.services.Shopping.DeleteFromCart(product.Id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"id":      product.Id,
+		"message": "deleted from cart",
+	})
+}
+
 type AddToFavouritesInput struct {
 	ProductId int `json:"product_id"`
 }

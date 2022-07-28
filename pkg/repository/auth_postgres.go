@@ -117,3 +117,9 @@ func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*server.Session, err
 
 	return &session, nil
 }
+
+func (a *AuthPostgres) DeleteSessionByUserId(id int) error {
+	queryDeleteSession := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", sessionsTable)
+	_, err := a.db.Exec(queryDeleteSession, id)
+	return err
+}

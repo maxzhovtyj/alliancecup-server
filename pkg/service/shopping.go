@@ -41,6 +41,10 @@ func (s *ShoppingService) GetProductsInCart(userId int) ([]server.CartProduct, f
 	return products, sum, err
 }
 
+func (s *ShoppingService) DeleteFromCart(productId int) error {
+	return s.repo.DeleteFromCart(productId)
+}
+
 func (s *ShoppingService) AddToFavourites(userId, productId int) error {
 	return s.repo.AddToFavourites(userId, productId)
 }

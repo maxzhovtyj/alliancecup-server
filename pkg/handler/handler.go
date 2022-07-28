@@ -46,19 +46,21 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		orders := api.Group("/orders")
 		{
+			orders.GET("/users-orders")
 			orders.POST("/new-order")
 		}
 
 		client := api.Group("/client", h.userAuthorized)
 		{
+			client.DELETE("/logout", h.logout)
+
 			client.POST("/add-to-cart", h.addToCart)
 			client.GET("/user-cart", h.getFromCartById)
-			client.DELETE("delete-from-cart")
+			client.DELETE("/delete-from-cart", h.deleteFromCart)
 
 			client.POST("/add-to-favourites", h.addToFavourites)
 			client.GET("/get-favourites", h.getFavourites)
 
-			client.GET("/users-orders")
 		}
 	}
 

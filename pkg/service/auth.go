@@ -136,6 +136,22 @@ func generatePasswordHash(password string) string {
 func (s *AuthService) RefreshAccessToken(refreshToken string) (string, error) {
 	session, err := s.repo.GetSessionByRefresh(refreshToken)
 
+	if time.Now().After(session.ExpiresAt) {
+		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
+		if err != nil {
+			return "", fmt.Errorf("cannot delete session: " + err.Error())
+		}
+		return "", fmt.Errorf("refresh expired token, session deleted from db")
+	}
+
+	if session.IsBlocked {
+		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
+		if err != nil {
+			return "", fmt.Errorf("cannot delete session: " + err.Error())
+		}
+		return "", fmt.Errorf("session is blocked, session deleted from db")
+	}
+
 	if err != nil {
 		return "", err
 	}
@@ -164,4 +180,8 @@ func (s *AuthService) CreateNewSession(session *server.Session) (*server.Session
 		return nil, err
 	}
 	return newSession, err
+}
+
+func (s *AuthService) Logout(id int) error {
+	return s.repo.DeleteSessionByUserId(id)
 }

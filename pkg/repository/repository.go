@@ -11,6 +11,7 @@ type Authorization interface {
 	NewSession(session server.Session) (*server.Session, error)
 	GetSessionByRefresh(refresh string) (*server.Session, error)
 	DeleteSessionByRefresh(refresh string) error
+	DeleteSessionByUserId(id int) error
 }
 
 type Category interface {
@@ -33,6 +34,7 @@ type Shopping interface {
 	AddToCart(userId int, info server.CartProduct) (float64, error)
 	PriceValidation(productId, quantity int) (float64, error)
 	GetProductsInCart(userId int) ([]server.CartProduct, error)
+	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	GetFavourites(userId int) ([]server.Product, error)
 }
