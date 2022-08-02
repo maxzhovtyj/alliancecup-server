@@ -1,12 +1,12 @@
 package service
 
 import (
-	server "allincecup-server"
-	"allincecup-server/pkg/repository"
 	"crypto/sha1"
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	server "github.com/zh0vtyj/allincecup-server"
+	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 	"time"
 )
 

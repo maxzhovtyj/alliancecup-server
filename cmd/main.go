@@ -1,14 +1,14 @@
 package main
 
 import (
-	server "allincecup-server"
-	"allincecup-server/pkg/handler"
-	"allincecup-server/pkg/repository"
-	"allincecup-server/pkg/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	server "github.com/zh0vtyj/allincecup-server"
+	"github.com/zh0vtyj/allincecup-server/pkg/handler"
+	"github.com/zh0vtyj/allincecup-server/pkg/repository"
+	"github.com/zh0vtyj/allincecup-server/pkg/service"
 	"os"
 )
 
@@ -41,7 +41,7 @@ func main() {
 	handlers := handler.NewHandler(services)
 
 	srv := new(server.Server)
-	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
+	if err = srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
 		logrus.Fatalf("error occured while running http server: %s", err.Error())
 	}
 }

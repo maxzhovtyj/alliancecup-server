@@ -1,6 +1,10 @@
 package server
 
-import "time"
+import (
+	"github.com/google/uuid"
+	_ "github.com/google/uuid"
+	"time"
+)
 
 type Category struct {
 	Id            int    `json:"id" db:"id"`
@@ -45,4 +49,40 @@ type SearchParams struct {
 	Size           int    `json:"size"`
 	Price          string `json:"price"`
 	Characteristic string `json:"characteristic"`
+}
+
+type Order struct {
+	Id                uuid.UUID `json:"-" db:"id"`
+	UserId            int       `json:"-" db:"user_id"`
+	UserLastName      string    `json:"user_lastname"`
+	UserFirstName     string    `json:"user_firstname"`
+	UserMiddleName    string    `json:"user_middle_name"`
+	UserPhoneNumber   string    `json:"user_phone_number"`
+	UserEmail         string    `json:"user_email"`
+	OrderStatus       string    `json:"order_status"`
+	OrderComment      string    `json:"order_comment"`
+	OrderSumPrice     float64   `json:"order_sum_price"`
+	DeliveryTypeTitle string    `json:"delivery_type_title"`
+	PaymentTypeTitle  string    `json:"payment_type_title"`
+	CreatedAt         time.Time `json:"created_at"`
+	ClosedAt          time.Time `json:"closed_at"`
+}
+
+type OrderProducts struct {
+	OrderId          uuid.UUID `json:"-"`
+	ProductId        int       `json:"product_id"`
+	Quantity         int       `json:"quantity"`
+	PriceForQuantity float64   `json:"price_for_quantity"`
+}
+
+type OrdersDelivery struct {
+	OrderId             uuid.UUID `json:"-"`
+	DeliveryTitle       string    `json:"delivery_title"`
+	DeliveryDescription string    `json:"delivery_description"`
+}
+
+type OrderFullInfo struct {
+	Info     Order            `json:"info"`
+	Products []OrderProducts  `json:"products"`
+	Delivery []OrdersDelivery `json:"delivery"`
 }

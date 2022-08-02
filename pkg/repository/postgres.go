@@ -6,17 +6,21 @@ import (
 )
 
 const (
-	usersTable         = "users"
-	rolesTable         = "roles"
-	categoriesTable    = "categories"
-	productsTable      = "products"
-	ordersTable        = "orders"
-	sessionsTable      = "sessions"
-	cartsTable         = "carts"
-	productTypesTable  = "products_types"
-	productsInfoTable  = "products_info"
-	cartsProductsTable = "carts_products"
-	favouritesTable    = "favourites"
+	usersTable          = "users"
+	rolesTable          = "roles"
+	categoriesTable     = "categories"
+	productsTable       = "products"
+	ordersTable         = "orders"
+	sessionsTable       = "sessions"
+	cartsTable          = "carts"
+	productTypesTable   = "products_types"
+	productsInfoTable   = "products_info"
+	cartsProductsTable  = "carts_products"
+	favouritesTable     = "favourites"
+	ordersProductsTable = "orders_products"
+	ordersDeliveryTable = "orders_delivery"
+	deliveryTypesTable  = "delivery_types"
+	paymentTypesTable   = "payment_types"
 )
 
 type Config struct {

@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    build: ./
+    command: ./alliancecup
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    environment:
+      - DB_PASSWORD=30042003
+  db:
+    restart: always
+    image: postgres
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=30042003
+    ports:
+      - 5436:5432

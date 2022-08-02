@@ -1,10 +1,10 @@
 package repository
 
 import (
-	server "allincecup-server"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	server "github.com/zh0vtyj/allincecup-server"
 	"strconv"
 	"strings"
 )

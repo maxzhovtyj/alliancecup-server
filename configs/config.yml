@@ -3,7 +3,9 @@ port: "8000"
 db:
     username: "postgres"
     password: "30042003"
+    # set host to db service name when running a docker compose
     host: "localhost"
+    # set inner docker port (5432 by default)
     port: "5436"
     dbname: "postgres"
     sslMode: "disable"

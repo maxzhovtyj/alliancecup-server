@@ -1,9 +1,9 @@
 package repository
 
 import (
-	server "allincecup-server"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	server "github.com/zh0vtyj/allincecup-server"
 )
 
 type AuthPostgres struct {

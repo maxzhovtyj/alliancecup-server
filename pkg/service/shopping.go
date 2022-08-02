@@ -1,9 +1,9 @@
 package service
 
 import (
-	server "allincecup-server"
-	"allincecup-server/pkg/repository"
 	"errors"
+	server "github.com/zh0vtyj/allincecup-server"
+	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 )
 
 type ShoppingService struct {

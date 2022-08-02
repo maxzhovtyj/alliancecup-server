@@ -1,8 +1,8 @@
 package handler
 
 import (
-	server "allincecup-server"
 	"github.com/gin-gonic/gin"
+	server "github.com/zh0vtyj/allincecup-server"
 	"net/http"
 	"strconv"
 	"strings"

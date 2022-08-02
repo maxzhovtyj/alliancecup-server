@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"allincecup-server/pkg/service"
 	"github.com/gin-gonic/gin"
+	"github.com/zh0vtyj/allincecup-server/pkg/service"
 )
 
 type Handler struct {
@@ -44,14 +44,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.GET("/all-orders")
 		}
 
-		orders := api.Group("/orders")
-		{
-			orders.GET("/users-orders")
-			orders.POST("/new-order")
-		}
+		api.POST("/new-order", h.newOrder)
 
 		client := api.Group("/client", h.userAuthorized)
 		{
+			client.GET("/orders", h.userOrders)
 			client.DELETE("/logout", h.logout)
 
 			client.POST("/add-to-cart", h.addToCart)

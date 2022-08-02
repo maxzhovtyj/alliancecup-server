@@ -1,8 +1,9 @@
 package service
 
 import (
-	server "allincecup-server"
-	"allincecup-server/pkg/repository"
+	"github.com/google/uuid"
+	server "github.com/zh0vtyj/allincecup-server"
+	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 )
 
 type Authorization interface {
@@ -40,11 +41,17 @@ type Shopping interface {
 	GetFavourites(userId int) ([]server.Product, error)
 }
 
+type Orders interface {
+	New(order server.OrderFullInfo) (uuid.UUID, error)
+	GetUserOrders(userId int, createdAt string) ([]server.Order, error)
+}
+
 type Service struct {
 	Authorization
 	Category
 	Products
 	Shopping
+	Orders
 }
 
 func NewService(repos *repository.Repository) *Service {
@@ -53,5 +60,6 @@ func NewService(repos *repository.Repository) *Service {
 		Products:      NewProductsService(repos.Products),
 		Category:      NewCategoryService(repos.Category),
 		Shopping:      NewShoppingService(repos.Shopping),
+		Orders:        NewOrdersService(repos.Orders, repos.Products),
 	}
 }

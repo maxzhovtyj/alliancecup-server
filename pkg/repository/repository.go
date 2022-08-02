@@ -1,8 +1,9 @@
 package repository
 
 import (
-	server "allincecup-server"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	server "github.com/zh0vtyj/allincecup-server"
 )
 
 type Authorization interface {
@@ -39,11 +40,17 @@ type Shopping interface {
 	GetFavourites(userId int) ([]server.Product, error)
 }
 
+type Orders interface {
+	New(order server.OrderFullInfo) (uuid.UUID, error)
+	GetUserOrders(userId int, createdAt string) ([]server.Order, error)
+}
+
 type Repository struct {
 	Authorization
 	Category
 	Products
 	Shopping
+	Orders
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
@@ -52,5 +59,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 		Products:      NewProductsPostgres(db),
 		Category:      NewCategoryPostgres(db),
 		Shopping:      NewShoppingPostgres(db),
+		Orders:        NewOrdersPostgres(db),
 	}
 }
