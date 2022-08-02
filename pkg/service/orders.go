@@ -51,3 +51,11 @@ func (o *OrdersService) New(order server.OrderFullInfo) (uuid.UUID, error) {
 func (o *OrdersService) GetUserOrders(userId int, createdAt string) ([]server.Order, error) {
 	return o.repo.GetUserOrders(userId, createdAt)
 }
+
+func (o *OrdersService) GetOrderById(orderId uuid.UUID) (server.OrderInfo, error) {
+	return o.repo.GetOrderById(orderId)
+}
+
+func (o *OrdersService) GetAdminOrders(status string, lastOrderCreatedAt string) ([]server.Order, error) {
+	return o.repo.GetAdminOrders(status, lastOrderCreatedAt)
+}

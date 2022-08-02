@@ -13,6 +13,12 @@ func NewHandler(services *service.Service) *Handler {
 	return &Handler{services: services}
 }
 
+const (
+	statusInProgress = "IN_PROGRESS"
+	statusProcessed  = "PROCESSED"
+	statusCompleted  = "COMPLETED"
+)
+
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
@@ -41,7 +47,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.PUT("/update-category", h.updateCategory)
 			admin.DELETE("/delete-category", h.deleteCategory)
 
-			admin.GET("/all-orders")
+			admin.GET("/all-orders", h.adminGetOrders)
 		}
 
 		api.POST("/new-order", h.newOrder)
@@ -58,6 +64,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.POST("/add-to-favourites", h.addToFavourites)
 			client.GET("/get-favourites", h.getFavourites)
 
+			client.GET("/get-order", h.getOrderById)
 		}
 	}
 

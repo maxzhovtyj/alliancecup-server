@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	server "github.com/zh0vtyj/allincecup-server"
 	"net/http"
 )
@@ -37,14 +38,14 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 }
 
 func (h *Handler) userOrders(ctx *gin.Context) {
-	id := 1
+	id, err := getUserId(ctx)
 
 	createdAt := ctx.Query("created_at")
 
-	//if err != nil {
-	//	newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
-	//	return
-	//}
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
+		return
+	}
 
 	orders, err := h.services.Orders.GetUserOrders(id, createdAt)
 	if err != nil {
@@ -53,5 +54,45 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"orders": orders,
+	})
+}
+
+func (h *Handler) getOrderById(ctx *gin.Context) {
+	orderId := ctx.Query("order_id")
+
+	orderUUID, err := uuid.Parse(orderId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, "cannot parse uuid: "+err.Error())
+		return
+	}
+
+	orderInfo, err := h.services.Orders.GetOrderById(orderUUID)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"data": orderInfo,
+	})
+}
+
+func (h *Handler) adminGetOrders(ctx *gin.Context) {
+	createdAt := ctx.Query("created_at")
+	orderStatus := ctx.Query("order_status")
+
+	if orderStatus != statusCompleted && orderStatus != statusProcessed && orderStatus != statusInProgress {
+		newErrorResponse(ctx, http.StatusBadRequest, "invalid order status")
+		return
+	}
+
+	orders, err := h.services.Orders.GetAdminOrders(orderStatus, createdAt)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"data": orders,
 	})
 }

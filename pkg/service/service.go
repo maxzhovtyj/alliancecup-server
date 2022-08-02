@@ -44,6 +44,8 @@ type Shopping interface {
 type Orders interface {
 	New(order server.OrderFullInfo) (uuid.UUID, error)
 	GetUserOrders(userId int, createdAt string) ([]server.Order, error)
+	GetOrderById(orderId uuid.UUID) (server.OrderInfo, error)
+	GetAdminOrders(status string, lastOrderCreatedAt string) ([]server.Order, error)
 }
 
 type Service struct {

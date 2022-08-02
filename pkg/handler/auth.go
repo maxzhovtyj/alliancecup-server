@@ -134,8 +134,8 @@ func (h *Handler) logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Set(userCtx, nil)
-	ctx.Set(userRoleIdCtx, nil)
+	ctx.Set(userCtx, 0)
+	ctx.Set(userRoleIdCtx, 0)
 
 	err = h.services.Authorization.Logout(id)
 	if err != nil {
