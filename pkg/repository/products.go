@@ -17,6 +17,20 @@ func NewProductsPostgres(db *sqlx.DB) *ProductsPostgres {
 	return &ProductsPostgres{db: db}
 }
 
+var productsColumnsSelect = []string{
+	"products.id",
+	"products.article",
+	"categories.category_title",
+	"products.product_title",
+	"products.img_url",
+	"products_types.type_title",
+	"products.amount_in_stock",
+	"products.price",
+	"products.units_in_package",
+	"products.packages_in_box",
+	"products.created_at",
+}
+
 func (p *ProductsPostgres) GetWithParams(params server.SearchParams, createdAt, search string) ([]server.Product, error) {
 	price := strings.Split(params.Price, " ")
 	gtPrice, err := strconv.ParseFloat(price[0], 64)
@@ -34,34 +48,23 @@ func (p *ProductsPostgres) GetWithParams(params server.SearchParams, createdAt, 
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	query := psql.Select("products.id, "+
-		"products.article, "+
-		"categories.category_title, "+
-		"products.product_title, "+
-		"products.img_url, "+
-		"products_types.type_title, "+
-		"products.amount_in_stock, "+
-		"products.price, "+
-		"products.units_in_package, "+
-		"products.packages_in_box, "+
-		"products.created_at",
-	).
-		From(
-			"products, "+
-				"categories, "+
-				"products_types",
-		).
-		Where(
-			"products.category_id=categories.id AND products_types.id=products.type_id AND products.category_id=?",
-			categoryId,
-		)
+	query := psql.Select(productsColumnsSelect...).
+		From(productsTable).
+		LeftJoin(categoriesTable+" ON products.category_id=categories.id").
+		LeftJoin(productTypesTable+" ON products_types.id=products.type_id").
+		Where("products.category_id=?", categoryId)
 
 	if createdAt != "" {
 		query = query.Where(sq.Lt{"products.created_at": createdAt})
 	}
-
 	if search != "" {
 		query = query.Where(sq.Like{"products.product_title": "%" + search + "%"})
+	}
+	if params.Size != "" {
+		query = query.Where(sq.Like{"products.product_title": "%" + params.Size + "%"})
+	}
+	if params.Characteristic != "" {
+		query = query.Where(sq.Like{"products.product_title": "%" + params.Characteristic + "%"})
 	}
 
 	query = query.Where("products.price BETWEEN ? AND ?", gtPrice, ltPrice)
