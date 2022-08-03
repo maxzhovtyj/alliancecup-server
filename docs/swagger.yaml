@@ -204,6 +204,7 @@ paths:
       - description: Category
         in: query
         name: category
+        required: true
         type: string
       - description: Size
         in: query
@@ -220,6 +221,10 @@ paths:
       - description: Price
         in: query
         name: price
+        type: string
+      - description: characteristic
+        in: query
+        name: characteristic
         type: string
       - description: Created At
         in: query

@@ -193,7 +193,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Category",
                         "name": "category",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
@@ -217,6 +218,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Price",
                         "name": "price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "characteristic",
+                        "name": "characteristic",
                         "in": "query"
                     },
                     {

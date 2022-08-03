@@ -14,11 +14,12 @@ import (
 // @Description  get products from certain category with params
 // @ID 			 gets products
 // @Produce      json
-// @Param 		 category query string false "Category"
+// @Param 		 category query string true "Category"
 // @Param 	   	 size query int false "Size"
 // @Param 		 type query string false "Type"
 // @Param 		 search query string false "Search"
 // @Param 		 price query string false "Price"
+// @Param 		 characteristic query string false "characteristic"
 // @Param		 created_at query string false "Created At"
 // @Success      200  {array}   server.Product
 // @Failure      400  {object}  Error
