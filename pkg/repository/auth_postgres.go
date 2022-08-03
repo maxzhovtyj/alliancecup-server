@@ -21,10 +21,10 @@ func (a *AuthPostgres) CreateUser(user server.User, role string) (int, int, erro
 		return 0, 0, err
 	}
 
-	var clientId int
+	var clientRoleId int
 	query := fmt.Sprintf("SELECT id FROM %s WHERE role_title=$1", rolesTable)
 	row := tx.QueryRow(query, role)
-	if err = row.Scan(&clientId); err != nil {
+	if err = row.Scan(&clientRoleId); err != nil {
 		_ = tx.Rollback()
 		return 0, 0, err
 	}
@@ -33,7 +33,7 @@ func (a *AuthPostgres) CreateUser(user server.User, role string) (int, int, erro
 	var userRoleId int
 
 	query = fmt.Sprintf("INSERT INTO %s (role_id, name, email, password_hash, phone_number) values ($1, $2, $3, $4, $5) RETURNING id, role_id", usersTable)
-	row = tx.QueryRow(query, clientId, user.Name, user.Email, user.Password, user.PhoneNumber)
+	row = tx.QueryRow(query, clientRoleId, user.Name, user.Email, user.Password, user.PhoneNumber)
 	if err = row.Scan(&id, &userRoleId); err != nil {
 		_ = tx.Rollback() // db rollback in error case
 		return 0, 0, err

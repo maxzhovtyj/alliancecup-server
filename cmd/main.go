@@ -12,6 +12,16 @@ import (
 	"os"
 )
 
+// @title AllianceCup API
+// @version 1.0
+// @description API Server for AllianceCup Application
+
+// @host localhost:8000
+// @BasePath /
+
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 

@@ -19,3 +19,7 @@ migrateUp:
 .PHONY: migrateDown
 migrateDown:
 	migrate -path ./schema -database 'postgres://postgres:30042003@localhost:5436/postgres?sslmode=disable' down
+
+.PHONY: swagInit
+swagInit:
+	swag init -g cmd/main.go

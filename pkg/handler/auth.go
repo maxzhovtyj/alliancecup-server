@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	server "github.com/zh0vtyj/allincecup-server"
+	_ "github.com/zh0vtyj/allincecup-server/docs"
 	"net/http"
 	"net/mail"
 	"time"
@@ -10,6 +11,19 @@ import (
 
 const refreshTokenTTL = 1440 * time.Hour
 
+// signUp godoc
+// @Summary      SignUp
+// @Tags         auth
+// @Description  registers a new user
+// @ID create account
+// @Accept       json
+// @Produce      json
+// @Param        input body server.User true "account info"
+// @Success      200  {integer}   integer 2
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /auth/sign-up [post]
 func (h *Handler) signUp(ctx *gin.Context) {
 	var input server.User
 
@@ -44,6 +58,20 @@ func (h *Handler) signUp(ctx *gin.Context) {
 	})
 }
 
+// createModerator godoc
+// @Summary      CreateModerator
+// @Security ApiKeyAuth
+// @Tags         api/admin
+// @Description  registers a new moderator
+// @ID create account for moderator
+// @Accept       json
+// @Produce      json
+// @Param        input body server.User true "account info"
+// @Success      200  {integer}   integer 2
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/new-moderator [post]
 func (h *Handler) createModerator(ctx *gin.Context) {
 	var input server.User
 
@@ -78,13 +106,21 @@ func (h *Handler) createModerator(ctx *gin.Context) {
 	})
 }
 
-type signInInput struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
+// signIn godoc
+// @Summary      SignIn
+// @Tags         auth
+// @Description  signs in account
+// @ID sign-in account
+// @Accept       json
+// @Produce      json
+// @Param        input body server.SignInInput true "sign in account info"
+// @Success      200  {integer}   string 4
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /auth/sign-in [post]
 func (h *Handler) signIn(c *gin.Context) {
-	var input signInInput
+	var input server.SignInInput
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -127,6 +163,20 @@ func (h *Handler) signIn(c *gin.Context) {
 
 }
 
+// logout godoc
+// @Summary      Logout
+// @Security 	 ApiKeyAuth
+// @Tags         api/client
+// @Description  ends session
+// @ID logout from account
+// @Accept       json
+// @Produce      json
+// @Param        input body server.User true "account info"
+// @Success      200  {integer} string 1
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /auth/sign-up [delete]
 func (h *Handler) logout(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {
@@ -152,6 +202,20 @@ type RefreshTokensInput struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// refresh godoc
+// @Summary      Refresh
+// @Security ApiKeyAuth
+// @Tags         api/client
+// @Description  Gets a new access using refreshToken
+// @ID refreshToken from account
+// @Accept       json
+// @Produce      json
+// @Param        input body handler.RefreshTokensInput true "refresh token"
+// @Success      200  {integer}   string 1
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/refresh [post]
 func (h *Handler) refresh(ctx *gin.Context) {
 	var input RefreshTokensInput
 

@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+type SignInInput struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 type Category struct {
 	Id            int    `json:"id" db:"id"`
 	CategoryTitle string `json:"category_title" binding:"required" db:"category_title"`

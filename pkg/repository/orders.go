@@ -259,6 +259,10 @@ func (o *OrdersPostgres) GetAdminOrders(status string, lastOrderCreatedAt string
 		LeftJoin(paymentTypesTable + " ON orders.payment_type_id=payment_types.id").
 		Where(sq.Eq{"orders.order_status": status})
 
+	var s []int
+
+	s = append(s, 1)
+
 	if lastOrderCreatedAt != "" {
 		queryOrders = queryOrders.Where(sq.Lt{"orders.created_at": lastOrderCreatedAt})
 	}

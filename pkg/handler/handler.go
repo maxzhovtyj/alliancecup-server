@@ -2,6 +2,9 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"       // swagger embed files
+	"github.com/swaggo/gin-swagger" // gin-swagger middleware
+	_ "github.com/zh0vtyj/allincecup-server/docs"
 	"github.com/zh0vtyj/allincecup-server/pkg/service"
 )
 
@@ -22,11 +25,12 @@ const (
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	auth := router.Group("/auth")
 	{
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
-		auth.POST("/refresh", h.refresh)
 	}
 
 	api := router.Group("/api", h.userIdentity)
@@ -54,8 +58,10 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		client := api.Group("/client", h.userAuthorized)
 		{
-			client.GET("/orders", h.userOrders)
+			client.POST("/refresh", h.refresh)
 			client.DELETE("/logout", h.logout)
+
+			client.GET("/orders", h.userOrders)
 
 			client.POST("/add-to-cart", h.addToCart)
 			client.GET("/user-cart", h.getFromCartById)
