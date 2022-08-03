@@ -37,10 +37,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 		}
 	}
 
-	size, _ := strconv.Atoi(ctx.Query("size"))
-	if size != 0 {
-		//todo some validation
-	}
+	size := ctx.Query("size")
 
 	price := ctx.Query("price")
 	if price != "" {
@@ -56,7 +53,13 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 
 	createdAt := ctx.Query("created_at")
 
-	params := &server.SearchParams{CategoryTitle: category, Size: size, Price: price}
+	characteristic := ctx.Query("characteristic")
+
+	params := &server.SearchParams{
+		CategoryTitle: category,
+		Size:          size, Price: price,
+		Characteristic: characteristic,
+	}
 
 	products, err := h.services.Products.GetWithParams(*params, createdAt, searchBar)
 	if err != nil {

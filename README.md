@@ -1,4 +1,4 @@
-# Allincecup server
+# AllinceCup server
 AllianceCup online shop golang backend
 
 * To run the server on port 8000:  

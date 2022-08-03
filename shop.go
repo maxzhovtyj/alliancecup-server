@@ -52,7 +52,7 @@ type CartProduct struct {
 
 type SearchParams struct {
 	CategoryTitle  string `json:"category_title"`
-	Size           int    `json:"size"`
+	Size           string `json:"size"`
 	Price          string `json:"price"`
 	Characteristic string `json:"characteristic"`
 }
