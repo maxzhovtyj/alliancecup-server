@@ -19,7 +19,7 @@ const refreshTokenTTL = 1440 * time.Hour
 // @Accept       json
 // @Produce      json
 // @Param        input body server.User true "account info"
-// @Success      200  {integer}   integer 2
+// @Success      200  {integer} integer 2
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -67,7 +67,7 @@ func (h *Handler) signUp(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        input body server.User true "account info"
-// @Success      200  {integer}   integer 2
+// @Success      200  {integer} integer 2
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -169,10 +169,9 @@ func (h *Handler) signIn(c *gin.Context) {
 // @Tags         api/client
 // @Description  ends session
 // @ID logout from account
-// @Accept       json
 // @Produce      json
 // @Param        input body server.User true "account info"
-// @Success      200  {integer} string 1
+// @Success      200  {string}  string
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error

@@ -8,8 +8,25 @@ import (
 	"strings"
 )
 
+// getProducts godoc
+// @Summary      GetProducts
+// @Tags         api
+// @Description  get products from certain category with params
+// @ID 			 gets products
+// @Produce      json
+// @Param 		 category query string false "Category"
+// @Param 	   	 size query int false "Size"
+// @Param 		 type query string false "Type"
+// @Param 		 search query string false "Search"
+// @Param 		 price query string false "Price"
+// @Param		 created_at query string false "Created At"
+// @Success      200  {array}   server.Product
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/get-products [get]
 func (h *Handler) getProducts(ctx *gin.Context) {
-	// https://localhost:8080/products?category=1&size=110&type=Гофрований-А&price=5.44:15.2
+	// https://localhost:8080/products?category=Одноразові-Стакани&size=110&type=Гофрований-А&price=5.44:15.2
 
 	searchBar := ctx.Query("search")
 

@@ -10,6 +10,53 @@ definitions:
       refresh_token:
         type: string
     type: object
+  server.Category:
+    properties:
+      category_title:
+        type: string
+      id:
+        type: integer
+      img_url:
+        type: string
+    required:
+    - category_title
+    - img_url
+    type: object
+  server.Product:
+    properties:
+      amount_in_stock:
+        example: 120
+        type: number
+      article:
+        example: "000123"
+        type: string
+      category_title:
+        example: Одноразові стакани
+        type: string
+      created_at:
+        type: string
+      id:
+        example: 5
+        type: integer
+      img_url:
+        example: https://google-images.com/some-img123
+        type: string
+      packages_in_box:
+        example: 50
+        type: integer
+      price:
+        example: 3.75
+        type: number
+      product_title:
+        example: Стакан одноразовий Крафт 110мл
+        type: string
+      type_title:
+        example: Стакан
+        type: string
+      units_in_package:
+        example: 30
+        type: integer
+    type: object
   server.SignInInput:
     properties:
       email:
@@ -82,6 +129,36 @@ paths:
       summary: CreateModerator
       tags:
       - api/admin
+  /api/all-categories:
+    get:
+      consumes:
+      - application/json
+      description: get all categories
+      operationId: get categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/server.Category'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: GetCategories
+      tags:
+      - api
   /api/client/refresh:
     post:
       consumes:
@@ -119,6 +196,59 @@ paths:
       summary: Refresh
       tags:
       - api/client
+  /api/get-products:
+    get:
+      description: get products from certain category with params
+      operationId: gets products
+      parameters:
+      - description: Category
+        in: query
+        name: category
+        type: string
+      - description: Size
+        in: query
+        name: size
+        type: integer
+      - description: Type
+        in: query
+        name: type
+        type: string
+      - description: Search
+        in: query
+        name: search
+        type: string
+      - description: Price
+        in: query
+        name: price
+        type: string
+      - description: Created At
+        in: query
+        name: created_at
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/server.Product'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: GetProducts
+      tags:
+      - api
   /auth/sign-in:
     post:
       consumes:
@@ -156,8 +286,6 @@ paths:
       - auth
   /auth/sign-up:
     delete:
-      consumes:
-      - application/json
       description: ends session
       operationId: logout from account
       parameters:
@@ -173,7 +301,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: integer
+            type: string
         "400":
           description: Bad Request
           schema:

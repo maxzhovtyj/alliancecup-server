@@ -19,16 +19,16 @@ type Category struct {
 }
 
 type Product struct {
-	Id             int       `json:"id" db:"id"`
-	Article        string    `json:"article" db:"article"`
-	CategoryTitle  string    `json:"category_title" db:"category_title"`
-	ProductTitle   string    `json:"product_title" db:"product_title"`
-	ImgUrl         string    `json:"img_url" db:"img_url"`
-	TypeTitle      string    `json:"type_title" db:"type_title"`
-	AmountInStock  float64   `json:"amount_in_stock" db:"amount_in_stock"`
-	Price          float64   `json:"price" db:"price"`
-	UnitsInPackage int       `json:"units_in_package" db:"units_in_package"`
-	PackagesInBox  int       `json:"packages_in_box" db:"packages_in_box"`
+	Id             int       `json:"id" db:"id" example:"5"`
+	Article        string    `json:"article" db:"article" example:"000123"`
+	CategoryTitle  string    `json:"category_title" db:"category_title" example:"Одноразові стакани"`
+	ProductTitle   string    `json:"product_title" db:"product_title" example:"Стакан одноразовий Крафт 110мл"`
+	ImgUrl         string    `json:"img_url" db:"img_url" example:"https://google-images.com/some-img123"`
+	TypeTitle      string    `json:"type_title" db:"type_title" example:"Стакан"`
+	AmountInStock  float64   `json:"amount_in_stock" db:"amount_in_stock" example:"120"`
+	Price          float64   `json:"price" db:"price" example:"3.75"`
+	UnitsInPackage int       `json:"units_in_package" db:"units_in_package" example:"30"`
+	PackagesInBox  int       `json:"packages_in_box" db:"packages_in_box" example:"50"`
 	CreatedAt      time.Time `json:"created_at" db:"created_at"`
 }
 

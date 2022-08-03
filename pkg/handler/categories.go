@@ -10,6 +10,18 @@ type allCategoriesResponse struct {
 	Data []server.Category `json:"data"`
 }
 
+// getCategories godoc
+// @Summary      GetCategories
+// @Tags         api
+// @Description  get all categories
+// @ID get categories
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   server.Category
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/all-categories [get]
 func (h *Handler) getCategories(ctx *gin.Context) {
 	categories, err := h.services.Category.GetAll()
 	if err != nil {

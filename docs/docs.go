@@ -74,6 +74,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/all-categories": {
+            "get": {
+                "description": "get all categories",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "GetCategories",
+                "operationId": "get categories",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/server.Category"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/client/refresh": {
             "post": {
                 "security": [
@@ -109,6 +154,86 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/get-products": {
+            "get": {
+                "description": "get products from certain category with params",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "GetProducts",
+                "operationId": "gets products",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Size",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Price",
+                        "name": "price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created At",
+                        "name": "created_at",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/server.Product"
+                            }
                         }
                     },
                     "400": {
@@ -244,9 +369,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "ends session",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -270,7 +392,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -309,6 +431,72 @@ const docTemplate = `{
             "properties": {
                 "refresh_token": {
                     "type": "string"
+                }
+            }
+        },
+        "server.Category": {
+            "type": "object",
+            "required": [
+                "category_title",
+                "img_url"
+            ],
+            "properties": {
+                "category_title": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "img_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.Product": {
+            "type": "object",
+            "properties": {
+                "amount_in_stock": {
+                    "type": "number",
+                    "example": 120
+                },
+                "article": {
+                    "type": "string",
+                    "example": "000123"
+                },
+                "category_title": {
+                    "type": "string",
+                    "example": "Одноразові стакани"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "img_url": {
+                    "type": "string",
+                    "example": "https://google-images.com/some-img123"
+                },
+                "packages_in_box": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "price": {
+                    "type": "number",
+                    "example": 3.75
+                },
+                "product_title": {
+                    "type": "string",
+                    "example": "Стакан одноразовий Крафт 110мл"
+                },
+                "type_title": {
+                    "type": "string",
+                    "example": "Стакан"
+                },
+                "units_in_package": {
+                    "type": "integer",
+                    "example": 30
                 }
             }
         },
