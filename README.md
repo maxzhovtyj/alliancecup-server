@@ -6,6 +6,11 @@ AllianceCup online shop golang backend
 $ make run
 ```
 
+* Swagger documentation
+```
+localhost:8000/swagger/index.html
+```
+
 * Connection to DB (Postgresql):  
 ```
 $ make connectDB
