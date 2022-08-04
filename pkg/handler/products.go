@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+type ProductIdInput struct {
+	Id int `json:"id"`
+}
+
 // getProducts godoc
 // @Summary      GetProducts
 // @Tags         api
@@ -73,6 +77,20 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 	})
 }
 
+// addProduct godoc
+// @Summary      AddProduct
+// @Security 	 ApiKeyAuth
+// @Tags         api/admin
+// @Description  Adds a new product
+// @ID 			 adds product
+// @Accept 	     json
+// @Produce      json
+// @Param        input body server.ProductInfoDescription true "product info"
+// @Success      200  {object}  handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/add-product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
 	var input server.ProductInfoDescription
 
@@ -87,12 +105,24 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, map[string]interface{}{
-		"id":      id,
-		"message": "product added",
+	ctx.JSON(http.StatusCreated, ItemProcessedResponse{
+		Id:      id,
+		Message: "product added",
 	})
 }
 
+// getProductById godoc
+// @Summary      GetProductById
+// @Tags         api
+// @Description  get product full info by its id
+// @ID 			 gets full product info
+// @Produce      json
+// @Param 		 id query int true "Product id"
+// @Success      200  {object}  server.ProductInfoDescription
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/product [get]
 func (h *Handler) getProductById(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Query("id"))
 
@@ -110,6 +140,20 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, product)
 }
 
+// updateProduct godoc
+// @Summary      UpdateProduct
+// @Security 	 ApiKeyAuth
+// @Tags         api/admin
+// @Description  Updates product
+// @ID 			 updates product
+// @Accept 	     json
+// @Produce      json
+// @Param        input body server.ProductInfoDescription true "product info"
+// @Success      200  {object}  handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/update-product [put]
 func (h *Handler) updateProduct(ctx *gin.Context) {
 	var input server.ProductInfoDescription
 
@@ -124,17 +168,27 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"product_id": id,
-		"message":    "product updated",
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      id,
+		Message: "product updated",
 	})
 }
 
+// deleteProduct godoc
+// @Summary      DeleteProduct
+// @Security 	 ApiKeyAuth
+// @Tags         api/admin
+// @Description  Deletes product
+// @ID 			 delete product
+// @Accept 	     json
+// @Produce      json
+// @Param        input body handler.ProductIdInput true "product id"
+// @Success      200  {object}  handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/delete-product [delete]
 func (h *Handler) deleteProduct(ctx *gin.Context) {
-	type ProductIdInput struct {
-		Id int `json:"id"`
-	}
-
 	var input ProductIdInput
 
 	err := ctx.BindJSON(&input)
@@ -149,8 +203,8 @@ func (h *Handler) deleteProduct(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"id":      input.Id,
-		"message": "deleted",
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      input.Id,
+		Message: "product deleted",
 	})
 }

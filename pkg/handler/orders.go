@@ -77,6 +77,21 @@ func (h *Handler) getOrderById(ctx *gin.Context) {
 	})
 }
 
+// adminGetOrders godoc
+// @Security 	 ApiKeyAuth
+// @Summary      Get Orders
+// @Tags         api/admin
+// @Description  get orders by status
+// @ID get orders
+// @Accept       json
+// @Produce      json
+// @Param created_at query string false "Last item created at for pagination"
+// @Param order_status query string true "Sort by orders status"
+// @Success      200  {array} server.Order
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/all-orders [get]
 func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	createdAt := ctx.Query("created_at")
 	orderStatus := ctx.Query("order_status")

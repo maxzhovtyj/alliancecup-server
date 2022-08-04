@@ -16,6 +16,303 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/add-category": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Adds a new category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "AddCategory",
+                "operationId": "adds category",
+                "parameters": [
+                    {
+                        "description": "category info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.Category"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/add-product": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Adds a new product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "AddProduct",
+                "operationId": "adds product",
+                "parameters": [
+                    {
+                        "description": "product info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.ProductInfoDescription"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/all-orders": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get orders by status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "Get Orders",
+                "operationId": "get orders",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Last item created at for pagination",
+                        "name": "created_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort by orders status",
+                        "name": "order_status",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/server.Order"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/delete-category": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "DeleteCategory",
+                "operationId": "deletes category",
+                "parameters": [
+                    {
+                        "description": "category info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.DeleteCategoryInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/delete-product": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "DeleteProduct",
+                "operationId": "delete product",
+                "parameters": [
+                    {
+                        "description": "product id",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.ProductIdInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/new-moderator": {
             "post": {
                 "security": [
@@ -74,6 +371,122 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/update-category": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "UpdateCategory",
+                "operationId": "updates category",
+                "parameters": [
+                    {
+                        "description": "category info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.Category"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/update-product": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "UpdateProduct",
+                "operationId": "updates product",
+                "parameters": [
+                    {
+                        "description": "product info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.ProductInfoDescription"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/all-categories": {
             "get": {
                 "description": "get all categories",
@@ -92,10 +505,62 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/server.Category"
-                            }
+                            "$ref": "#/definitions/handler.allCategoriesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/client/logout": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "ends session",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/client"
+                ],
+                "summary": "Logout",
+                "operationId": "logout from account",
+                "parameters": [
+                    {
+                        "description": "account info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -264,6 +729,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/product": {
+            "get": {
+                "description": "get product full info by its id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "GetProductById",
+                "operationId": "gets full product info",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Product id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.ProductInfoDescription"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/sign-in": {
             "post": {
                 "description": "signs in account",
@@ -368,63 +881,21 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "ends session",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api/client"
-                ],
-                "summary": "Logout",
-                "operationId": "logout from account",
-                "parameters": [
-                    {
-                        "description": "account info",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
             }
         }
     },
     "definitions": {
+        "handler.DeleteCategoryInput": {
+            "type": "object",
+            "properties": {
+                "category_title": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "handler.Error": {
             "type": "object",
             "properties": {
@@ -433,11 +904,41 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.ItemProcessedResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.ProductIdInput": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "handler.RefreshTokensInput": {
             "type": "object",
             "properties": {
                 "refresh_token": {
                     "type": "string"
+                }
+            }
+        },
+        "handler.allCategoriesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/server.Category"
+                    }
                 }
             }
         },
@@ -455,6 +956,44 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "img_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.Order": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "delivery_type_title": {
+                    "type": "string"
+                },
+                "order_comment": {
+                    "type": "string"
+                },
+                "order_status": {
+                    "type": "string"
+                },
+                "order_sum_price": {
+                    "type": "number"
+                },
+                "payment_type_title": {
+                    "type": "string"
+                },
+                "user_email": {
+                    "type": "string"
+                },
+                "user_firstname": {
+                    "type": "string"
+                },
+                "user_lastname": {
+                    "type": "string"
+                },
+                "user_middle_name": {
+                    "type": "string"
+                },
+                "user_phone_number": {
                     "type": "string"
                 }
             }
@@ -504,6 +1043,37 @@ const docTemplate = `{
                 "units_in_package": {
                     "type": "integer",
                     "example": 30
+                }
+            }
+        },
+        "server.ProductInfo": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Білий"
+                },
+                "info_title": {
+                    "type": "string",
+                    "example": "Колір"
+                },
+                "product_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "server.ProductInfoDescription": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/server.ProductInfo"
+                    }
+                },
+                "info": {
+                    "$ref": "#/definitions/server.Product"
                 }
             }
         },

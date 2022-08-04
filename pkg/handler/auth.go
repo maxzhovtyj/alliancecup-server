@@ -175,7 +175,7 @@ func (h *Handler) signIn(c *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /auth/sign-up [delete]
+// @Router       /api/client/logout [delete]
 func (h *Handler) logout(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {

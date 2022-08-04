@@ -33,9 +33,9 @@ type Product struct {
 }
 
 type ProductInfo struct {
-	ProductId   int    `json:"product_id" db:"product_id"`
-	InfoTitle   string `json:"info_title" db:"info_title"`
-	Description string `json:"description" db:"description"`
+	ProductId   int    `json:"product_id" db:"product_id" example:"1"`
+	InfoTitle   string `json:"info_title" db:"info_title" example:"Колір"`
+	Description string `json:"description" db:"description" example:"Білий"`
 }
 
 type ProductInfoDescription struct {
@@ -57,22 +57,6 @@ type SearchParams struct {
 	Characteristic string `json:"characteristic"`
 }
 
-type ProductWithParams struct {
-	Id             int       `json:"id" db:"id" example:"5"`
-	Article        string    `json:"article" db:"article" example:"000123"`
-	CategoryTitle  string    `json:"category_title" db:"category_title" example:"Одноразові стакани"`
-	ProductTitle   string    `json:"product_title" db:"product_title" example:"Стакан одноразовий Крафт 110мл"`
-	ImgUrl         string    `json:"img_url" db:"img_url" example:"https://google-images.com/some-img123"`
-	TypeTitle      string    `json:"type_title" db:"type_title" example:"Стакан"`
-	AmountInStock  float64   `json:"amount_in_stock" db:"amount_in_stock" example:"120"`
-	Price          float64   `json:"price" db:"price" example:"3.75"`
-	UnitsInPackage int       `json:"units_in_package" db:"units_in_package" example:"30"`
-	PackagesInBox  int       `json:"packages_in_box" db:"packages_in_box" example:"50"`
-	CreatedAt      time.Time `json:"created_at" db:"created_at"`
-	Size           int       `json:"size" db:"size"`
-	Description    string    `json:"description" db:"description"`
-}
-
 type Order struct {
 	Id                uuid.UUID    `json:"-" db:"id"`
 	UserId            int          `json:"-" db:"user_id"`
@@ -87,7 +71,7 @@ type Order struct {
 	DeliveryTypeTitle string       `json:"delivery_type_title" db:"delivery_type_title"`
 	PaymentTypeTitle  string       `json:"payment_type_title" db:"payment_type_title"`
 	CreatedAt         time.Time    `json:"created_at" db:"created_at"`
-	ClosedAt          sql.NullTime `json:"closed_at" db:"closed_at"`
+	ClosedAt          sql.NullTime `json:"-" db:"closed_at"`
 }
 
 type OrderProducts struct {
