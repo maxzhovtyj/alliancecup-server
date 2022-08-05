@@ -84,8 +84,15 @@ func (p *ProductsPostgres) GetWithParams(params server.SearchParams, createdAt, 
 
 func (p *ProductsPostgres) Search(searchInput string) ([]server.Product, error) {
 	var products []server.Product
-	querySearch := fmt.Sprintf("SELECT * FROM %s WHERE product_title LIKE $1", productsTable)
-	err := p.db.Select(products, querySearch, searchInput)
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	querySearch, args, err := psql.Select(productsColumnsSelect...).
+		From(productsTable).
+		LeftJoin(categoriesTable + " ON categories.id=products.category_id").
+		LeftJoin(productTypesTable + " ON products_types.id=products.type_id").
+		Where(sq.Like{"products.product_title": "%" + searchInput + "%"}).
+		ToSql()
+
+	err = p.db.Select(&products, querySearch, args...)
 	return products, err
 }
 
