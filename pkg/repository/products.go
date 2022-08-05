@@ -217,9 +217,15 @@ func (p *ProductsPostgres) Delete(productId int) error {
 func (p *ProductsPostgres) GetProductById(id int) (server.ProductInfoDescription, error) {
 	var product server.ProductInfoDescription
 
-	queryGetProduct := fmt.Sprintf("SELECT %s.id, %s.article, %s.category_title, %s.product_title, %s.img_url, %s.type_title, %s.amount_in_stock, %s.price, %s.units_in_package, %s.packages_in_box, products.created_at FROM %s, %s, %s WHERE products.id=$1 AND categories.id=products.category_id AND products_types.id=products.type_id LIMIT 1",
-		productsTable, productsTable, categoriesTable, productsTable, productsTable, productTypesTable, productsTable, productsTable, productsTable, productsTable, productsTable, categoriesTable, productTypesTable)
-	err := p.db.Get(&product.Info, queryGetProduct, id)
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	queryGetProduct, args, err := psql.Select(productsColumnsSelect...).
+		From(productsTable).
+		LeftJoin(categoriesTable + " ON categories.id=products.category_id").
+		LeftJoin(productTypesTable + " ON products_types.id=products.type_id").
+		Where(sq.Eq{"products.id": id}).ToSql()
+
+	err = p.db.Get(&product.Info, queryGetProduct, args...)
 	if err != nil {
 		return server.ProductInfoDescription{}, err
 	}
