@@ -154,6 +154,9 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
+	//domain := viper.Get("host").(string)
+	//c.SetCookie("token", accessToken, 10, "/", domain, true, true)
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"access_token":       accessToken,
 		"refresh_token":      refreshToken,

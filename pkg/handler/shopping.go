@@ -6,6 +6,19 @@ import (
 	"net/http"
 )
 
+// addToCart godoc
+// @Summary      AddToCart
+// @Tags         api/client
+// @Description  adds a product to a cart
+// @ID adds a product to a cart
+// @Accept       json
+// @Produce      json
+// @Param        input body server.CartProduct true "product info"
+// @Success      200  {object}  string 2
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/add-to-cart [post]
 func (h *Handler) addToCart(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
 	if err != nil {
@@ -32,15 +45,26 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 	})
 }
 
+type CartProductsResponse struct {
+	Products []server.CartProduct `json:"products"`
+	Sum      float64              `json:"sum"`
+}
+
+// getFromCart godoc
+// @Summary      GetProductsInCart
+// @Tags         api/client
+// @Description  gets products from a cart
+// @ID gets products from a cart
+// @Produce      json
+// @Success      200  {object}  handler.CartProductsResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/user-cart [get]
 func (h *Handler) getFromCartById(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
-		return
-	}
-
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		newErrorResponse(ctx, http.StatusUnauthorized, "no user's id")
 		return
 	}
 
@@ -50,9 +74,9 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"products": products,
-		"sum":      sum,
+	ctx.JSON(http.StatusOK, CartProductsResponse{
+		Products: products,
+		Sum:      sum,
 	})
 }
 

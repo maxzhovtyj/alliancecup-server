@@ -7,6 +7,24 @@ import (
 	"net/http"
 )
 
+type OrderResponse struct {
+	Id      uuid.UUID `json:"id"`
+	Message string    `json:"message"`
+}
+
+// newOrder godoc
+// @Summary      NewOrder
+// @Tags         api
+// @Description  creates a new order
+// @ID creates an order
+// @Accept       json
+// @Produce      json
+// @Param        input body server.OrderFullInfo true "order info"
+// @Success      200  {object}  handler.OrderResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/new-order [post]
 func (h *Handler) newOrder(ctx *gin.Context) {
 	var input server.OrderFullInfo
 
@@ -31,12 +49,26 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, map[string]interface{}{
-		"order_id": orderId,
-		"message":  "order created",
+	ctx.JSON(http.StatusCreated, OrderResponse{
+		Id:      orderId,
+		Message: "order created",
 	})
 }
 
+// userOrders godoc
+// @Summary      GetUserOrders
+// @Security 	 ApiKeyAuth
+// @Tags         api/client
+// @Description  gets user orders
+// @ID gets orders
+// @Accept       json
+// @Produce      json
+// @Param        created_at query string false "last order created_at for pagination"
+// @Success      200  {array}  server.Order
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/user-orders [get]
 func (h *Handler) userOrders(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 
@@ -57,6 +89,19 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 	})
 }
 
+// getOrderById godoc
+// @Summary      GetOrderById
+// @Security 	 ApiKeyAuth
+// @Tags         api/client
+// @Description  gets user order full info by its id
+// @ID gets order by id
+// @Produce      json
+// @Param        order_id query string true "order id"
+// @Success      200  {object}  server.OrderInfo
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/get-order [get]
 func (h *Handler) getOrderById(ctx *gin.Context) {
 	orderId := ctx.Query("order_id")
 
@@ -83,7 +128,6 @@ func (h *Handler) getOrderById(ctx *gin.Context) {
 // @Tags         api/admin
 // @Description  get orders by status
 // @ID get orders
-// @Accept       json
 // @Produce      json
 // @Param created_at query string false "Last item created at for pagination"
 // @Param order_status query string true "Sort by orders status"

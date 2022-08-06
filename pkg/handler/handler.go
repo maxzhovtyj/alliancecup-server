@@ -45,6 +45,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			admin.POST("/add-product", h.addProduct)
 			admin.PUT("/update-product", h.updateProduct)
+			//admin.PATCH("/update-product-amount") // TODO
 			admin.DELETE("/delete-product", h.deleteProduct)
 
 			admin.POST("/add-category", h.addCategory)
@@ -61,7 +62,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.POST("/refresh", h.refresh)
 			client.DELETE("/logout", h.logout)
 
-			client.GET("/orders", h.userOrders)
+			client.GET("/user-orders", h.userOrders)
 
 			client.POST("/add-to-cart", h.addToCart)
 			client.GET("/user-cart", h.getFromCartById)

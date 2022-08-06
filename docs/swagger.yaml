@@ -1,5 +1,14 @@
 basePath: /
 definitions:
+  handler.CartProductsResponse:
+    properties:
+      products:
+        items:
+          $ref: '#/definitions/server.CartProduct'
+        type: array
+      sum:
+        type: number
+    type: object
   handler.DeleteCategoryInput:
     properties:
       category_title:
@@ -19,6 +28,13 @@ definitions:
       message:
         type: string
     type: object
+  handler.OrderResponse:
+    properties:
+      id:
+        type: string
+      message:
+        type: string
+    type: object
   handler.ProductIdInput:
     properties:
       id:
@@ -35,6 +51,19 @@ definitions:
         items:
           $ref: '#/definitions/server.Category'
         type: array
+    type: object
+  server.CartProduct:
+    properties:
+      price_for_quantity:
+        type: number
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    required:
+    - price_for_quantity
+    - product_id
+    - quantity
     type: object
   server.Category:
     properties:
@@ -71,6 +100,73 @@ definitions:
       user_middle_name:
         type: string
       user_phone_number:
+        type: string
+    type: object
+  server.OrderFullInfo:
+    properties:
+      delivery:
+        items:
+          $ref: '#/definitions/server.OrdersDelivery'
+        type: array
+      info:
+        $ref: '#/definitions/server.Order'
+      products:
+        items:
+          $ref: '#/definitions/server.OrderProducts'
+        type: array
+    type: object
+  server.OrderInfo:
+    properties:
+      delivery:
+        items:
+          $ref: '#/definitions/server.OrdersDelivery'
+        type: array
+      info:
+        $ref: '#/definitions/server.Order'
+      products:
+        items:
+          $ref: '#/definitions/server.OrderProductFullInfo'
+        type: array
+    type: object
+  server.OrderProductFullInfo:
+    properties:
+      amount_in_stock:
+        type: number
+      article:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      img_url:
+        type: string
+      packages_in_box:
+        type: integer
+      price:
+        type: number
+      price_for_quantity:
+        type: number
+      product_title:
+        type: string
+      quantity:
+        type: integer
+      units_in_package:
+        type: integer
+    type: object
+  server.OrderProducts:
+    properties:
+      price_for_quantity:
+        type: number
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  server.OrdersDelivery:
+    properties:
+      delivery_description:
+        type: string
+      delivery_title:
         type: string
     type: object
   server.Product:
@@ -240,8 +336,6 @@ paths:
       - api/admin
   /api/admin/all-orders:
     get:
-      consumes:
-      - application/json
       description: get orders by status
       operationId: get orders
       parameters:
@@ -493,6 +587,75 @@ paths:
       summary: GetCategories
       tags:
       - api
+  /api/client/add-to-cart:
+    post:
+      consumes:
+      - application/json
+      description: adds a product to a cart
+      operationId: adds a product to a cart
+      parameters:
+      - description: product info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/server.CartProduct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: AddToCart
+      tags:
+      - api/client
+  /api/client/get-order:
+    get:
+      description: gets user order full info by its id
+      operationId: gets order by id
+      parameters:
+      - description: order id
+        in: query
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.OrderInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: GetOrderById
+      tags:
+      - api/client
   /api/client/logout:
     delete:
       description: ends session
@@ -565,6 +728,69 @@ paths:
       summary: Refresh
       tags:
       - api/client
+  /api/client/user-cart:
+    get:
+      description: gets products from a cart
+      operationId: gets products from a cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.CartProductsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: GetProductsInCart
+      tags:
+      - api/client
+  /api/client/user-orders:
+    get:
+      consumes:
+      - application/json
+      description: gets user orders
+      operationId: gets orders
+      parameters:
+      - description: last order created_at for pagination
+        in: query
+        name: created_at
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/server.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: GetUserOrders
+      tags:
+      - api/client
   /api/get-products:
     get:
       description: get products from certain category with params
@@ -621,6 +847,41 @@ paths:
           schema:
             $ref: '#/definitions/handler.Error'
       summary: GetProducts
+      tags:
+      - api
+  /api/new-order:
+    post:
+      consumes:
+      - application/json
+      description: creates a new order
+      operationId: creates an order
+      parameters:
+      - description: order info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/server.OrderFullInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: NewOrder
       tags:
       - api
   /api/product:
