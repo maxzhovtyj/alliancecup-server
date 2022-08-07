@@ -58,7 +58,7 @@ type SearchParams struct {
 }
 
 type Order struct {
-	Id                uuid.UUID    `json:"-" db:"id"`
+	Id                uuid.UUID    `json:"id" db:"id"`
 	UserId            int          `json:"-" db:"user_id"`
 	UserLastName      string       `json:"user_lastname" db:"user_lastname"`
 	UserFirstName     string       `json:"user_firstname" db:"user_firstname"`
@@ -71,14 +71,14 @@ type Order struct {
 	DeliveryTypeTitle string       `json:"delivery_type_title" db:"delivery_type_title"`
 	PaymentTypeTitle  string       `json:"payment_type_title" db:"payment_type_title"`
 	CreatedAt         time.Time    `json:"created_at" db:"created_at"`
-	ClosedAt          sql.NullTime `json:"-" db:"closed_at"`
+	ClosedAt          sql.NullTime `json:"closed_at" db:"closed_at"`
 }
 
 type OrderProducts struct {
-	OrderId          uuid.UUID `json:"-"`
-	ProductId        int       `json:"product_id"`
-	Quantity         int       `json:"quantity"`
-	PriceForQuantity float64   `json:"price_for_quantity"`
+	OrderId          uuid.UUID `json:"-" db:"order_id"`
+	ProductId        int       `json:"product_id" db:"product_id"`
+	Quantity         int       `json:"quantity" db:"quantity"`
+	PriceForQuantity float64   `json:"price_for_quantity" db:"price_for_quantity"`
 }
 
 type OrdersDelivery struct {
@@ -95,6 +95,7 @@ type OrderFullInfo struct {
 
 type OrderProductFullInfo struct {
 	Id               int       `json:"id" db:"id"`
+	OrderId          uuid.UUID `json:"order_id" db:"order_id"`
 	Article          string    `json:"article" db:"article"`
 	ProductTitle     string    `json:"product_title" db:"product_title"`
 	ImgUrl           string    `json:"img_url" db:"img_url"`

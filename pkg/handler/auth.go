@@ -154,9 +154,6 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	//domain := viper.Get("host").(string)
-	//c.SetCookie("token", accessToken, 10, "/", domain, true, true)
-
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"access_token":       accessToken,
 		"refresh_token":      refreshToken,
@@ -207,7 +204,7 @@ type RefreshTokensInput struct {
 // refresh godoc
 // @Summary      Refresh
 // @Security ApiKeyAuth
-// @Tags         api/client
+// @Tags         auth
 // @Description  Gets a new access using refreshToken
 // @ID refreshToken from account
 // @Accept       json
@@ -217,7 +214,7 @@ type RefreshTokensInput struct {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/refresh [post]
+// @Router       /auth/refresh [post]
 func (h *Handler) refresh(ctx *gin.Context) {
 	var input RefreshTokensInput
 

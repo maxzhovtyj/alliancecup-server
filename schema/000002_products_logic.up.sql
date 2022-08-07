@@ -11,11 +11,16 @@ CREATE TABLE categories
     img_url        text
 );
 
+INSERT INTO categories (category_title) values ('Одноразові стакани');
+INSERT INTO categories (category_title) values ('Купольні стакани');
+
 CREATE TABLE products_types
 (
     id         serial primary key,
     type_title varchar(64) not null unique
 );
+
+INSERT INTO products_types (type_title) values ('Стакан');
 
 CREATE TABLE products
 (

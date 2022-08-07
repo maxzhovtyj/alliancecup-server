@@ -42,7 +42,7 @@ type Shopping interface {
 
 type Orders interface {
 	New(order server.OrderFullInfo) (uuid.UUID, error)
-	GetUserOrders(userId int, createdAt string) ([]server.Order, error)
+	GetUserOrders(userId int, createdAt string) ([]server.OrderInfo, error)
 	GetOrderById(orderId uuid.UUID) (server.OrderInfo, error)
 	GetAdminOrders(status string, lastOrderCreatedAt string) ([]server.Order, error)
 }

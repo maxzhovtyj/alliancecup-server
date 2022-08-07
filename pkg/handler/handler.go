@@ -31,6 +31,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
+		auth.POST("/refresh", h.refresh)
 	}
 
 	api := router.Group("/api", h.userIdentity)
@@ -59,7 +60,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		client := api.Group("/client", h.userAuthorized)
 		{
-			client.POST("/refresh", h.refresh)
 			client.DELETE("/logout", h.logout)
 
 			client.GET("/user-orders", h.userOrders)
@@ -70,6 +70,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			client.POST("/add-to-favourites", h.addToFavourites)
 			client.GET("/get-favourites", h.getFavourites)
+			client.DELETE("/delete-from-favourites")
+			// TODO delete from favourites HANDLER
 
 			client.GET("/get-order", h.getOrderById)
 		}

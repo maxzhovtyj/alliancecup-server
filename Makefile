@@ -4,13 +4,13 @@ run:
 
 .PHONY: connectDB
 connectDB:
-		docker exec -it 5658596f4a7d /bin/bash
+		docker exec -it 72ecabb63e44 /bin/bash
 
 # new migration files
 # migrate create -ext sql -dir ./schema -seq <migration_name>
 
 # new docker container for postgres db
-# docker run --name=alliancecup-db -e POSTGRES_PASSWORD=******** -p 5436:5432 -d --rm postgres
+# docker run --name=alliancecup-db -e POSTGRES_PASSWORD=******** -p 5436:5432 -d postgres
 
 .PHONY: migrateUp
 migrateUp:
