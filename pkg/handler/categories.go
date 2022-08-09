@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	server "github.com/zh0vtyj/allincecup-server"
 	"net/http"
@@ -29,8 +28,6 @@ type DeleteCategoryInput struct {
 // @Failure      500  {object}  Error
 // @Router       /api/all-categories [get]
 func (h *Handler) getCategories(ctx *gin.Context) {
-	cookie, err := ctx.Cookie("token")
-	fmt.Println(cookie)
 	categories, err := h.services.Category.GetAll()
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
