@@ -71,7 +71,7 @@ type Order struct {
 	DeliveryTypeTitle string       `json:"delivery_type_title" db:"delivery_type_title"`
 	PaymentTypeTitle  string       `json:"payment_type_title" db:"payment_type_title"`
 	CreatedAt         time.Time    `json:"created_at" db:"created_at"`
-	ClosedAt          sql.NullTime `json:"closed_at" db:"closed_at"`
+	ClosedAt          sql.NullTime `json:"closed_at" db:"closed_at"` // TODO swagger sql.nullTime issue
 }
 
 type OrderProducts struct {

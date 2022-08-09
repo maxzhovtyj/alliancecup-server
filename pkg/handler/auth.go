@@ -154,11 +154,19 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie(
+		"refresh_token",
+		refreshToken,
+		60*60*24*60,
+		"/",
+		"localhost",
+		false,
+		true,
+	)
+
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"access_token":       accessToken,
-		"refresh_token":      refreshToken,
-		"session_id":         newSession.Id,
-		"refresh_expires_at": newSession.ExpiresAt,
+		"access_token": accessToken,
+		"session_id":   newSession.Id,
 	})
 
 }
@@ -170,7 +178,6 @@ func (h *Handler) signIn(c *gin.Context) {
 // @Description  ends session
 // @ID logout from account
 // @Produce      json
-// @Param        input body server.User true "account info"
 // @Success      200  {string}  string
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -186,7 +193,7 @@ func (h *Handler) logout(ctx *gin.Context) {
 	ctx.Set(userCtx, 0)
 	ctx.Set(userRoleIdCtx, 0)
 
-	err = h.services.Authorization.Logout(id)
+	err = h.services.Authorization.Logout(id) // TODO delete session by refresh token
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -197,10 +204,6 @@ func (h *Handler) logout(ctx *gin.Context) {
 	})
 }
 
-type RefreshTokensInput struct {
-	RefreshToken string `json:"refresh_token"`
-}
-
 // refresh godoc
 // @Summary      Refresh
 // @Security ApiKeyAuth
@@ -209,31 +212,34 @@ type RefreshTokensInput struct {
 // @ID refreshToken from account
 // @Accept       json
 // @Produce      json
-// @Param        input body handler.RefreshTokensInput true "refresh token"
-// @Success      200  {integer}   string 1
+// @Success      200  {object}
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /auth/refresh [post]
 func (h *Handler) refresh(ctx *gin.Context) {
-	var input RefreshTokensInput
+	refreshTokenCookie, err := ctx.Cookie(refreshTokenCookie)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusUnauthorized, "refresh_token was not found "+err.Error())
+		return
+	}
 
-	if err := ctx.BindJSON(&input); err != nil {
+	clientIp := ctx.ClientIP()
+	userAgent := ctx.Request.UserAgent()
+
+	err = h.services.Authorization.ParseRefreshToken(refreshTokenCookie)
+	if err != nil {
+		ctx.Set(userCtx, 0)
+		ctx.Set(userRoleIdCtx, 0)
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	accessToken, err := h.services.Authorization.RefreshAccessToken(input.RefreshToken)
+	accessToken, err := h.services.Authorization.RefreshAccessToken(refreshTokenCookie, clientIp, userAgent)
 	if err != nil {
-		ctx.Set(userCtx, nil)
-		ctx.Set(userRoleIdCtx, nil)
+		ctx.Set(userCtx, 0)
+		ctx.Set(userRoleIdCtx, 0)
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	err = h.services.Authorization.ParseRefreshToken(input.RefreshToken)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 

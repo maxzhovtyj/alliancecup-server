@@ -133,8 +133,16 @@ func generatePasswordHash(password string) string {
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
-func (s *AuthService) RefreshAccessToken(refreshToken string) (string, error) {
+func (s *AuthService) RefreshAccessToken(refreshToken, clientIp, userAgent string) (string, error) {
 	session, err := s.repo.GetSessionByRefresh(refreshToken)
+
+	if session.ClientIp != clientIp || session.UserAgent != userAgent {
+		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
+		if err != nil {
+			return "", fmt.Errorf("cannot delete session: " + err.Error())
+		}
+		return "", fmt.Errorf("invalid meta data")
+	}
 
 	if time.Now().After(session.ExpiresAt) {
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)

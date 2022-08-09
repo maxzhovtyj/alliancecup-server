@@ -8,6 +8,7 @@ import (
 
 // addToCart godoc
 // @Summary      AddToCart
+// @Security 	 ApiKeyAuth
 // @Tags         api/client
 // @Description  adds a product to a cart
 // @ID adds a product to a cart
@@ -134,7 +135,7 @@ type AddToFavouritesInput struct {
 // @Failure      500  {object}  Error
 // @Router       /api/client/add-to-favourites [post]
 func (h *Handler) addToFavourites(ctx *gin.Context) {
-	var input AddToFavouritesInput
+	var input ProductIdInput
 	userId, err := getUserId(ctx)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
@@ -146,14 +147,14 @@ func (h *Handler) addToFavourites(ctx *gin.Context) {
 		return
 	}
 
-	err = h.services.Shopping.AddToFavourites(userId, input.ProductId)
+	err = h.services.Shopping.AddToFavourites(userId, input.Id)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
-		Id:      input.ProductId,
+		Id:      input.Id,
 		Message: "item added to favourites",
 	})
 }
@@ -165,7 +166,7 @@ func (h *Handler) addToFavourites(ctx *gin.Context) {
 // @Description  gets user favourite products
 // @ID get favourites
 // @Produce      json
-// @Success      200  {array}  server.Products
+// @Success      200  {array}  	server.Product
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -185,5 +186,46 @@ func (h *Handler) getFavourites(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"products": products,
+	})
+}
+
+// deleteFromFavourites godoc
+// @Summary DeleteFromFavourites
+// @Security ApiKeyAuth
+// @Tags api/client
+// @Description deletes product from favourites
+// @ID deletes from favourites
+// @Accepts json
+// @Produce json
+// @Param        input body handler.ProductIdInput true "product id"
+// @Success      200  {array}  	handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/delete-from-favourites [delete]
+func (h *Handler) deleteFromFavourites(ctx *gin.Context) {
+	var input ProductIdInput
+
+	err := ctx.BindJSON(&input)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userId, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusUnauthorized, "user id was not found "+err.Error())
+		return
+	}
+
+	err = h.services.Shopping.DeleteFromFavourites(userId, input.Id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      input.Id,
+		Message: "product deleted from favourites",
 	})
 }

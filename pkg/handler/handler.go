@@ -17,9 +17,10 @@ func NewHandler(services *service.Service) *Handler {
 }
 
 const (
-	statusInProgress = "IN_PROGRESS"
-	statusProcessed  = "PROCESSED"
-	statusCompleted  = "COMPLETED"
+	statusInProgress   = "IN_PROGRESS"
+	statusProcessed    = "PROCESSED"
+	statusCompleted    = "COMPLETED"
+	refreshTokenCookie = "refresh_token"
 )
 
 func (h *Handler) InitRoutes() *gin.Engine {
@@ -32,6 +33,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
 		auth.POST("/refresh", h.refresh)
+		auth.POST("/test-cookies", h.testCookies)
+		auth.GET("/get-cookies", h.getCookies)
 	}
 
 	api := router.Group("/api", h.userIdentity)
@@ -69,7 +72,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			client.POST("/add-to-favourites", h.addToFavourites)
 			client.GET("/get-favourites", h.getFavourites)
-			client.DELETE("/delete-from-favourites")
+			client.DELETE("/delete-from-favourites", h.deleteFromFavourites)
 			// TODO delete from favourites HANDLER
 
 			client.GET("/get-order", h.getOrderById)

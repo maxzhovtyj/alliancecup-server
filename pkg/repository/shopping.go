@@ -86,3 +86,12 @@ func (s *ShoppingPostgres) GetFavourites(userId int) ([]server.Product, error) {
 
 	return products, nil
 }
+
+func (s *ShoppingPostgres) DeleteFromFavourites(userId, productId int) error {
+	queryDeleteProduct := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1 AND product_id=$2", favouritesTable)
+	_, err := s.db.Exec(queryDeleteProduct, userId, productId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

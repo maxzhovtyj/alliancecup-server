@@ -38,6 +38,7 @@ type Shopping interface {
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	GetFavourites(userId int) ([]server.Product, error)
+	DeleteFromFavourites(userId, productId int) error
 }
 
 type Orders interface {
