@@ -149,6 +149,8 @@ func (h *Handler) signIn(c *gin.Context) {
 		CreatedAt:    time.Now(),
 	})
 
+	c.SetCookie("token", accessToken, 60*60*24, "/", "localhost", true, true)
+
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, "unable to create new session: "+err.Error())
 		return

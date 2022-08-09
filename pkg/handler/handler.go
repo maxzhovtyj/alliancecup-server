@@ -39,6 +39,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.GET("/all-categories", h.getCategories)
 		api.GET("/get-products", h.getProducts)
 		api.GET("/product", h.getProductById)
+		api.POST("/new-order", h.newOrder)
 
 		admin := api.Group("/admin", h.userHasPermission)
 		{
@@ -55,8 +56,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			admin.GET("/all-orders", h.adminGetOrders)
 		}
-
-		api.POST("/new-order", h.newOrder)
 
 		client := api.Group("/client", h.userAuthorized)
 		{
