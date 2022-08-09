@@ -52,6 +52,7 @@ type CartProductsResponse struct {
 
 // getFromCart godoc
 // @Summary      GetProductsInCart
+// @Security 	 ApiKeyAuth
 // @Tags         api/client
 // @Description  gets products from a cart
 // @ID gets products from a cart
@@ -80,12 +81,22 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 	})
 }
 
+// deleteFromCart godoc
+// @Summary      DeleteFromCart
+// @Security 	 ApiKeyAuth
+// @Tags         api/client
+// @Description  deletes a product from users cart
+// @ID deletes from cart
+// @Accept       json
+// @Produce      json
+// @Param        input body handler.ProductIdInput true "product id"
+// @Success      200  {object}  handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/delete-from-cart [delete]
 func (h *Handler) deleteFromCart(ctx *gin.Context) {
-	type ProductInput struct {
-		Id int `json:"product_id"`
-	}
-
-	var product ProductInput
+	var product ProductIdInput
 
 	if err := ctx.BindJSON(&product); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, "product_id to delete was not found: "+err.Error())
@@ -98,9 +109,9 @@ func (h *Handler) deleteFromCart(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"id":      product.Id,
-		"message": "deleted from cart",
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      product.Id,
+		Message: "product deleted",
 	})
 }
 
@@ -108,6 +119,20 @@ type AddToFavouritesInput struct {
 	ProductId int `json:"product_id"`
 }
 
+// addToFavourites godoc
+// @Summary      AddToFavourites
+// @Security 	 ApiKeyAuth
+// @Tags         api/client
+// @Description  adds a product to favourites
+// @ID adds to favourites
+// @Accept       json
+// @Produce      json
+// @Param        input body handler.ProductIdInput true "product id"
+// @Success      200  {object}  handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/add-to-favourites [post]
 func (h *Handler) addToFavourites(ctx *gin.Context) {
 	var input AddToFavouritesInput
 	userId, err := getUserId(ctx)
@@ -127,11 +152,24 @@ func (h *Handler) addToFavourites(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"message": "product added to favourites",
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      input.ProductId,
+		Message: "item added to favourites",
 	})
 }
 
+// getFavourites godoc
+// @Summary      GetFavourites
+// @Security 	 ApiKeyAuth
+// @Tags         api/client
+// @Description  gets user favourite products
+// @ID get favourites
+// @Produce      json
+// @Success      200  {array}  server.Products
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/client/get-favourites [get]
 func (h *Handler) getFavourites(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
 	if err != nil {

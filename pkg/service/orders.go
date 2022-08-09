@@ -48,7 +48,7 @@ func (o *OrdersService) New(order server.OrderFullInfo) (uuid.UUID, error) {
 	return id, nil
 }
 
-func (o *OrdersService) GetUserOrders(userId int, createdAt string) ([]server.Order, error) {
+func (o *OrdersService) GetUserOrders(userId int, createdAt string) ([]server.OrderInfo, error) {
 	return o.repo.GetUserOrders(userId, createdAt)
 }
 

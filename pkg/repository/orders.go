@@ -16,9 +16,19 @@ func NewOrdersPostgres(db *sqlx.DB) *OrdersPostgres {
 	return &OrdersPostgres{db: db}
 }
 
-func (o *OrdersPostgres) New(order server.OrderFullInfo) (uuid.UUID, error) {
-	// todo
+var orderInfoColumnsInsert = []string{
+	"user_lastname",
+	"user_firstname",
+	"user_middle_name",
+	"user_phone_number",
+	"user_email",
+	"order_comment",
+	"order_sum_price",
+	"delivery_type_id",
+	"payment_type_id",
+}
 
+func (o *OrdersPostgres) New(order server.OrderFullInfo) (uuid.UUID, error) {
 	tx, _ := o.db.Begin()
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -37,32 +47,43 @@ func (o *OrdersPostgres) New(order server.OrderFullInfo) (uuid.UUID, error) {
 		return [16]byte{}, err
 	}
 
-	queryInsertOrder, args, err := psql.Insert(ordersTable).Columns(
-		"user_id",
-		"user_lastname",
-		"user_firstname",
-		"user_middle_name",
-		"user_phone_number",
-		"user_email",
-		"order_comment",
-		"order_sum_price",
-		"delivery_type_id",
-		"payment_type_id",
-	).Values(
-		order.Info.UserId,
-		order.Info.UserLastName,
-		order.Info.UserFirstName,
-		order.Info.UserMiddleName,
-		order.Info.UserPhoneNumber,
-		order.Info.UserEmail,
-		order.Info.OrderComment,
-		order.Info.OrderSumPrice,
-		deliveryTypeId,
-		paymentTypeId,
-	).ToSql()
+	queryInsertOrder := psql.Insert(ordersTable).Columns(orderInfoColumnsInsert...)
+
+	if order.Info.UserId != 0 {
+		orderInfoColumnsInsert = append(orderInfoColumnsInsert, "user_id")
+		queryInsertOrder = queryInsertOrder.Values(
+			order.Info.UserLastName,
+			order.Info.UserFirstName,
+			order.Info.UserMiddleName,
+			order.Info.UserPhoneNumber,
+			order.Info.UserEmail,
+			order.Info.OrderComment,
+			order.Info.OrderSumPrice,
+			deliveryTypeId,
+			paymentTypeId,
+			order.Info.UserId,
+		)
+	} else {
+		queryInsertOrder = queryInsertOrder.Values(
+			order.Info.UserLastName,
+			order.Info.UserFirstName,
+			order.Info.UserMiddleName,
+			order.Info.UserPhoneNumber,
+			order.Info.UserEmail,
+			order.Info.OrderComment,
+			order.Info.OrderSumPrice,
+			deliveryTypeId,
+			paymentTypeId,
+		)
+	}
+
+	queryInsertOrderSql, args, err := queryInsertOrder.ToSql()
+	if err != nil {
+		return [16]byte{}, err
+	}
 
 	var orderId uuid.UUID
-	row := tx.QueryRow(queryInsertOrder+"RETURNING id", args...)
+	row := tx.QueryRow(queryInsertOrderSql+"RETURNING id", args...)
 	if err = row.Scan(&orderId); err != nil {
 		_ = tx.Rollback()
 		return [16]byte{}, err
@@ -107,12 +128,29 @@ func (o *OrdersPostgres) New(order server.OrderFullInfo) (uuid.UUID, error) {
 			return [16]byte{}, err
 		}
 	}
+
 	return orderId, tx.Commit()
 }
 
-func (o *OrdersPostgres) GetUserOrders(userId int, createdAt string) ([]server.Order, error) {
-	var orders []server.Order
+func (o *OrdersPostgres) GetUserOrders(userId int, createdAt string) ([]server.OrderInfo, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	var ordersAmount int
+	queryOrdersAmount, args, err := psql.Select("count(*)").From(ordersTable).Where(sq.Eq{"user_id": userId}).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	if err = o.db.Get(&ordersAmount, queryOrdersAmount, args...); err != nil {
+		return nil, err
+	}
+
+	ordersLimit := 12
+	if ordersAmount <= 12 {
+		ordersLimit = ordersAmount
+	}
+
+	orders := make([]server.OrderInfo, ordersLimit)
 
 	query := psql.Select(
 		"orders.id",
@@ -146,9 +184,56 @@ func (o *OrdersPostgres) GetUserOrders(userId int, createdAt string) ([]server.O
 		return nil, err
 	}
 
-	err = o.db.Select(&orders, querySql, args...)
-	if err != nil {
-		return nil, err
+	for i := 0; i < ordersLimit; i++ {
+		err = o.db.Get(&orders[i].Info, querySql, args...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// TODO "message": "sql: Scan error on column index 1, name \"user_id\": converting NULL to int is unsupported"
+	for i := 0; i < ordersLimit; i++ {
+		queryOrderProducts, args, err := psql.
+			Select(
+				"id",
+				"order_id",
+				"article",
+				"product_title",
+				"img_url",
+				"amount_in_stock",
+				"price",
+				"units_in_package",
+				"packages_in_box",
+				"created_at",
+				"quantity",
+				"price_for_quantity",
+			).
+			From(ordersProductsTable).
+			LeftJoin(productsTable + " ON orders_products.product_id=products.id").
+			Where(sq.Eq{"orders_products.order_id": orders[i].Info.Id}).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		err = o.db.Select(&orders[i].Products, queryOrderProducts, args...)
+		if err != nil {
+			return nil, err
+		}
+
+		queryOrderDelivery, args, err := psql.
+			Select("*").
+			From(ordersDeliveryTable).
+			Where(sq.Eq{"order_id": orders[i].Info.Id}).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		err = o.db.Select(&orders[i].Delivery, queryOrderDelivery, args...)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return orders, err
@@ -240,7 +325,6 @@ func (o *OrdersPostgres) GetAdminOrders(status string, lastOrderCreatedAt string
 
 	queryOrders := psql.Select(
 		"orders.id",
-		"orders.user_id",
 		"orders.user_lastname",
 		"orders.user_firstname",
 		"orders.user_middle_name",
@@ -258,10 +342,6 @@ func (o *OrdersPostgres) GetAdminOrders(status string, lastOrderCreatedAt string
 		LeftJoin(deliveryTypesTable + " ON orders.delivery_type_id=delivery_types.id").
 		LeftJoin(paymentTypesTable + " ON orders.payment_type_id=payment_types.id").
 		Where(sq.Eq{"orders.order_status": status})
-
-	var s []int
-
-	s = append(s, 1)
 
 	if lastOrderCreatedAt != "" {
 		queryOrders = queryOrders.Where(sq.Lt{"orders.created_at": lastOrderCreatedAt})

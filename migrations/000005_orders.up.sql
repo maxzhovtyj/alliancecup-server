@@ -25,7 +25,7 @@ values ('Переказ на карту');
 CREATE TABLE orders
 (
     id                uuid primary key default gen_random_uuid(),
-    user_id           int references users (id),
+    user_id           int references users (id) default NULL,
     user_lastname     varchar(128)                       not null,
     user_firstname    varchar(128)                       not null,
     user_middle_name  varchar(128)                       not null,

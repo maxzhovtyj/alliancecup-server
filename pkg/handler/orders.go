@@ -35,7 +35,7 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 
 	id, err := getUserId(ctx)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, "user role id not found")
+		newErrorResponse(ctx, http.StatusInternalServerError, "user id not found")
 		return
 	}
 
@@ -71,6 +71,9 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 // @Router       /api/client/user-orders [get]
 func (h *Handler) userOrders(ctx *gin.Context) {
 	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusUnauthorized, "user id not found")
+	}
 
 	createdAt := ctx.Query("created_at")
 
