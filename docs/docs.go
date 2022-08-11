@@ -874,17 +874,6 @@ const docTemplate = `{
                 ],
                 "summary": "Logout",
                 "operationId": "logout from account",
-                "parameters": [
-                    {
-                        "description": "account info",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.User"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1207,10 +1196,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Gets a new access using refreshToken",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Gets a new access token using refreshToken",
                 "produces": [
                     "application/json"
                 ],
@@ -1218,23 +1204,12 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Refresh",
-                "operationId": "refreshToken from account",
-                "parameters": [
-                    {
-                        "description": "refresh token",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.RefreshTokensInput"
-                        }
-                    }
-                ],
+                "operationId": "refreshes token from account",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -1426,14 +1401,6 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
-                }
-            }
-        },
-        "handler.RefreshTokensInput": {
-            "type": "object",
-            "properties": {
-                "refresh_token": {
-                    "type": "string"
                 }
             }
         },

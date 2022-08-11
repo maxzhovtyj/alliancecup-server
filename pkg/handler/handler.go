@@ -21,6 +21,7 @@ const (
 	statusProcessed    = "PROCESSED"
 	statusCompleted    = "COMPLETED"
 	refreshTokenCookie = "refresh_token"
+	domain             = "DOMAIN"
 )
 
 func (h *Handler) InitRoutes() *gin.Engine {
@@ -33,8 +34,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
 		auth.POST("/refresh", h.refresh)
-		auth.POST("/test-cookies", h.testCookies)
-		auth.GET("/get-cookies", h.getCookies)
 	}
 
 	api := router.Group("/api", h.userIdentity)

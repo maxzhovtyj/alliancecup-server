@@ -83,7 +83,7 @@ func (o *OrdersPostgres) New(order server.OrderFullInfo) (uuid.UUID, error) {
 	}
 
 	var orderId uuid.UUID
-	row := tx.QueryRow(queryInsertOrderSql+"RETURNING id", args...)
+	row := tx.QueryRow(queryInsertOrderSql+" RETURNING id", args...)
 	if err = row.Scan(&orderId); err != nil {
 		_ = tx.Rollback()
 		return [16]byte{}, err

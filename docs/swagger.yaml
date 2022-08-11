@@ -40,11 +40,6 @@ definitions:
       id:
         type: integer
     type: object
-  handler.RefreshTokensInput:
-    properties:
-      refresh_token:
-        type: string
-    type: object
   handler.allCategoriesResponse:
     properties:
       data:
@@ -810,13 +805,6 @@ paths:
     delete:
       description: ends session
       operationId: logout from account
-      parameters:
-      - description: account info
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/server.User'
       produces:
       - application/json
       responses:
@@ -1031,24 +1019,15 @@ paths:
       - api
   /auth/refresh:
     post:
-      consumes:
-      - application/json
-      description: Gets a new access using refreshToken
-      operationId: refreshToken from account
-      parameters:
-      - description: refresh token
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/handler.RefreshTokensInput'
+      description: Gets a new access token using refreshToken
+      operationId: refreshes token from account
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: integer
+            type: string
         "400":
           description: Bad Request
           schema:

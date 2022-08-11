@@ -86,7 +86,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Accept 	     json
 // @Produce      json
 // @Param        input body server.ProductInfoDescription true "product info"
-// @Success      200  {object}  handler.ItemProcessedResponse
+// @Success      201  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error

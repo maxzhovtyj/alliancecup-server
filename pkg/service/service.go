@@ -12,7 +12,7 @@ type Authorization interface {
 	GenerateTokens(email string, password string) (string, string, error)
 	ParseToken(token string) (int, int, error)
 	ParseRefreshToken(refreshToken string) error
-	RefreshAccessToken(refreshToken, clientIp, userAgent string) (string, error)
+	RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, error)
 	CreateNewSession(session *server.Session) (*server.Session, error)
 	Logout(id int) error
 }

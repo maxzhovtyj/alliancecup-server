@@ -1,7 +1,6 @@
 package server
 
 import (
-	"database/sql"
 	"github.com/google/uuid"
 	_ "github.com/google/uuid"
 	"time"
@@ -13,9 +12,9 @@ type SignInInput struct {
 }
 
 type Category struct {
-	Id            int    `json:"id" db:"id"`
-	CategoryTitle string `json:"category_title" binding:"required" db:"category_title"`
-	ImgUrl        string `json:"img_url" binding:"required" db:"img_url"`
+	Id            int     `json:"id" db:"id"`
+	CategoryTitle string  `json:"category_title" binding:"required" db:"category_title"`
+	ImgUrl        *string `json:"img_url" binding:"required" db:"img_url"`
 }
 
 type Product struct {
@@ -58,20 +57,20 @@ type SearchParams struct {
 }
 
 type Order struct {
-	Id                uuid.UUID    `json:"id" db:"id"`
-	UserId            int          `json:"-" db:"user_id"`
-	UserLastName      string       `json:"user_lastname" db:"user_lastname"`
-	UserFirstName     string       `json:"user_firstname" db:"user_firstname"`
-	UserMiddleName    string       `json:"user_middle_name" db:"user_middle_name"`
-	UserPhoneNumber   string       `json:"user_phone_number" db:"user_phone_number"`
-	UserEmail         string       `json:"user_email" db:"user_email"`
-	OrderStatus       string       `json:"order_status" db:"order_status"`
-	OrderComment      string       `json:"order_comment" db:"order_comment"`
-	OrderSumPrice     float64      `json:"order_sum_price" db:"order_sum_price"`
-	DeliveryTypeTitle string       `json:"delivery_type_title" db:"delivery_type_title"`
-	PaymentTypeTitle  string       `json:"payment_type_title" db:"payment_type_title"`
-	CreatedAt         time.Time    `json:"created_at" db:"created_at"`
-	ClosedAt          sql.NullTime `json:"closed_at" db:"closed_at"` // TODO swagger sql.nullTime issue
+	Id                uuid.UUID  `json:"id" db:"id"`
+	UserId            int        `json:"-" db:"user_id"`
+	UserLastName      string     `json:"user_lastname" db:"user_lastname"`
+	UserFirstName     string     `json:"user_firstname" db:"user_firstname"`
+	UserMiddleName    string     `json:"user_middle_name" db:"user_middle_name"`
+	UserPhoneNumber   string     `json:"user_phone_number" db:"user_phone_number"`
+	UserEmail         string     `json:"user_email" db:"user_email"`
+	OrderStatus       string     `json:"order_status" db:"order_status"`
+	OrderComment      string     `json:"order_comment" db:"order_comment"`
+	OrderSumPrice     float64    `json:"order_sum_price" db:"order_sum_price"`
+	DeliveryTypeTitle string     `json:"delivery_type_title" db:"delivery_type_title"`
+	PaymentTypeTitle  string     `json:"payment_type_title" db:"payment_type_title"`
+	CreatedAt         time.Time  `json:"created_at" db:"created_at"`
+	ClosedAt          *time.Time `json:"closed_at" db:"closed_at"` // TODO swagger sql.nullTime issue
 }
 
 type OrderProducts struct {

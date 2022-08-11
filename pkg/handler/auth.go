@@ -6,6 +6,7 @@ import (
 	_ "github.com/zh0vtyj/allincecup-server/docs"
 	"net/http"
 	"net/mail"
+	"os"
 	"time"
 )
 
@@ -199,6 +200,9 @@ func (h *Handler) logout(ctx *gin.Context) {
 		return
 	}
 
+	dm := os.Getenv(domain)
+	ctx.SetCookie(refreshTokenCookie, "", -1, "/", dm, false, true)
+
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"message": "logged out, session deleted",
 	})
@@ -208,18 +212,19 @@ func (h *Handler) logout(ctx *gin.Context) {
 // @Summary      Refresh
 // @Security ApiKeyAuth
 // @Tags         auth
-// @Description  Gets a new access using refreshToken
-// @ID refreshToken from account
-// @Accept       json
+// @Description  Gets a new access token using refreshToken
+// @ID refreshes token from account
 // @Produce      json
-// @Success      200  {object}
+// @Success      200  {object}  string
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /auth/refresh [post]
 func (h *Handler) refresh(ctx *gin.Context) {
-	refreshTokenCookie, err := ctx.Cookie(refreshTokenCookie)
+	cookieToken, err := ctx.Cookie(refreshTokenCookie)
 	if err != nil {
+		ctx.Set(userCtx, 0)
+		ctx.Set(userRoleIdCtx, 0)
 		newErrorResponse(ctx, http.StatusUnauthorized, "refresh_token was not found "+err.Error())
 		return
 	}
@@ -227,21 +232,24 @@ func (h *Handler) refresh(ctx *gin.Context) {
 	clientIp := ctx.ClientIP()
 	userAgent := ctx.Request.UserAgent()
 
-	err = h.services.Authorization.ParseRefreshToken(refreshTokenCookie)
+	err = h.services.Authorization.ParseRefreshToken(cookieToken)
 	if err != nil {
 		ctx.Set(userCtx, 0)
 		ctx.Set(userRoleIdCtx, 0)
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		newErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	accessToken, err := h.services.Authorization.RefreshAccessToken(refreshTokenCookie, clientIp, userAgent)
+	accessToken, newRefreshToken, err := h.services.Authorization.RefreshTokens(cookieToken, clientIp, userAgent)
 	if err != nil {
 		ctx.Set(userCtx, 0)
 		ctx.Set(userRoleIdCtx, 0)
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		newErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 		return
 	}
+
+	dm := os.Getenv(domain)
+	ctx.SetCookie(refreshTokenCookie, newRefreshToken, 60*60*24*60, "/", dm, false, true)
 
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"access_token": accessToken,

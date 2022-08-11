@@ -13,6 +13,7 @@ type Authorization interface {
 	GetSessionByRefresh(refresh string) (*server.Session, error)
 	DeleteSessionByRefresh(refresh string) error
 	DeleteSessionByUserId(id int) error
+	UpdateRefreshToken(userId int, newRefreshToken string) error
 }
 
 type Category interface {
