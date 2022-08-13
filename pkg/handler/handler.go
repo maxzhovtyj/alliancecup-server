@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
 	_ "github.com/zh0vtyj/allincecup-server/docs"
 	"github.com/zh0vtyj/allincecup-server/pkg/service"
+	"net/http"
 )
 
 type Handler struct {
@@ -26,6 +28,22 @@ const (
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
+
+	c := cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+		},
+		AllowMethods: []string{
+			http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut,
+		},
+		AllowHeaders: []string{
+			"Authorization",
+		},
+		AllowCredentials: true,
+		ExposeHeaders:    []string{},
+	})
+
+	router.Use(c)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -49,7 +67,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			admin.POST("/add-product", h.addProduct)
 			admin.PUT("/update-product", h.updateProduct)
-			//admin.PATCH("/update-product-amount") // TODO
+			//admin.PUT("/update-product-amount") // TODO
 			admin.DELETE("/delete-product", h.deleteProduct)
 
 			admin.POST("/add-category", h.addCategory)
