@@ -13,6 +13,7 @@ type Authorization interface {
 	GetSessionByRefresh(refresh string) (*server.Session, error)
 	DeleteSessionByRefresh(refresh string) error
 	DeleteSessionByUserId(id int) error
+	UpdateRefreshToken(userId int, newRefreshToken string) error
 }
 
 type Category interface {
@@ -38,6 +39,7 @@ type Shopping interface {
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	GetFavourites(userId int) ([]server.Product, error)
+	DeleteFromFavourites(userId, productId int) error
 }
 
 type Orders interface {

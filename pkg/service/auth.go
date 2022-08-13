@@ -76,8 +76,7 @@ func (s *AuthService) GenerateRefreshToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(refreshTokenTTL).Unix(),
 		IssuedAt:  time.Now().Unix(),
-	},
-	)
+	})
 
 	refreshToken, err := token.SignedString([]byte(refreshSigningKey))
 	if err != nil {
@@ -133,27 +132,45 @@ func generatePasswordHash(password string) string {
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
-func (s *AuthService) RefreshAccessToken(refreshToken string) (string, error) {
+func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, error) {
+	// get user session by old refresh token
 	session, err := s.repo.GetSessionByRefresh(refreshToken)
+	if err != nil {
+		return "", "", err
+	}
 
+	// validation if client IP or user agent is not the same
+	if session.ClientIp != clientIp || session.UserAgent != userAgent {
+		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
+		if err != nil {
+			return "", "", fmt.Errorf("cannot delete session: " + err.Error())
+		}
+		return "", "", fmt.Errorf("invalid meta data")
+	}
+
+	// validation if refresh token is expired
 	if time.Now().After(session.ExpiresAt) {
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
-			return "", fmt.Errorf("cannot delete session: " + err.Error())
+			return "", "", fmt.Errorf("cannot delete session: " + err.Error())
 		}
-		return "", fmt.Errorf("refresh expired token, session deleted from db")
+		return "", "", fmt.Errorf("refresh expired token, session deleted from db")
 	}
 
+	// validation if refresh token is blocked
 	if session.IsBlocked {
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
-			return "", fmt.Errorf("cannot delete session: " + err.Error())
+			return "", "", fmt.Errorf("cannot delete session: " + err.Error())
 		}
-		return "", fmt.Errorf("session is blocked, session deleted from db")
+		return "", "", fmt.Errorf("session is blocked, session deleted from db")
 	}
 
+	newRefreshToken, err := s.GenerateRefreshToken()
+
+	err = s.repo.UpdateRefreshToken(session.UserId, newRefreshToken)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
@@ -164,14 +181,12 @@ func (s *AuthService) RefreshAccessToken(refreshToken string) (string, error) {
 		session.UserId,
 		session.RoleId,
 	})
-
 	accessToken, err := token.SignedString([]byte(signingKey))
-
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return accessToken, nil
+	return accessToken, newRefreshToken, err
 }
 
 func (s *AuthService) CreateNewSession(session *server.Session) (*server.Session, error) {

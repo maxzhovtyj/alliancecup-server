@@ -12,7 +12,7 @@ type Authorization interface {
 	GenerateTokens(email string, password string) (string, string, error)
 	ParseToken(token string) (int, int, error)
 	ParseRefreshToken(refreshToken string) error
-	RefreshAccessToken(refreshToken string) (string, error)
+	RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, error)
 	CreateNewSession(session *server.Session) (*server.Session, error)
 	Logout(id int) error
 }
@@ -39,6 +39,7 @@ type Shopping interface {
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	GetFavourites(userId int) ([]server.Product, error)
+	DeleteFromFavourites(userId, productId int) error
 }
 
 type Orders interface {

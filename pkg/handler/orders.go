@@ -64,7 +64,7 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        created_at query string false "last order created_at for pagination"
-// @Success      200  {array}  server.Order
+// @Success      200  {object}  server.OrderInfo
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error

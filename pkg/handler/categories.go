@@ -46,7 +46,7 @@ func (h *Handler) getCategories(ctx *gin.Context) {
 // @Accept 	     json
 // @Produce      json
 // @Param        input body server.Category true "category info"
-// @Success      200  {object}  handler.ItemProcessedResponse
+// @Success      201  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error

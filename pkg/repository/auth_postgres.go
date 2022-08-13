@@ -60,8 +60,13 @@ func (a *AuthPostgres) GetUser(email, password string) (server.User, error) {
 }
 
 func (a *AuthPostgres) NewSession(session server.Session) (*server.Session, error) {
-	var newSession server.Session
+	queryDeleteOldSession := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", sessionsTable)
+	_, err := a.db.Exec(queryDeleteOldSession, session.UserId)
+	if err != nil {
+		return nil, err
+	}
 
+	var newSession server.Session
 	query := fmt.Sprintf(
 		"INSERT INTO %s (user_id, role_id, refresh_token, client_ip, user_agent, expires_at) values ($1, $2, $3, $4, $5, $6) RETURNING *",
 		sessionsTable)
@@ -121,5 +126,11 @@ func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*server.Session, err
 func (a *AuthPostgres) DeleteSessionByUserId(id int) error {
 	queryDeleteSession := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", sessionsTable)
 	_, err := a.db.Exec(queryDeleteSession, id)
+	return err
+}
+
+func (a *AuthPostgres) UpdateRefreshToken(userId int, newRefreshToken string) error {
+	queryUpdateRefreshToken := fmt.Sprintf("UPDATE %s SET refresh_token=$1 WHERE user_id=$2", sessionsTable)
+	_, err := a.db.Exec(queryUpdateRefreshToken, newRefreshToken, userId)
 	return err
 }

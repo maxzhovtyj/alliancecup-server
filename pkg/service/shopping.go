@@ -52,3 +52,7 @@ func (s *ShoppingService) AddToFavourites(userId, productId int) error {
 func (s *ShoppingService) GetFavourites(userId int) ([]server.Product, error) {
 	return s.repo.GetFavourites(userId)
 }
+
+func (s *ShoppingService) DeleteFromFavourites(userId, productId int) error {
+	return s.repo.DeleteFromFavourites(userId, productId)
+}
