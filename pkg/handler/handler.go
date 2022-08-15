@@ -38,6 +38,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		},
 		AllowHeaders: []string{
 			"Authorization",
+			"Content-Type",
+			"User-Agent",
 		},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{},

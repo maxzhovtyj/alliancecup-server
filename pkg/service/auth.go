@@ -47,7 +47,7 @@ func (s *AuthService) CreateModerator(user server.User) (int, int, error) {
 func (s *AuthService) GenerateTokens(email, password string) (string, string, error) {
 	user, err := s.repo.GetUser(email, generatePasswordHash(password))
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("user are not found")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
