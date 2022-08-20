@@ -663,13 +663,11 @@ const docTemplate = `{
                 "operationId": "deletes from cart",
                 "parameters": [
                     {
-                        "description": "product id",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.ProductIdInput"
-                        }
+                        "type": "string",
+                        "description": "Product id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

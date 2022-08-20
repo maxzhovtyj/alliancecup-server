@@ -714,12 +714,11 @@ paths:
       description: deletes a product from users cart
       operationId: deletes from cart
       parameters:
-      - description: product id
-        in: body
-        name: input
+      - description: Product id
+        in: query
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/handler.ProductIdInput'
+        type: string
       produces:
       - application/json
       responses:
