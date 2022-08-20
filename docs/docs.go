@@ -47,8 +47,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/handler.ItemProcessedResponse"
                         }
@@ -105,8 +105,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/handler.ItemProcessedResponse"
                         }
@@ -1262,7 +1262,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "integer"
+                            "$ref": "#/definitions/handler.SignInResponse"
                         }
                     },
                     "400": {
@@ -1404,6 +1404,19 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.SignInResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo"
+                },
+                "sessionId": {
+                    "type": "integer",
+                    "example": 15
+                }
+            }
+        },
         "handler.allCategoriesResponse": {
             "type": "object",
             "properties": {
@@ -1456,7 +1469,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "closed_at": {
-                    "description": "TODO swagger sql.nullTime issue",
                     "type": "string"
                 },
                 "created_at": {

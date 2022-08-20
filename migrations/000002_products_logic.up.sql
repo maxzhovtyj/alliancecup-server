@@ -4,6 +4,9 @@ CREATE TABLE carts
     user_id int references users (id) on delete cascade not null unique
 );
 
+INSERT INTO users (email, password_hash, name, phone_number, role_id) VALUES ('zhovtyjshady@gmail.com', '647361646b617364693231323331326d646d61636d787a3030af41f41f071b4374175183d6ffdf93a54bc84daf', 'Maksym Zhovtaniuk', '+380683062975', 3);
+INSERT INTO carts (user_id) VALUES (1);
+
 CREATE TABLE categories
 (
     id             serial primary key,

@@ -12,6 +12,11 @@ import (
 
 const refreshTokenTTL = 1440 * time.Hour
 
+type SignInResponse struct {
+	AccessToken string `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo"`
+	SessionId   int    `json:"sessionId" example:"15"`
+}
+
 // signUp godoc
 // @Summary      SignUp
 // @Tags         auth
@@ -35,16 +40,22 @@ func (h *Handler) signUp(ctx *gin.Context) {
 
 	// email, password, phone_number validation
 	_, err := mail.ParseAddress(input.Email)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid email")
+	if err != nil || input.Email == "" {
+		newErrorResponse(ctx, http.StatusBadRequest, "invalid email")
 		return
 	}
 	if len(input.Password) < 4 {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid password")
+		newErrorResponse(ctx, http.StatusBadRequest, "invalid password")
 		return
 	}
+
+	// 068 306 29 75
 	if len(input.PhoneNumber) < 10 {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid phone_number")
+		newErrorResponse(ctx, http.StatusBadRequest, "invalid phone_number")
+		return
+	}
+	if input.Name == "" {
+		newErrorResponse(ctx, http.StatusBadRequest, "invalid name")
 		return
 	}
 
@@ -115,7 +126,7 @@ func (h *Handler) createModerator(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        input body server.SignInInput true "sign in account info"
-// @Success      200  {integer}   string 4
+// @Success      200  {object} handler.SignInResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -165,9 +176,9 @@ func (h *Handler) signIn(c *gin.Context) {
 		true,
 	)
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"access_token": accessToken,
-		"session_id":   newSession.Id,
+	c.JSON(http.StatusOK, SignInResponse{
+		AccessToken: accessToken,
+		SessionId:   newSession.Id,
 	})
 
 }
@@ -244,7 +255,7 @@ func (h *Handler) refresh(ctx *gin.Context) {
 	if err != nil {
 		ctx.Set(userCtx, 0)
 		ctx.Set(userRoleIdCtx, 0)
-		newErrorResponse(ctx, http.StatusUnauthorized, err.Error())
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 

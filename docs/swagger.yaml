@@ -40,6 +40,15 @@ definitions:
       id:
         type: integer
     type: object
+  handler.SignInResponse:
+    properties:
+      accessToken:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo
+        type: string
+      sessionId:
+        example: 15
+        type: integer
+    type: object
   handler.allCategoriesResponse:
     properties:
       data:
@@ -75,7 +84,6 @@ definitions:
   server.Order:
     properties:
       closed_at:
-        description: TODO swagger sql.nullTime issue
         type: string
       created_at:
         type: string
@@ -278,8 +286,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/handler.ItemProcessedResponse'
         "400":
@@ -315,8 +323,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/handler.ItemProcessedResponse'
         "400":
@@ -1064,7 +1072,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: integer
+            $ref: '#/definitions/handler.SignInResponse'
         "400":
           description: Bad Request
           schema:

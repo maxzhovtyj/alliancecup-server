@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 	server "github.com/zh0vtyj/allincecup-server"
 	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 	"time"
@@ -150,6 +151,7 @@ func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (s
 
 	// validation if refresh token is expired
 	if time.Now().After(session.ExpiresAt) {
+		logrus.Println("token is expired")
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
 			return "", "", fmt.Errorf("cannot delete session: " + err.Error())
