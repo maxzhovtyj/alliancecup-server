@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	server "github.com/zh0vtyj/allincecup-server"
 	"net/http"
@@ -23,7 +22,7 @@ import (
 // @Router       /api/client/add-to-cart [post]
 func (h *Handler) addToCart(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
-	fmt.Println(userId)
+
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
 		return
@@ -49,8 +48,8 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 }
 
 type CartProductsResponse struct {
-	Products []server.CartProduct `json:"products"`
-	Sum      float64              `json:"sum"`
+	Products []server.CartProductFullInfo `json:"products"`
+	Sum      float64                      `json:"sum"`
 }
 
 // getFromCart godoc

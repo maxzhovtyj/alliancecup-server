@@ -4,7 +4,7 @@ definitions:
     properties:
       products:
         items:
-          $ref: '#/definitions/server.CartProduct'
+          $ref: '#/definitions/server.CartProductFullInfo'
         type: array
       sum:
         type: number
@@ -63,6 +63,42 @@ definitions:
       product_id:
         type: integer
       quantity:
+        type: integer
+    required:
+    - price_for_quantity
+    - product_id
+    - quantity
+    type: object
+  server.CartProductFullInfo:
+    properties:
+      amount_in_stock:
+        example: 120
+        type: number
+      article:
+        example: "000123"
+        type: string
+      created_at:
+        type: string
+      img_url:
+        example: https://google-images.com/some-img123
+        type: string
+      packages_in_box:
+        example: 50
+        type: integer
+      price:
+        example: 3.75
+        type: number
+      price_for_quantity:
+        type: number
+      product_id:
+        type: integer
+      product_title:
+        example: Стакан одноразовий Крафт 110мл
+        type: string
+      quantity:
+        type: integer
+      units_in_package:
+        example: 30
         type: integer
     required:
     - price_for_quantity

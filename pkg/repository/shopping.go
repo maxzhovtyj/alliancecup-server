@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	server "github.com/zh0vtyj/allincecup-server"
 )
@@ -41,17 +42,38 @@ func (s *ShoppingPostgres) PriceValidation(productId, quantity int) (float64, er
 	return price * float64(quantity), nil
 }
 
-func (s *ShoppingPostgres) GetProductsInCart(userId int) ([]server.CartProduct, error) {
+func (s *ShoppingPostgres) GetProductsInCart(userId int) ([]server.CartProductFullInfo, error) {
 	var cartId int
 	queryGetCartId := fmt.Sprintf("SELECT id FROM %s WHERE user_id=$1", cartsTable)
 	if err := s.db.Get(&cartId, queryGetCartId, userId); err != nil {
 		return nil, err
 	}
 
-	var productsInCart []server.CartProduct
-	queryGetProductsInCart := fmt.Sprintf("SELECT * FROM %s WHERE cart_id=$1", cartsProductsTable)
-	if err := s.db.Select(&productsInCart, queryGetProductsInCart, cartId); err != nil {
-		return nil, err
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	var productsInCart []server.CartProductFullInfo
+	queryCartProducts, args, err := psql.Select(
+		"carts_products.product_id",
+		"products.article",
+		"products.product_title",
+		"products.img_url",
+		"products.amount_in_stock",
+		"products.price",
+		"products.units_in_package",
+		"products.packages_in_box",
+		"products.created_at",
+		"carts_products.quantity",
+		"carts_products.price_for_quantity",
+	).
+		From(cartsProductsTable).
+		LeftJoin(productsTable + " ON carts_products.product_id=products.id").
+		Where(sq.Eq{"carts_products.cart_id": cartId}).ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build sql query to get products from cart due to: %v", err)
+	}
+
+	if err = s.db.Select(&productsInCart, queryCartProducts, args...); err != nil {
+		return nil, fmt.Errorf("failed to get products from user cart due to: %v", err)
 	}
 
 	return productsInCart, nil

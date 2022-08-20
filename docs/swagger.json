@@ -1340,7 +1340,7 @@
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.CartProduct"
+                        "$ref": "#/definitions/server.CartProductFullInfo"
                     }
                 },
                 "sum": {
@@ -1437,6 +1437,56 @@
                 },
                 "quantity": {
                     "type": "integer"
+                }
+            }
+        },
+        "server.CartProductFullInfo": {
+            "type": "object",
+            "required": [
+                "price_for_quantity",
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "amount_in_stock": {
+                    "type": "number",
+                    "example": 120
+                },
+                "article": {
+                    "type": "string",
+                    "example": "000123"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "img_url": {
+                    "type": "string",
+                    "example": "https://google-images.com/some-img123"
+                },
+                "packages_in_box": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "price": {
+                    "type": "number",
+                    "example": 3.75
+                },
+                "price_for_quantity": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "product_title": {
+                    "type": "string",
+                    "example": "Стакан одноразовий Крафт 110мл"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "units_in_package": {
+                    "type": "integer",
+                    "example": 30
                 }
             }
         },
