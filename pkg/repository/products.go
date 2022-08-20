@@ -39,20 +39,13 @@ func (p *ProductsPostgres) GetWithParams(params server.SearchParams, createdAt, 
 		return nil, err
 	}
 
-	var categoryId int
-	queryGetCategoryId := fmt.Sprintf("SELECT id FROM %s WHERE category_title=$1", categoriesTable)
-	err = p.db.Get(&categoryId, queryGetCategoryId, params.CategoryTitle)
-	if err != nil {
-		return nil, err
-	}
-
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Select(productsColumnsSelect...).
 		From(productsTable).
 		LeftJoin(categoriesTable+" ON products.category_id=categories.id").
 		LeftJoin(productTypesTable+" ON products_types.id=products.type_id").
-		Where("products.category_id=?", categoryId)
+		Where("products.category_id=?", params.CategoryId)
 
 	if createdAt != "" {
 		query = query.Where(sq.Lt{"products.created_at": createdAt})

@@ -103,21 +103,11 @@ func (a *AuthPostgres) DeleteSessionByRefresh(refresh string) error {
 
 func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*server.Session, error) {
 	var session server.Session
-	query := fmt.Sprintf("SELECT * from %s WHERE refresh_token=$1 LIMIT 1", sessionsTable)
-	row := a.db.QueryRow(query, refresh)
+	queryGetSession := fmt.Sprintf("SELECT * from %s WHERE refresh_token=$1 LIMIT 1", sessionsTable)
+	err := a.db.Get(&session, queryGetSession, refresh)
 
-	if err := row.Scan(
-		&session.Id,
-		&session.UserId,
-		&session.RoleId,
-		&session.RefreshToken,
-		&session.ClientIp,
-		&session.UserAgent,
-		&session.IsBlocked,
-		&session.ExpiresAt,
-		&session.CreatedAt,
-	); err != nil {
-		return nil, err
+	if err != nil {
+		return nil, fmt.Errorf("session wasn't found by refresh=%s, due to: %v", refresh, err)
 	}
 
 	return &session, nil
@@ -132,5 +122,8 @@ func (a *AuthPostgres) DeleteSessionByUserId(id int) error {
 func (a *AuthPostgres) UpdateRefreshToken(userId int, newRefreshToken string) error {
 	queryUpdateRefreshToken := fmt.Sprintf("UPDATE %s SET refresh_token=$1 WHERE user_id=$2", sessionsTable)
 	_, err := a.db.Exec(queryUpdateRefreshToken, newRefreshToken, userId)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }

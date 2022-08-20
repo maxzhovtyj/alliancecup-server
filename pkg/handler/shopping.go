@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	server "github.com/zh0vtyj/allincecup-server"
 	"net/http"
+	"strconv"
 )
 
 // addToCart godoc
@@ -22,6 +24,7 @@ import (
 // @Router       /api/client/add-to-cart [post]
 func (h *Handler) addToCart(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
+
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
 		return
@@ -47,8 +50,8 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 }
 
 type CartProductsResponse struct {
-	Products []server.CartProduct `json:"products"`
-	Sum      float64              `json:"sum"`
+	Products []server.CartProductFullInfo `json:"products"`
+	Sum      float64                      `json:"sum"`
 }
 
 // getFromCart godoc
@@ -90,28 +93,27 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 // @ID deletes from cart
 // @Accept       json
 // @Produce      json
-// @Param        input body handler.ProductIdInput true "product id"
+// @Param 		 id query string true "Product id"
 // @Success      200  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/client/delete-from-cart [delete]
 func (h *Handler) deleteFromCart(ctx *gin.Context) {
-	var product ProductIdInput
-
-	if err := ctx.BindJSON(&product); err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, "product_id to delete was not found: "+err.Error())
+	productId, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to parse product id to int: %v", err).Error())
 		return
 	}
 
-	err := h.services.Shopping.DeleteFromCart(product.Id)
+	err = h.services.Shopping.DeleteFromCart(productId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
-		Id:      product.Id,
+		Id:      productId,
 		Message: "product deleted",
 	})
 }

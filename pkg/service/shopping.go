@@ -27,7 +27,7 @@ func (s *ShoppingService) AddToCart(userId int, info server.CartProduct) (float6
 	return s.repo.AddToCart(userId, info)
 }
 
-func (s *ShoppingService) GetProductsInCart(userId int) ([]server.CartProduct, float64, error) {
+func (s *ShoppingService) GetProductsInCart(userId int) ([]server.CartProductFullInfo, float64, error) {
 	products, err := s.repo.GetProductsInCart(userId)
 	if err != nil {
 		return nil, 0, err

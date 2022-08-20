@@ -47,8 +47,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/handler.ItemProcessedResponse"
                         }
@@ -105,8 +105,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/handler.ItemProcessedResponse"
                         }
@@ -663,13 +663,11 @@ const docTemplate = `{
                 "operationId": "deletes from cart",
                 "parameters": [
                     {
-                        "description": "product id",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.ProductIdInput"
-                        }
+                        "type": "string",
+                        "description": "Product id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1262,7 +1260,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "integer"
+                            "$ref": "#/definitions/handler.SignInResponse"
                         }
                     },
                     "400": {
@@ -1347,7 +1345,7 @@ const docTemplate = `{
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.CartProduct"
+                        "$ref": "#/definitions/server.CartProductFullInfo"
                     }
                 },
                 "sum": {
@@ -1404,6 +1402,19 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.SignInResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo"
+                },
+                "sessionId": {
+                    "type": "integer",
+                    "example": 15
+                }
+            }
+        },
         "handler.allCategoriesResponse": {
             "type": "object",
             "properties": {
@@ -1434,6 +1445,56 @@ const docTemplate = `{
                 }
             }
         },
+        "server.CartProductFullInfo": {
+            "type": "object",
+            "required": [
+                "price_for_quantity",
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "amount_in_stock": {
+                    "type": "number",
+                    "example": 120
+                },
+                "article": {
+                    "type": "string",
+                    "example": "000123"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "img_url": {
+                    "type": "string",
+                    "example": "https://google-images.com/some-img123"
+                },
+                "packages_in_box": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "price": {
+                    "type": "number",
+                    "example": 3.75
+                },
+                "price_for_quantity": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "product_title": {
+                    "type": "string",
+                    "example": "Стакан одноразовий Крафт 110мл"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "units_in_package": {
+                    "type": "integer",
+                    "example": 30
+                }
+            }
+        },
         "server.Category": {
             "type": "object",
             "required": [
@@ -1456,7 +1517,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "closed_at": {
-                    "description": "TODO swagger sql.nullTime issue",
                     "type": "string"
                 },
                 "created_at": {

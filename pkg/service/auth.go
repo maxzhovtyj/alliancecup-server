@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 	server "github.com/zh0vtyj/allincecup-server"
 	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 	"time"
@@ -47,7 +48,7 @@ func (s *AuthService) CreateModerator(user server.User) (int, int, error) {
 func (s *AuthService) GenerateTokens(email, password string) (string, string, error) {
 	user, err := s.repo.GetUser(email, generatePasswordHash(password))
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("user are not found")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
@@ -150,6 +151,7 @@ func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (s
 
 	// validation if refresh token is expired
 	if time.Now().After(session.ExpiresAt) {
+		logrus.Println("token is expired")
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
 			return "", "", fmt.Errorf("cannot delete session: " + err.Error())

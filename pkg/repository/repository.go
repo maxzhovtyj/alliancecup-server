@@ -35,7 +35,7 @@ type Products interface {
 type Shopping interface {
 	AddToCart(userId int, info server.CartProduct) (float64, error)
 	PriceValidation(productId, quantity int) (float64, error)
-	GetProductsInCart(userId int) ([]server.CartProduct, error)
+	GetProductsInCart(userId int) ([]server.CartProductFullInfo, error)
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	GetFavourites(userId int) ([]server.Product, error)

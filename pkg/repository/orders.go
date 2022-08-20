@@ -47,10 +47,13 @@ func (o *OrdersPostgres) New(order server.OrderFullInfo) (uuid.UUID, error) {
 		return [16]byte{}, err
 	}
 
+	if order.Info.UserId != 0 {
+		orderInfoColumnsInsert = append(orderInfoColumnsInsert, "user_id")
+	}
+
 	queryInsertOrder := psql.Insert(ordersTable).Columns(orderInfoColumnsInsert...)
 
 	if order.Info.UserId != 0 {
-		orderInfoColumnsInsert = append(orderInfoColumnsInsert, "user_id")
 		queryInsertOrder = queryInsertOrder.Values(
 			order.Info.UserLastName,
 			order.Info.UserFirstName,
@@ -79,14 +82,14 @@ func (o *OrdersPostgres) New(order server.OrderFullInfo) (uuid.UUID, error) {
 
 	queryInsertOrderSql, args, err := queryInsertOrder.ToSql()
 	if err != nil {
-		return [16]byte{}, err
+		return [16]byte{}, fmt.Errorf("failed to build sql query to insert order due to: %v", err)
 	}
 
 	var orderId uuid.UUID
 	row := tx.QueryRow(queryInsertOrderSql+" RETURNING id", args...)
 	if err = row.Scan(&orderId); err != nil {
 		_ = tx.Rollback()
-		return [16]byte{}, err
+		return [16]byte{}, fmt.Errorf("failed to insert new order into table due to: %v", err)
 	}
 
 	for _, product := range order.Products {

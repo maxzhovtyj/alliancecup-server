@@ -23,7 +23,7 @@ const (
 	statusProcessed    = "PROCESSED"
 	statusCompleted    = "COMPLETED"
 	refreshTokenCookie = "refresh_token"
-	domain             = "DOMAIN"
+	domain             = "localhost"
 )
 
 func (h *Handler) InitRoutes() *gin.Engine {
@@ -38,6 +38,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		},
 		AllowHeaders: []string{
 			"Authorization",
+			"Content-Type",
+			"User-Agent",
 		},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{},
@@ -90,7 +92,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.POST("/add-to-favourites", h.addToFavourites)
 			client.GET("/get-favourites", h.getFavourites)
 			client.DELETE("/delete-from-favourites", h.deleteFromFavourites)
-			// TODO delete from favourites HANDLER
 
 			client.GET("/get-order", h.getOrderById)
 		}

@@ -36,10 +36,10 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 	searchBar := ctx.Query("search")
 
 	category := ctx.Query("category")
-	if category != "" {
-		if strings.Index(category, "-") != -1 {
-			category = strings.Replace(category, "-", " ", -1)
-		}
+	categoryInt, err := strconv.Atoi(category)
+	if err != nil || categoryInt == 0 {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	size := ctx.Query("size")
@@ -61,8 +61,9 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 	characteristic := ctx.Query("characteristic")
 
 	params := &server.SearchParams{
-		CategoryTitle: category,
-		Size:          size, Price: price,
+		CategoryId:     categoryInt,
+		Size:           size,
+		Price:          price,
 		Characteristic: characteristic,
 	}
 
