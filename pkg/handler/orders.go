@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	server "github.com/zh0vtyj/allincecup-server"
@@ -157,4 +158,25 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"data": orders,
 	})
+}
+
+// getDeliveryPaymentTypes godoc
+// @Summary      Get order info types
+// @Tags         api/order-info-types
+// @Description  get payment and delivery types
+// @ID get order info types
+// @Produce      json
+// @Success      200  {array}   server.DeliveryPaymentTypes
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/order-info-types [get]
+func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
+	deliveryTypes, err := h.services.Orders.DeliveryPaymentTypes()
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, fmt.Errorf("failed to get delivery types due to: %v", err).Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, deliveryTypes)
 }

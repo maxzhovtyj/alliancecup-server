@@ -37,7 +37,7 @@ func (o *OrdersService) New(order server.OrderFullInfo) (uuid.UUID, error) {
 		return [16]byte{}, err
 	}
 	if sum != order.Info.OrderSumPrice {
-		return [16]byte{}, fmt.Errorf("sum price mismatch")
+		return [16]byte{}, fmt.Errorf("sum price mismatch, %f (computed) !== %f (given)", sum, order.Info.OrderSumPrice)
 	}
 
 	id, err := o.repo.New(order)
@@ -58,4 +58,21 @@ func (o *OrdersService) GetOrderById(orderId uuid.UUID) (server.OrderInfo, error
 
 func (o *OrdersService) GetAdminOrders(status string, lastOrderCreatedAt string) ([]server.Order, error) {
 	return o.repo.GetAdminOrders(status, lastOrderCreatedAt)
+}
+
+func (o *OrdersService) DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error) {
+	deliveryTypes, err := o.repo.GetDeliveryTypes()
+	if err != nil {
+		return server.DeliveryPaymentTypes{}, fmt.Errorf("failed to load delivery types due to: %v", err)
+	}
+
+	paymentTypes, err := o.repo.GetPaymentTypes()
+	if err != nil {
+		return server.DeliveryPaymentTypes{}, fmt.Errorf("failed to load payment types due to: %v", err)
+	}
+
+	return server.DeliveryPaymentTypes{
+		DeliveryTypes: deliveryTypes,
+		PaymentTypes:  paymentTypes,
+	}, nil
 }

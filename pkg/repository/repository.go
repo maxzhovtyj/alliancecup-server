@@ -47,6 +47,8 @@ type Orders interface {
 	GetUserOrders(userId int, createdAt string) ([]server.OrderInfo, error)
 	GetOrderById(orderId uuid.UUID) (server.OrderInfo, error)
 	GetAdminOrders(status string, lastOrderCreatedAt string) ([]server.Order, error)
+	GetDeliveryTypes() ([]server.DeliveryType, error)
+	GetPaymentTypes() ([]server.PaymentType, error)
 }
 
 type Repository struct {

@@ -1139,6 +1139,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/order-info-types": {
+            "get": {
+                "description": "get payment and delivery types",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/order-info-types"
+                ],
+                "summary": "Get order info types",
+                "operationId": "get order info types",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/server.DeliveryPaymentTypes"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/product": {
             "get": {
                 "description": "get product full info by its id",
@@ -1513,6 +1555,34 @@ const docTemplate = `{
                 }
             }
         },
+        "server.DeliveryPaymentTypes": {
+            "type": "object",
+            "properties": {
+                "deliveryTypes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/server.DeliveryType"
+                    }
+                },
+                "paymentTypes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/server.PaymentType"
+                    }
+                }
+            }
+        },
+        "server.DeliveryType": {
+            "type": "object",
+            "properties": {
+                "delivery_type_title": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "server.Order": {
             "type": "object",
             "properties": {
@@ -1659,6 +1729,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "delivery_title": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.PaymentType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "payment_type_title": {
                     "type": "string"
                 }
             }

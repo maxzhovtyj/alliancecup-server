@@ -62,6 +62,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.GET("/get-products", h.getProducts)
 		api.GET("/product", h.getProductById)
 		api.POST("/new-order", h.newOrder)
+		api.GET("/order-info-types", h.deliveryPaymentTypes)
 
 		admin := api.Group("/admin", h.userHasPermission)
 		{

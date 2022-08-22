@@ -364,3 +364,25 @@ func (o *OrdersPostgres) GetAdminOrders(status string, lastOrderCreatedAt string
 
 	return orders, nil
 }
+
+func (o *OrdersPostgres) GetDeliveryTypes() (deliveryTypes []server.DeliveryType, err error) {
+	queryGetDeliveryTypes := fmt.Sprintf("SELECT * FROM %s", deliveryTypesTable)
+
+	err = o.db.Select(&deliveryTypes, queryGetDeliveryTypes)
+	if err != nil {
+		return nil, err
+	}
+
+	return deliveryTypes, err
+}
+
+func (o *OrdersPostgres) GetPaymentTypes() (paymentTypes []server.PaymentType, err error) {
+	queryGetPaymentTypes := fmt.Sprintf("SELECT * FROM %s", paymentTypesTable)
+
+	err = o.db.Select(&paymentTypes, queryGetPaymentTypes)
+	if err != nil {
+		return nil, err
+	}
+
+	return paymentTypes, err
+}
