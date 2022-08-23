@@ -19,9 +19,9 @@ func NewHandler(services *service.Service) *Handler {
 }
 
 const (
-	statusInProgress   = "IN_PROGRESS"
-	statusProcessed    = "PROCESSED"
-	statusCompleted    = "COMPLETED"
+	StatusInProgress   = "IN_PROGRESS"
+	StatusProcessed    = "PROCESSED"
+	StatusCompleted    = "COMPLETED"
 	refreshTokenCookie = "refresh_token"
 	domain             = "localhost"
 )
@@ -78,6 +78,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.DELETE("/delete-category", h.deleteCategory)
 
 			admin.GET("/all-orders", h.adminGetOrders)
+			admin.PUT("/processed-order", h.processedOrder)
 		}
 
 		client := api.Group("/client", h.userAuthorized)

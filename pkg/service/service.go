@@ -48,6 +48,7 @@ type Orders interface {
 	GetOrderById(orderId uuid.UUID) (server.OrderInfo, error)
 	GetAdminOrders(status string, lastOrderCreatedAt string) ([]server.Order, error)
 	DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error)
+	ProcessedOrder(orderId uuid.UUID, toStatus string) error
 }
 
 type Service struct {

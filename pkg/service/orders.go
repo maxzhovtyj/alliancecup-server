@@ -23,6 +23,10 @@ func (o *OrdersService) OrderSumCount(products []server.OrderProducts) (float64,
 		if err != nil {
 			return 0, err
 		}
+		inputPrice := product.PriceForQuantity / float64(product.Quantity)
+		if p.Info.Price != inputPrice {
+			return 0, fmt.Errorf("invalid product price")
+		}
 		if p.Info.Price*float64(product.Quantity) != product.PriceForQuantity {
 			return 0, fmt.Errorf("price for quantity mismatch")
 		}
@@ -75,4 +79,12 @@ func (o *OrdersService) DeliveryPaymentTypes() (server.DeliveryPaymentTypes, err
 		DeliveryTypes: deliveryTypes,
 		PaymentTypes:  paymentTypes,
 	}, nil
+}
+
+func (o *OrdersService) ProcessedOrder(orderId uuid.UUID, toStatus string) error {
+	err := o.repo.ChangeOrderStatus(orderId, toStatus)
+	if err != nil {
+		return err
+	}
+	return nil
 }

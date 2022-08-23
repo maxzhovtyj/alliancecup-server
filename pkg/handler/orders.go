@@ -34,6 +34,10 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 		return
 	}
 
+	if input.Info.OrderSumPrice < 400 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to create order, minimal orders price is 400hrn").Error())
+	}
+
 	id, err := getUserId(ctx)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "user id not found")
@@ -144,7 +148,7 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	createdAt := ctx.Query("created_at")
 	orderStatus := ctx.Query("order_status")
 
-	if orderStatus != statusCompleted && orderStatus != statusProcessed && orderStatus != statusInProgress {
+	if orderStatus != StatusCompleted && orderStatus != StatusProcessed && orderStatus != StatusInProgress {
 		newErrorResponse(ctx, http.StatusBadRequest, "invalid order status")
 		return
 	}
@@ -162,7 +166,7 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 
 // getDeliveryPaymentTypes godoc
 // @Summary      Get order info types
-// @Tags         api/order-info-types
+// @Tags         api
 // @Description  get payment and delivery types
 // @ID get order info types
 // @Produce      json
@@ -179,4 +183,48 @@ func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, deliveryTypes)
+}
+
+type ProcessedOrderStatus struct {
+	OrderId  uuid.UUID `json:"orderId" binding:"required"`
+	ToStatus string    `json:"toStatus" binding:"required"`
+}
+
+// processedOrder godoc
+// @Summary      Processed order by id
+// @Tags         api/admin
+// @Description  handler for admin/moderator to processed order by id
+// @ID processed order
+// @Accept 	  	 json {object} ProcessedOrderStatus
+// @Produce      json {object}
+// @Success      200  {array}   server.DeliveryPaymentTypes
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/order-info-types [get]
+func (h *Handler) processedOrder(ctx *gin.Context) {
+	var orderInput ProcessedOrderStatus
+
+	if err := ctx.BindJSON(&orderInput); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to bind input data due to: %v", err).Error())
+		return
+	}
+
+	if orderInput.ToStatus != StatusCompleted &&
+		orderInput.ToStatus != StatusProcessed &&
+		orderInput.ToStatus != StatusInProgress {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to update order status, invalid input status").Error())
+		return
+	}
+
+	err := h.services.Orders.ProcessedOrder(orderInput.OrderId, orderInput.ToStatus)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"orderId": orderInput.OrderId,
+		"message": "order status successfully updated",
+	})
 }

@@ -37,14 +37,14 @@ func (o *OrdersPostgres) New(order server.OrderFullInfo) (uuid.UUID, error) {
 	queryGetDeliveryId := fmt.Sprintf("SELECT id FROM %s WHERE delivery_type_title=$1", deliveryTypesTable)
 	err := o.db.Get(&deliveryTypeId, queryGetDeliveryId, order.Info.DeliveryTypeTitle)
 	if err != nil {
-		return [16]byte{}, err
+		return [16]byte{}, fmt.Errorf("failed to create order, delivery type not found %s, error: %v", order.Info.DeliveryTypeTitle, err)
 	}
 
 	var paymentTypeId int
 	queryGetPaymentTypeId := fmt.Sprintf("SELECT id FROM %s WHERE payment_type_title=$1", paymentTypesTable)
 	err = o.db.Get(&paymentTypeId, queryGetPaymentTypeId, order.Info.PaymentTypeTitle)
 	if err != nil {
-		return [16]byte{}, err
+		return [16]byte{}, fmt.Errorf("failed to create order, payment type not found %s, error: %v", order.Info.PaymentTypeTitle, err)
 	}
 
 	if order.Info.UserId != 0 {
@@ -385,4 +385,15 @@ func (o *OrdersPostgres) GetPaymentTypes() (paymentTypes []server.PaymentType, e
 	}
 
 	return paymentTypes, err
+}
+
+func (o *OrdersPostgres) ChangeOrderStatus(orderId uuid.UUID, toStatus string) error {
+	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id=$2", ordersTable)
+
+	_, err := o.db.Exec(queryUpdateStatus, toStatus, orderId)
+	if err != nil {
+		return fmt.Errorf("failed to update order status in database due to: %v", err)
+	}
+
+	return nil
 }

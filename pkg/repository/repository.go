@@ -49,6 +49,7 @@ type Orders interface {
 	GetAdminOrders(status string, lastOrderCreatedAt string) ([]server.Order, error)
 	GetDeliveryTypes() ([]server.DeliveryType, error)
 	GetPaymentTypes() ([]server.PaymentType, error)
+	ChangeOrderStatus(orderId uuid.UUID, toStatus string) error
 }
 
 type Repository struct {
