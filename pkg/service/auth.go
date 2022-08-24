@@ -133,20 +133,20 @@ func generatePasswordHash(password string) string {
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
-func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, error) {
+func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, int, error) {
 	// get user session by old refresh token
 	session, err := s.repo.GetSessionByRefresh(refreshToken)
 	if err != nil {
-		return "", "", err
+		return "", "", 0, 0, err
 	}
 
 	// validation if client IP or user agent is not the same
 	if session.ClientIp != clientIp || session.UserAgent != userAgent {
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
-			return "", "", fmt.Errorf("cannot delete session: " + err.Error())
+			return "", "", 0, 0, fmt.Errorf("cannot delete session: " + err.Error())
 		}
-		return "", "", fmt.Errorf("invalid meta data")
+		return "", "", 0, 0, fmt.Errorf("invalid meta data")
 	}
 
 	// validation if refresh token is expired
@@ -154,25 +154,25 @@ func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (s
 		logrus.Println("token is expired")
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
-			return "", "", fmt.Errorf("cannot delete session: " + err.Error())
+			return "", "", 0, 0, fmt.Errorf("cannot delete session: " + err.Error())
 		}
-		return "", "", fmt.Errorf("refresh expired token, session deleted from db")
+		return "", "", 0, 0, fmt.Errorf("refresh expired token, session deleted from db")
 	}
 
 	// validation if refresh token is blocked
 	if session.IsBlocked {
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
-			return "", "", fmt.Errorf("cannot delete session: " + err.Error())
+			return "", "", 0, 0, fmt.Errorf("cannot delete session: " + err.Error())
 		}
-		return "", "", fmt.Errorf("session is blocked, session deleted from db")
+		return "", "", 0, 0, fmt.Errorf("session is blocked, session deleted from db")
 	}
 
 	newRefreshToken, err := s.GenerateRefreshToken()
 
 	err = s.repo.UpdateRefreshToken(session.UserId, newRefreshToken)
 	if err != nil {
-		return "", "", err
+		return "", "", 0, 0, err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
@@ -185,10 +185,10 @@ func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (s
 	})
 	accessToken, err := token.SignedString([]byte(signingKey))
 	if err != nil {
-		return "", "", err
+		return "", "", 0, 0, err
 	}
 
-	return accessToken, newRefreshToken, err
+	return accessToken, newRefreshToken, session.UserId, session.RoleId, err
 }
 
 func (s *AuthService) CreateNewSession(session *server.Session) (*server.Session, error) {

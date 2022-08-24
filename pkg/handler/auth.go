@@ -15,6 +15,8 @@ const refreshTokenTTL = 1440 * time.Hour
 type SignInResponse struct {
 	AccessToken string `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo"`
 	SessionId   int    `json:"sessionId" example:"15"`
+	UserId      int    `json:"userId" example:"5"`
+	UserRoleId  int    `json:"userRoleId" example:"1"`
 }
 
 // signUp godoc
@@ -166,21 +168,15 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(
-		"refresh_token",
-		refreshToken,
-		60*60*24*60,
-		"/",
-		"localhost",
-		false,
-		true,
-	)
+	dm := os.Getenv(domain)
+	c.SetCookie(refreshTokenCookie, refreshToken, 60*60*24*60, "/", dm, false, true)
 
 	c.JSON(http.StatusOK, SignInResponse{
 		AccessToken: accessToken,
+		UserId:      userId,
+		UserRoleId:  userRoleId,
 		SessionId:   newSession.Id,
 	})
-
 }
 
 // logout godoc
@@ -205,7 +201,7 @@ func (h *Handler) logout(ctx *gin.Context) {
 	ctx.Set(userCtx, 0)
 	ctx.Set(userRoleIdCtx, 0)
 
-	err = h.services.Authorization.Logout(id) // TODO delete session by refresh token
+	err = h.services.Authorization.Logout(id)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -221,7 +217,6 @@ func (h *Handler) logout(ctx *gin.Context) {
 
 // refresh godoc
 // @Summary      Refresh
-// @Security ApiKeyAuth
 // @Tags         auth
 // @Description  Gets a new access token using refreshToken
 // @ID refreshes token from account
@@ -251,7 +246,7 @@ func (h *Handler) refresh(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, newRefreshToken, err := h.services.Authorization.RefreshTokens(cookieToken, clientIp, userAgent)
+	accessToken, newRefreshToken, userId, userRoleId, err := h.services.Authorization.RefreshTokens(cookieToken, clientIp, userAgent)
 	if err != nil {
 		ctx.Set(userCtx, 0)
 		ctx.Set(userRoleIdCtx, 0)
@@ -263,6 +258,8 @@ func (h *Handler) refresh(ctx *gin.Context) {
 	ctx.SetCookie(refreshTokenCookie, newRefreshToken, 60*60*24*60, "/", dm, false, true)
 
 	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"access_token": accessToken,
+		"accessToken": accessToken,
+		"userId":      userId,
+		"userRoleId":  userRoleId,
 	})
 }

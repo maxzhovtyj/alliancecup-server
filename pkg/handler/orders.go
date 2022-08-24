@@ -195,8 +195,9 @@ type ProcessedOrderStatus struct {
 // @Tags         api/admin
 // @Description  handler for admin/moderator to processed order by id
 // @ID processed order
-// @Accept 	  	 json {object} ProcessedOrderStatus
-// @Produce      json {object}
+// @Accept 	  	 json
+// @Produce      json
+// @Param 		 input body handler.ProcessedOrderStatus true "order status"
 // @Success      200  {array}   server.DeliveryPaymentTypes
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error

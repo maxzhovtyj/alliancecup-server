@@ -1141,15 +1141,29 @@ const docTemplate = `{
         },
         "/api/order-info-types": {
             "get": {
-                "description": "get payment and delivery types",
+                "description": "handler for admin/moderator to processed order by id",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "api/order-info-types"
+                    "api/admin"
                 ],
-                "summary": "Get order info types",
-                "operationId": "get order info types",
+                "summary": "Processed order by id",
+                "operationId": "processed order",
+                "parameters": [
+                    {
+                        "description": "order status",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.ProcessedOrderStatus"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1436,6 +1450,21 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.ProcessedOrderStatus": {
+            "type": "object",
+            "required": [
+                "orderId",
+                "toStatus"
+            ],
+            "properties": {
+                "orderId": {
+                    "type": "string"
+                },
+                "toStatus": {
+                    "type": "string"
+                }
+            }
+        },
         "handler.ProductIdInput": {
             "type": "object",
             "properties": {
@@ -1454,6 +1483,14 @@ const docTemplate = `{
                 "sessionId": {
                     "type": "integer",
                     "example": 15
+                },
+                "userId": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "userRoleId": {
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -1585,6 +1622,16 @@ const docTemplate = `{
         },
         "server.Order": {
             "type": "object",
+            "required": [
+                "delivery_type_title",
+                "order_sum_price",
+                "payment_type_title",
+                "user_email",
+                "user_firstname",
+                "user_lastname",
+                "user_middle_name",
+                "user_phone_number"
+            ],
             "properties": {
                 "closed_at": {
                     "type": "string"

@@ -35,6 +35,16 @@ definitions:
       message:
         type: string
     type: object
+  handler.ProcessedOrderStatus:
+    properties:
+      orderId:
+        type: string
+      toStatus:
+        type: string
+    required:
+    - orderId
+    - toStatus
+    type: object
   handler.ProductIdInput:
     properties:
       id:
@@ -47,6 +57,12 @@ definitions:
         type: string
       sessionId:
         example: 15
+        type: integer
+      userId:
+        example: 5
+        type: integer
+      userRoleId:
+        example: 1
         type: integer
     type: object
   handler.allCategoriesResponse:
@@ -163,6 +179,15 @@ definitions:
         type: string
       user_phone_number:
         type: string
+    required:
+    - delivery_type_title
+    - order_sum_price
+    - payment_type_title
+    - user_email
+    - user_firstname
+    - user_lastname
+    - user_middle_name
+    - user_phone_number
     type: object
   server.OrderFullInfo:
     properties:
@@ -1055,8 +1080,17 @@ paths:
       - api
   /api/order-info-types:
     get:
-      description: get payment and delivery types
-      operationId: get order info types
+      consumes:
+      - application/json
+      description: handler for admin/moderator to processed order by id
+      operationId: processed order
+      parameters:
+      - description: order status
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.ProcessedOrderStatus'
       produces:
       - application/json
       responses:
@@ -1078,9 +1112,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handler.Error'
-      summary: Get order info types
+      summary: Processed order by id
       tags:
-      - api/order-info-types
+      - api/admin
   /api/product:
     get:
       description: get product full info by its id
