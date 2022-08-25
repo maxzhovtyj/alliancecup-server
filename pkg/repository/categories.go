@@ -17,10 +17,23 @@ func NewCategoryPostgres(db *sqlx.DB) *CategoryPostgres {
 func (c *CategoryPostgres) GetAll() ([]server.Category, error) {
 	var categories []server.Category
 
-	query := fmt.Sprintf("SELECT * FROM %s", categoriesTable)
-	err := c.db.Select(&categories, query)
+	queryGetCategories := fmt.Sprintf("SELECT * FROM %s", categoriesTable)
+	err := c.db.Select(&categories, queryGetCategories)
 
 	return categories, err
+}
+
+func (c *CategoryPostgres) GetFiltration(fkName string, id int) ([]server.CategoryFiltration, error) {
+	var filtration []server.CategoryFiltration
+
+	//fkName can be either category_id or filtration_list_id
+	queryGetFiltration := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1", categoriesFiltrationTable, fkName)
+	err := c.db.Select(&filtration, queryGetFiltration, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get category filtration from db due to: %v", err)
+	}
+
+	return filtration, nil
 }
 
 func (c *CategoryPostgres) Update(category server.Category) (int, error) {
@@ -51,4 +64,28 @@ func (c *CategoryPostgres) Delete(id int, title string) error {
 	queryDeleteCategory := fmt.Sprintf("DELETE FROM %s WHERE id=$1 OR category_title=$2", categoriesTable)
 	_, err := c.db.Exec(queryDeleteCategory, id, title)
 	return err
+}
+
+func (c *CategoryPostgres) AddFiltration(filtration server.CategoryFiltration) (int, error) {
+	var filtrationId int
+
+	queryAddFiltration := fmt.Sprintf(
+		"INSERT INTO %s (info_description, filtration_title, filtration_description, img_url, category_id, filtration_list_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		categoriesFiltrationTable,
+	)
+	row := c.db.QueryRow(
+		queryAddFiltration,
+		filtration.InfoDescription,
+		filtration.FiltrationTitle,
+		filtration.FiltrationDescription,
+		filtration.ImgUrl,
+		filtration.CategoryId,
+		filtration.FiltrationListId,
+	)
+
+	if err := row.Scan(&filtrationId); err != nil {
+		return 0, fmt.Errorf("failed to execute query to a db due to: %v", err)
+	}
+
+	return filtrationId, nil
 }

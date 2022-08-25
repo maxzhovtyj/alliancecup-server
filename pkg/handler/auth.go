@@ -19,6 +19,11 @@ type SignInResponse struct {
 	UserRoleId  int    `json:"userRoleId" example:"1"`
 }
 
+type SignInInput struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 // signUp godoc
 // @Summary      SignUp
 // @Tags         auth
@@ -127,14 +132,14 @@ func (h *Handler) createModerator(ctx *gin.Context) {
 // @ID sign-in account
 // @Accept       json
 // @Produce      json
-// @Param        input body server.SignInInput true "sign in account info"
+// @Param        input body handler.SignInInput true "sign in account info"
 // @Success      200  {object} handler.SignInResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /auth/sign-in [post]
 func (h *Handler) signIn(c *gin.Context) {
-	var input server.SignInInput
+	var input SignInInput
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
