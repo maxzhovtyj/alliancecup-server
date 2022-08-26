@@ -199,16 +199,14 @@ func (h *Handler) getFavourites(ctx *gin.Context) {
 // @ID deletes from favourites
 // @Accepts json
 // @Produce json
-// @Param        input body handler.ProductIdInput true "product id"
+// @Param 		 id query string true "Product id"
 // @Success      200  {array}  	handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/client/delete-from-favourites [delete]
 func (h *Handler) deleteFromFavourites(ctx *gin.Context) {
-	var input ProductIdInput
-
-	err := ctx.BindJSON(&input)
+	id, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -220,14 +218,14 @@ func (h *Handler) deleteFromFavourites(ctx *gin.Context) {
 		return
 	}
 
-	err = h.services.Shopping.DeleteFromFavourites(userId, input.Id)
+	err = h.services.Shopping.DeleteFromFavourites(userId, id)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
-		Id:      input.Id,
+		Id:      id,
 		Message: "product deleted from favourites",
 	})
 }

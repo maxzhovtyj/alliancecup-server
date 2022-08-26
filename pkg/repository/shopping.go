@@ -95,7 +95,7 @@ func (s *ShoppingPostgres) GetFavourites(userId int) ([]server.Product, error) {
 	var products []server.Product
 
 	queryGetFavourites := fmt.Sprintf(
-		"SELECT products.id, products.article, products.product_title, products.img_url, products.price, products.units_in_package, products.packages_in_box, products.created_at FROM %s, %s WHERE user_id=$1 AND %s.product_id=%s.id",
+		"SELECT products.id, products.article, products.product_title, products.img_url, products.price, products.units_in_package, products.packages_in_box, products.amount_in_stock, products.created_at FROM %s, %s WHERE user_id=$1 AND %s.product_id=%s.id",
 		favouritesTable,
 		productsTable,
 		favouritesTable,
