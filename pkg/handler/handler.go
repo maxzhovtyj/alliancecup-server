@@ -59,6 +59,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	api := router.Group("/api", h.userIdentity)
 	{
 		api.GET("/all-categories", h.getCategories)
+		api.GET("/filtration-list", h.getFiltration)
 		api.GET("/get-products", h.getProducts)
 		api.GET("/product", h.getProductById)
 		api.POST("/new-order", h.newOrder)
@@ -78,7 +79,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.DELETE("/delete-category", h.deleteCategory)
 
 			admin.GET("/all-orders", h.adminGetOrders)
-			admin.PUT("/processed-order", h.processedOrder)
+			//admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
+
+			admin.POST("/filtration-item", h.addFiltrationItem)
 		}
 
 		client := api.Group("/client", h.userAuthorized)

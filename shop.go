@@ -6,28 +6,34 @@ import (
 	"time"
 )
 
-type SignInInput struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+type Category struct {
+	Id                  int     `json:"id" db:"id"`
+	CategoryTitle       string  `json:"category_title" binding:"required" db:"category_title"`
+	ImgUrl              *string `json:"img_url" db:"img_url"`
+	CategoryDescription *string `json:"category_description" db:"category_description"`
 }
 
-type Category struct {
-	Id            int     `json:"id" db:"id"`
-	CategoryTitle string  `json:"category_title" binding:"required" db:"category_title"`
-	ImgUrl        *string `json:"img_url" binding:"required" db:"img_url"`
+type CategoryFiltration struct {
+	Id                    int     `json:"id" db:"id"`
+	CategoryId            *int    `json:"categoryId" db:"category_id"`
+	ImgUrl                *string `json:"imgUrl" db:"img_url"`
+	InfoDescription       string  `json:"infoDescription" binding:"required" db:"info_description"`
+	FiltrationTitle       string  `json:"filtrationTitle" binding:"required" db:"filtration_title"`
+	FiltrationDescription *string `json:"filtrationDescription" db:"filtration_description"`
+	FiltrationListId      *int    `json:"filtrationListId" db:"filtration_list_id"`
 }
 
 type Product struct {
 	Id             int       `json:"id" db:"id" example:"5"`
-	Article        string    `json:"article" db:"article" example:"000123"`
-	CategoryTitle  string    `json:"category_title" db:"category_title" example:"Одноразові стакани"`
-	ProductTitle   string    `json:"product_title" db:"product_title" example:"Стакан одноразовий Крафт 110мл"`
-	ImgUrl         string    `json:"img_url" db:"img_url" example:"https://google-images.com/some-img123"`
-	TypeTitle      string    `json:"type_title" db:"type_title" example:"Стакан"`
+	Article        string    `json:"article" binding:"required" db:"article" example:"000123"`
+	CategoryTitle  string    `json:"category_title" binding:"required" db:"category_title" example:"Одноразові стакани"`
+	ProductTitle   string    `json:"product_title" binding:"required" db:"product_title" example:"Стакан одноразовий Крафт 110мл"`
+	ImgUrl         string    `json:"img_url" binding:"required" db:"img_url" example:"https://google-images.com/some-img123"`
+	TypeTitle      string    `json:"type_title" binding:"required" db:"type_title" example:"Стакан"`
 	AmountInStock  float64   `json:"amount_in_stock" db:"amount_in_stock" example:"120"`
-	Price          float64   `json:"price" db:"price" example:"3.75"`
-	UnitsInPackage int       `json:"units_in_package" db:"units_in_package" example:"30"`
-	PackagesInBox  int       `json:"packages_in_box" db:"packages_in_box" example:"50"`
+	Price          float64   `json:"price" binding:"required" db:"price" example:"3.75"`
+	UnitsInPackage int       `json:"units_in_package" binding:"required" db:"units_in_package" example:"30"`
+	PackagesInBox  int       `json:"packages_in_box" binding:"required" db:"packages_in_box" example:"50"`
 	CreatedAt      time.Time `json:"created_at" db:"created_at"`
 }
 

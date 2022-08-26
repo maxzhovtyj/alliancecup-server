@@ -18,9 +18,11 @@ type Authorization interface {
 
 type Category interface {
 	GetAll() ([]server.Category, error)
+	GetFiltration(fkName string, id int) ([]server.CategoryFiltration, error)
 	Update(category server.Category) (int, error)
 	Create(category server.Category) (int, error)
 	Delete(id int, title string) error
+	AddFiltration(filtration server.CategoryFiltration) (int, error)
 }
 
 type Products interface {

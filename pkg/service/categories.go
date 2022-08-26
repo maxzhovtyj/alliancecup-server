@@ -32,3 +32,11 @@ func (c *CategoryService) Create(category server.Category) (int, error) {
 func (c *CategoryService) Delete(id int, title string) error {
 	return c.repo.Delete(id, title)
 }
+
+func (c *CategoryService) AddFiltration(filtration server.CategoryFiltration) (int, error) {
+	return c.repo.AddFiltration(filtration)
+}
+
+func (c *CategoryService) GetFiltration(fkName string, id int) ([]server.CategoryFiltration, error) {
+	return c.repo.GetFiltration(fkName, id)
+}

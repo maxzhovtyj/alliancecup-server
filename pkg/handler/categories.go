@@ -1,9 +1,16 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	server "github.com/zh0vtyj/allincecup-server"
 	"net/http"
+	"strconv"
+)
+
+const (
+	categoryIdName       = "category_id"
+	filtrationListIdName = "filtration_list_id"
 )
 
 type allCategoriesResponse struct {
@@ -35,6 +42,33 @@ func (h *Handler) getCategories(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, allCategoriesResponse{Data: categories})
+}
+
+func (h *Handler) getFiltration(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to parse to int id due to %v", err).Error())
+		return
+	}
+
+	parentName := ctx.Query("parentName")
+	if parentName != categoryIdName && parentName != filtrationListIdName {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid parent name, can be either category_id or filtration_list_id").Error())
+		return
+	}
+
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	filtrationList, err := h.services.Category.GetFiltration(parentName, id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, filtrationList)
 }
 
 // addCategory godoc
