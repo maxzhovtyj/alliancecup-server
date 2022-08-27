@@ -28,7 +28,7 @@ type Product struct {
 	Article        string    `json:"article" binding:"required" db:"article" example:"000123"`
 	CategoryTitle  string    `json:"category_title" binding:"required" db:"category_title" example:"Одноразові стакани"`
 	ProductTitle   string    `json:"product_title" binding:"required" db:"product_title" example:"Стакан одноразовий Крафт 110мл"`
-	ImgUrl         string    `json:"img_url" binding:"required" db:"img_url" example:"https://google-images.com/some-img123"`
+	ImgUrl         string    `json:"img_url" db:"img_url" example:"https://google-images.com/some-img123"`
 	TypeTitle      string    `json:"type_title" binding:"required" db:"type_title" example:"Стакан"`
 	AmountInStock  float64   `json:"amount_in_stock" db:"amount_in_stock" example:"120"`
 	Price          float64   `json:"price" binding:"required" db:"price" example:"3.75"`

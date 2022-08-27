@@ -35,6 +35,7 @@ type AuthService struct {
 func NewAuthService(repo repository.Authorization) *AuthService {
 	return &AuthService{repo: repo}
 }
+
 func (s *AuthService) CreateUser(user server.User) (int, int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, clientRole)
@@ -201,4 +202,26 @@ func (s *AuthService) CreateNewSession(session *server.Session) (*server.Session
 
 func (s *AuthService) Logout(id int) error {
 	return s.repo.DeleteSessionByUserId(id)
+}
+
+func (s *AuthService) ChangePassword(userId int, oldPassword, newPassword string) error {
+	hash, err := s.repo.GetUserPasswordHash(userId)
+	if err != nil {
+		return err
+	}
+
+	passwordHash := generatePasswordHash(oldPassword)
+
+	if hash != passwordHash {
+		return fmt.Errorf("invalid input password")
+	}
+
+	newPasswordHash := generatePasswordHash(newPassword)
+
+	err = s.repo.UpdatePassword(userId, newPasswordHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

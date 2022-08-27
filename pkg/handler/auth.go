@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	server "github.com/zh0vtyj/allincecup-server"
 	_ "github.com/zh0vtyj/allincecup-server/docs"
@@ -266,5 +267,39 @@ func (h *Handler) refresh(ctx *gin.Context) {
 		"accessToken": accessToken,
 		"userId":      userId,
 		"userRoleId":  userRoleId,
+	})
+}
+
+type ChangePasswordInput struct {
+	OldPassword string `json:"oldPassword" binding:"required"`
+	NewPassword string `json:"newPassword" binding:"required"`
+}
+
+func (h *Handler) changePassword(ctx *gin.Context) {
+	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var input ChangePasswordInput
+	if err = ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(input.NewPassword) < 4 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid password lenght").Error())
+		return
+	}
+
+	err = h.services.Authorization.ChangePassword(id, input.OldPassword, input.NewPassword)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"message": "password changed",
 	})
 }

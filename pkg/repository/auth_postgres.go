@@ -127,3 +127,26 @@ func (a *AuthPostgres) UpdateRefreshToken(userId int, newRefreshToken string) er
 	}
 	return nil
 }
+
+func (a *AuthPostgres) GetUserPasswordHash(userId int) (string, error) {
+	var hash string
+	queryGetHash := fmt.Sprintf("SELECT password_hash FROM %s WHERE id=$1", usersTable)
+
+	err := a.db.Get(&hash, queryGetHash, userId)
+	if err != nil {
+		return "", fmt.Errorf("failed to get password hash due to: %v", err)
+	}
+
+	return hash, nil
+}
+
+func (a *AuthPostgres) UpdatePassword(userId int, newPassword string) error {
+	queryUpdatePassword := fmt.Sprintf("UPDATE %s SET password_hash=$1 WHERE id=$2", usersTable)
+
+	_, err := a.db.Exec(queryUpdatePassword, newPassword, userId)
+	if err != nil {
+		return fmt.Errorf("failed to update password in db due to: %v", err)
+	}
+
+	return nil
+}

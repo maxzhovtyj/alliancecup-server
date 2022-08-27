@@ -14,6 +14,8 @@ type Authorization interface {
 	DeleteSessionByRefresh(refresh string) error
 	DeleteSessionByUserId(id int) error
 	UpdateRefreshToken(userId int, newRefreshToken string) error
+	GetUserPasswordHash(userId int) (string, error)
+	UpdatePassword(userId int, newPassword string) error
 }
 
 type Category interface {

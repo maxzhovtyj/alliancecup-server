@@ -15,6 +15,7 @@ type Authorization interface {
 	RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, int, error)
 	CreateNewSession(session *server.Session) (*server.Session, error)
 	Logout(id int) error
+	ChangePassword(userId int, oldPassword, newPassword string) error
 }
 
 type Category interface {
