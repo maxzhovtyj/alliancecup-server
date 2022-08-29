@@ -28,9 +28,9 @@ type CartProductFullInfo struct {
 }
 
 type SearchParams struct {
-	CategoryId     int    `json:"category_id"`
-	Size           string `json:"size"`
-	Price          string `json:"price"`
+	CategoryId     int    `json:"categoryId" binding:"required"`
+	PriceRange     string `json:"priceRange"`
+	CreatedAt      string `json:"createdAt"`
 	Characteristic string `json:"characteristic"`
 }
 

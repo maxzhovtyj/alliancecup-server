@@ -31,36 +31,35 @@ var productsColumnsSelect = []string{
 	"products.created_at",
 }
 
-func (p *ProductsPostgres) GetWithParams(params server.SearchParams, createdAt, search string) ([]server.Product, error) {
-	price := strings.Split(params.Price, " ")
-	gtPrice, err := strconv.ParseFloat(price[0], 64)
-	ltPrice, err := strconv.ParseFloat(price[1], 64)
-	if err != nil {
-		return nil, err
-	}
-
+func (p *ProductsPostgres) GetWithParams(params server.SearchParams) ([]server.Product, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Select(productsColumnsSelect...).
 		From(productsTable).
-		LeftJoin(categoriesTable+" ON products.category_id=categories.id").
-		LeftJoin(productTypesTable+" ON products_types.id=products.type_id").
-		Where("products.category_id=?", params.CategoryId)
+		LeftJoin(categoriesTable + " ON products.category_id=categories.id").
+		LeftJoin(productTypesTable + " ON products_types.id=products.type_id")
 
-	if createdAt != "" {
-		query = query.Where(sq.Lt{"products.created_at": createdAt})
-	}
-	if search != "" {
-		query = query.Where(sq.Like{"products.product_title": "%" + search + "%"})
-	}
-	if params.Size != "" {
-		query = query.Where(sq.Like{"products.product_title": "%" + params.Size + "%"})
-	}
 	if params.Characteristic != "" {
-		query = query.Where(sq.Like{"products.product_title": "%" + params.Characteristic + "%"})
+		query = query.Join(productsInfoTable + " ON products.id=products_info.product_id").
+			Where(sq.Eq{"products_info.description": params.Characteristic})
+		// TODO select all rows with exact match of characteristics slice
 	}
 
-	query = query.Where("products.price BETWEEN ? AND ?", gtPrice, ltPrice)
+	if params.PriceRange != "" {
+		price := strings.Split(params.PriceRange, ":")
+		gtPrice, err := strconv.ParseFloat(price[0], 64)
+		ltPrice, err := strconv.ParseFloat(price[1], 64)
+		if err != nil {
+			return nil, err
+		}
+		query = query.Where("products.price BETWEEN ? AND ?", gtPrice, ltPrice)
+	}
+
+	if params.CreatedAt != "" {
+		query = query.Where(sq.Lt{"products.created_at": params.CreatedAt})
+	}
+
+	query = query.Where("products.category_id=?", params.CategoryId)
 
 	ordered := query.OrderBy("products.created_at DESC").Limit(9)
 

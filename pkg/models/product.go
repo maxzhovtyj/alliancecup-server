@@ -13,6 +13,7 @@ type Product struct {
 	Price          float64   `json:"price" binding:"required" db:"price" example:"3.75"`
 	UnitsInPackage int       `json:"units_in_package" binding:"required" db:"units_in_package" example:"30"`
 	PackagesInBox  int       `json:"packages_in_box" binding:"required" db:"packages_in_box" example:"50"`
+	Description    string    `json:"description" db:"description"`
 	CreatedAt      time.Time `json:"created_at" db:"created_at"`
 }
 

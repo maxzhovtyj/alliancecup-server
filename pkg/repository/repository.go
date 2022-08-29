@@ -29,7 +29,7 @@ type Category interface {
 
 type Products interface {
 	Search(searchInput string) ([]models.Product, error)
-	GetWithParams(params models.SearchParams, createdAt, search string) ([]models.Product, error)
+	GetWithParams(params models.SearchParams) ([]models.Product, error)
 	GetProductById(id int) (models.ProductInfoDescription, error)
 	AddProduct(product models.Product, info []models.ProductInfo) (int, error)
 	Update(product models.ProductInfoDescription) (int, error)

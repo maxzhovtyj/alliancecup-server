@@ -60,7 +60,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		api.GET("/all-categories", h.getCategories)
 		api.GET("/filtration-list", h.getFiltration)
-		api.GET("/get-products", h.getProducts)
+		api.GET("/products", h.getProducts)
 		api.GET("/product", h.getProductById)
 		api.POST("/new-order", h.newOrder)
 		api.GET("/order-info-types", h.deliveryPaymentTypes)

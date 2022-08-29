@@ -22,8 +22,8 @@ func (s *ProductsService) Search(searchInput string) ([]server.Product, error) {
 	return products, err
 }
 
-func (s *ProductsService) GetWithParams(params server.SearchParams, lastProductCreatedAt, search string) ([]server.Product, error) {
-	return s.repo.GetWithParams(params, lastProductCreatedAt, search)
+func (s *ProductsService) GetWithParams(params server.SearchParams) ([]server.Product, error) {
+	return s.repo.GetWithParams(params)
 }
 
 func (s *ProductsService) AddProduct(product server.Product, info []server.ProductInfo) (int, error) {

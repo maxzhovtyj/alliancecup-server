@@ -1,11 +1,11 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	server "github.com/zh0vtyj/allincecup-server/pkg/models"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type ProductIdInput struct {
@@ -29,45 +29,29 @@ type ProductIdInput struct {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/get-products [get]
+// @Router       /api/get-products [post]
 func (h *Handler) getProducts(ctx *gin.Context) {
-	// https://localhost:8080/products?category=Одноразові-Стакани&size=110&type=Гофрований-А&price=5.44:15.2
+	categoryId, err := strconv.Atoi(ctx.Query("category"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to convert to int category id, err: %v", err).Error())
+		return
+	}
+	price := ctx.Query("priceRange") // TODO price validation
+	createdAt := ctx.Query("createdAt")
+	characteristic := ctx.Query("characteristic")
 
-	searchBar := ctx.Query("search")
-
-	category := ctx.Query("category")
-	categoryInt, err := strconv.Atoi(category)
-	if err != nil || categoryInt == 0 {
+	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	size := ctx.Query("size")
-
-	price := ctx.Query("price")
-	if price != "" {
-		if strings.Index(price, ":") != -1 {
-			split := strings.Split(price, ":")
-			gt := split[0]
-			lt := split[1]
-			price = gt + " " + lt
-		}
-	} else {
-		price = "0.00 1000.00"
-	}
-
-	createdAt := ctx.Query("created_at")
-
-	characteristic := ctx.Query("characteristic")
-
-	params := &server.SearchParams{
-		CategoryId:     categoryInt,
-		Size:           size,
-		Price:          price,
+	products, err := h.services.Products.GetWithParams(server.SearchParams{
+		CategoryId:     categoryId,
+		PriceRange:     price,
+		CreatedAt:      createdAt,
 		Characteristic: characteristic,
-	}
+	})
 
-	products, err := h.services.Products.GetWithParams(*params, createdAt, searchBar)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
