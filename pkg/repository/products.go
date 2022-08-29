@@ -4,7 +4,7 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	server "github.com/zh0vtyj/allincecup-server"
+	server "github.com/zh0vtyj/allincecup-server/pkg/models"
 	"strconv"
 	"strings"
 )

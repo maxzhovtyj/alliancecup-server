@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	server "github.com/zh0vtyj/allincecup-server"
+	"github.com/zh0vtyj/allincecup-server/pkg/models"
 )
 
 type AuthPostgres struct {
@@ -14,7 +14,7 @@ func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
 	return &AuthPostgres{db: db}
 }
 
-func (a *AuthPostgres) CreateUser(user server.User, role string) (int, int, error) {
+func (a *AuthPostgres) CreateUser(user models.User, role string) (int, int, error) {
 	// Transaction begin
 	tx, err := a.db.Begin()
 	if err != nil {
@@ -51,22 +51,22 @@ func (a *AuthPostgres) CreateUser(user server.User, role string) (int, int, erro
 	return id, userRoleId, tx.Commit()
 }
 
-func (a *AuthPostgres) GetUser(email, password string) (server.User, error) {
-	var user server.User
+func (a *AuthPostgres) GetUser(email, password string) (models.User, error) {
+	var user models.User
 	query := fmt.Sprintf("SELECT id, role_id FROM %s WHERE email=$1 AND password_hash=$2", usersTable)
 	err := a.db.Get(&user, query, email, password)
 
 	return user, err
 }
 
-func (a *AuthPostgres) NewSession(session server.Session) (*server.Session, error) {
+func (a *AuthPostgres) NewSession(session models.Session) (*models.Session, error) {
 	queryDeleteOldSession := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", sessionsTable)
 	_, err := a.db.Exec(queryDeleteOldSession, session.UserId)
 	if err != nil {
 		return nil, err
 	}
 
-	var newSession server.Session
+	var newSession models.Session
 	query := fmt.Sprintf(
 		"INSERT INTO %s (user_id, role_id, refresh_token, client_ip, user_agent, expires_at) values ($1, $2, $3, $4, $5, $6) RETURNING *",
 		sessionsTable)
@@ -101,8 +101,8 @@ func (a *AuthPostgres) DeleteSessionByRefresh(refresh string) error {
 	return nil
 }
 
-func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*server.Session, error) {
-	var session server.Session
+func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*models.Session, error) {
+	var session models.Session
 	queryGetSession := fmt.Sprintf("SELECT * from %s WHERE refresh_token=$1 LIMIT 1", sessionsTable)
 	err := a.db.Get(&session, queryGetSession, refresh)
 

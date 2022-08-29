@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server"
+	server "github.com/zh0vtyj/allincecup-server/pkg/models"
 	"net/http"
 	"strconv"
 	"strings"

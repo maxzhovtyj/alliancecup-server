@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/google/uuid"
-	server "github.com/zh0vtyj/allincecup-server"
+	server "github.com/zh0vtyj/allincecup-server/pkg/models"
 	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 )
 

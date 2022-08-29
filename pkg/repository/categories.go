@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	server "github.com/zh0vtyj/allincecup-server"
+	server "github.com/zh0vtyj/allincecup-server/pkg/models"
 )
 
 type CategoryPostgres struct {

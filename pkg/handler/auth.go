@@ -3,8 +3,8 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server"
 	_ "github.com/zh0vtyj/allincecup-server/docs"
+	"github.com/zh0vtyj/allincecup-server/pkg/models"
 	"net/http"
 	"net/mail"
 	"os"
@@ -39,7 +39,7 @@ type SignInInput struct {
 // @Failure      500  {object}  Error
 // @Router       /auth/sign-up [post]
 func (h *Handler) signUp(ctx *gin.Context) {
-	var input server.User
+	var input models.User
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -93,7 +93,7 @@ func (h *Handler) signUp(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/new-moderator [post]
 func (h *Handler) createModerator(ctx *gin.Context) {
-	var input server.User
+	var input models.User
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -159,7 +159,7 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	newSession, err := h.services.CreateNewSession(&server.Session{
+	newSession, err := h.services.CreateNewSession(&models.Session{
 		UserId:       userId,
 		RoleId:       userRoleId,
 		RefreshToken: refreshToken,

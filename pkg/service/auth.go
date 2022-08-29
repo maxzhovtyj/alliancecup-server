@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
-	server "github.com/zh0vtyj/allincecup-server"
+	"github.com/zh0vtyj/allincecup-server/pkg/models"
 	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 	"time"
 )
@@ -36,12 +36,12 @@ func NewAuthService(repo repository.Authorization) *AuthService {
 	return &AuthService{repo: repo}
 }
 
-func (s *AuthService) CreateUser(user server.User) (int, int, error) {
+func (s *AuthService) CreateUser(user models.User) (int, int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, clientRole)
 }
 
-func (s *AuthService) CreateModerator(user server.User) (int, int, error) {
+func (s *AuthService) CreateModerator(user models.User) (int, int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, moderatorRole)
 }
@@ -192,7 +192,7 @@ func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (s
 	return accessToken, newRefreshToken, session.UserId, session.RoleId, err
 }
 
-func (s *AuthService) CreateNewSession(session *server.Session) (*server.Session, error) {
+func (s *AuthService) CreateNewSession(session *models.Session) (*models.Session, error) {
 	newSession, err := s.repo.NewSession(*session)
 	if err != nil {
 		return nil, err

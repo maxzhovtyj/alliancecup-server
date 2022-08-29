@@ -1,7 +1,7 @@
 package service
 
 import (
-	server "github.com/zh0vtyj/allincecup-server"
+	server "github.com/zh0vtyj/allincecup-server/pkg/models"
 	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 )
 
