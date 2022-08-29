@@ -25,6 +25,11 @@ type SignInInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type ChangePasswordInput struct {
+	OldPassword string `json:"oldPassword" binding:"required"`
+	NewPassword string `json:"newPassword" binding:"required"`
+}
+
 // signUp godoc
 // @Summary      SignUp
 // @Tags         auth
@@ -32,7 +37,7 @@ type SignInInput struct {
 // @ID create account
 // @Accept       json
 // @Produce      json
-// @Param        input body server.User true "account info"
+// @Param        input body models.User true "account info"
 // @Success      200  {integer} integer 2
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -86,11 +91,11 @@ func (h *Handler) signUp(ctx *gin.Context) {
 // @ID create account for moderator
 // @Accept       json
 // @Produce      json
-// @Param        input body server.User true "account info"
+// @Param        input body models.User true "account info"
 // @Success      200  {integer} integer 2
-// @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
-// @Failure      500  {object}  Error
+// @Failure      400  {object} Error
+// @Failure      404  {object} Error
+// @Failure      500  {object} Error
 // @Router       /api/admin/new-moderator [post]
 func (h *Handler) createModerator(ctx *gin.Context) {
 	var input models.User
@@ -270,11 +275,20 @@ func (h *Handler) refresh(ctx *gin.Context) {
 	})
 }
 
-type ChangePasswordInput struct {
-	OldPassword string `json:"oldPassword" binding:"required"`
-	NewPassword string `json:"newPassword" binding:"required"`
-}
-
+// changePassword godoc
+// @Summary Client change password
+// @Tags api/client
+// @Description Changes user password
+// @ID change user password
+// @Accept json
+// @Produce json
+// @Param input body handler.ChangePasswordInput true  "Info to change password"
+// @Success 200  {object} string
+// @Failure 400  {object} Error
+// @Failure 401 {object} Error
+// @Failure 404  {object} Error
+// @Failure 500  {object} Error
+// @Router /api/client/change-password [put]
 func (h *Handler) changePassword(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {

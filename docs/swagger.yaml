@@ -4,10 +4,20 @@ definitions:
     properties:
       products:
         items:
-          $ref: '#/definitions/server.CartProductFullInfo'
+          $ref: '#/definitions/models.CartProductFullInfo'
         type: array
       sum:
         type: number
+    type: object
+  handler.ChangePasswordInput:
+    properties:
+      newPassword:
+        type: string
+      oldPassword:
+        type: string
+    required:
+    - newPassword
+    - oldPassword
     type: object
   handler.DeleteCategoryInput:
     properties:
@@ -50,6 +60,16 @@ definitions:
       id:
         type: integer
     type: object
+  handler.SignInInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
   handler.SignInResponse:
     properties:
       accessToken:
@@ -69,10 +89,10 @@ definitions:
     properties:
       data:
         items:
-          $ref: '#/definitions/server.Category'
+          $ref: '#/definitions/models.Category'
         type: array
     type: object
-  server.CartProduct:
+  models.CartProduct:
     properties:
       price_for_quantity:
         type: number
@@ -85,7 +105,7 @@ definitions:
     - product_id
     - quantity
     type: object
-  server.CartProductFullInfo:
+  models.CartProductFullInfo:
     properties:
       amount_in_stock:
         example: 120
@@ -121,8 +141,10 @@ definitions:
     - product_id
     - quantity
     type: object
-  server.Category:
+  models.Category:
     properties:
+      category_description:
+        type: string
       category_title:
         type: string
       id:
@@ -131,27 +153,46 @@ definitions:
         type: string
     required:
     - category_title
-    - img_url
     type: object
-  server.DeliveryPaymentTypes:
+  models.CategoryFiltration:
+    properties:
+      categoryId:
+        type: integer
+      filtrationDescription:
+        type: string
+      filtrationListId:
+        type: integer
+      filtrationTitle:
+        type: string
+      id:
+        type: integer
+      imgUrl:
+        type: string
+      infoDescription:
+        type: string
+    required:
+    - filtrationTitle
+    - infoDescription
+    type: object
+  models.DeliveryPaymentTypes:
     properties:
       deliveryTypes:
         items:
-          $ref: '#/definitions/server.DeliveryType'
+          $ref: '#/definitions/models.DeliveryType'
         type: array
       paymentTypes:
         items:
-          $ref: '#/definitions/server.PaymentType'
+          $ref: '#/definitions/models.PaymentType'
         type: array
     type: object
-  server.DeliveryType:
+  models.DeliveryType:
     properties:
       delivery_type_title:
         type: string
       id:
         type: string
     type: object
-  server.Order:
+  models.Order:
     properties:
       closed_at:
         type: string
@@ -189,33 +230,33 @@ definitions:
     - user_middle_name
     - user_phone_number
     type: object
-  server.OrderFullInfo:
+  models.OrderFullInfo:
     properties:
       delivery:
         items:
-          $ref: '#/definitions/server.OrdersDelivery'
+          $ref: '#/definitions/models.OrdersDelivery'
         type: array
       info:
-        $ref: '#/definitions/server.Order'
+        $ref: '#/definitions/models.Order'
       products:
         items:
-          $ref: '#/definitions/server.OrderProducts'
+          $ref: '#/definitions/models.OrderProducts'
         type: array
     type: object
-  server.OrderInfo:
+  models.OrderInfo:
     properties:
       delivery:
         items:
-          $ref: '#/definitions/server.OrdersDelivery'
+          $ref: '#/definitions/models.OrdersDelivery'
         type: array
       info:
-        $ref: '#/definitions/server.Order'
+        $ref: '#/definitions/models.Order'
       products:
         items:
-          $ref: '#/definitions/server.OrderProductFullInfo'
+          $ref: '#/definitions/models.OrderProductFullInfo'
         type: array
     type: object
-  server.OrderProductFullInfo:
+  models.OrderProductFullInfo:
     properties:
       amount_in_stock:
         type: number
@@ -242,7 +283,7 @@ definitions:
       units_in_package:
         type: integer
     type: object
-  server.OrderProducts:
+  models.OrderProducts:
     properties:
       price_for_quantity:
         type: number
@@ -251,21 +292,21 @@ definitions:
       quantity:
         type: integer
     type: object
-  server.OrdersDelivery:
+  models.OrdersDelivery:
     properties:
       delivery_description:
         type: string
       delivery_title:
         type: string
     type: object
-  server.PaymentType:
+  models.PaymentType:
     properties:
       id:
         type: string
       payment_type_title:
         type: string
     type: object
-  server.Product:
+  models.Product:
     properties:
       amount_in_stock:
         example: 120
@@ -299,8 +340,16 @@ definitions:
       units_in_package:
         example: 30
         type: integer
+    required:
+    - article
+    - category_title
+    - packages_in_box
+    - price
+    - product_title
+    - type_title
+    - units_in_package
     type: object
-  server.ProductInfo:
+  models.ProductInfo:
     properties:
       description:
         example: Білий
@@ -312,26 +361,16 @@ definitions:
         example: 1
         type: integer
     type: object
-  server.ProductInfoDescription:
+  models.ProductInfoDescription:
     properties:
       description:
         items:
-          $ref: '#/definitions/server.ProductInfo'
+          $ref: '#/definitions/models.ProductInfo'
         type: array
       info:
-        $ref: '#/definitions/server.Product'
+        $ref: '#/definitions/models.Product'
     type: object
-  server.SignInInput:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  server.User:
+  models.User:
     properties:
       email:
         type: string
@@ -368,7 +407,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.Category'
+          $ref: '#/definitions/models.Category'
       produces:
       - application/json
       responses:
@@ -405,7 +444,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.ProductInfoDescription'
+          $ref: '#/definitions/models.ProductInfoDescription'
       produces:
       - application/json
       responses:
@@ -451,7 +490,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/server.Order'
+              $ref: '#/definitions/models.Order'
             type: array
         "400":
           description: Bad Request
@@ -544,6 +583,41 @@ paths:
       summary: DeleteProduct
       tags:
       - api/admin
+  /api/admin/filtration-item:
+    post:
+      consumes:
+      - application/json
+      description: Adds a filtration item to a category
+      operationId: add filtration
+      parameters:
+      - description: filtration info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CategoryFiltration'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: Add filtration for category
+      tags:
+      - api/admin
   /api/admin/new-moderator:
     post:
       consumes:
@@ -556,7 +630,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.User'
+          $ref: '#/definitions/models.User'
       produces:
       - application/json
       responses:
@@ -593,7 +667,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.Category'
+          $ref: '#/definitions/models.Category'
       produces:
       - application/json
       responses:
@@ -630,7 +704,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.ProductInfoDescription'
+          $ref: '#/definitions/models.ProductInfoDescription'
       produces:
       - application/json
       responses:
@@ -695,7 +769,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.CartProduct'
+          $ref: '#/definitions/models.CartProduct'
       produces:
       - application/json
       responses:
@@ -757,6 +831,45 @@ paths:
       summary: AddToFavourites
       tags:
       - api/client
+  /api/client/change-password:
+    put:
+      consumes:
+      - application/json
+      description: Changes user password
+      operationId: change user password
+      parameters:
+      - description: Info to change password
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.ChangePasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: Client change password
+      tags:
+      - api/client
   /api/client/delete-from-cart:
     delete:
       consumes:
@@ -798,12 +911,11 @@ paths:
       description: deletes product from favourites
       operationId: deletes from favourites
       parameters:
-      - description: product id
-        in: body
-        name: input
+      - description: Product id
+        in: query
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/handler.ProductIdInput'
+        type: string
       produces:
       - application/json
       responses:
@@ -841,7 +953,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/server.Product'
+              $ref: '#/definitions/models.Product'
             type: array
         "400":
           description: Bad Request
@@ -876,7 +988,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.OrderInfo'
+            $ref: '#/definitions/models.OrderInfo'
         "400":
           description: Bad Request
           schema:
@@ -967,7 +1079,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.OrderInfo'
+            $ref: '#/definitions/models.OrderInfo'
         "400":
           description: Bad Request
           schema:
@@ -1026,7 +1138,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/server.Product'
+              $ref: '#/definitions/models.Product'
             type: array
         "400":
           description: Bad Request
@@ -1055,7 +1167,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.OrderFullInfo'
+          $ref: '#/definitions/models.OrderFullInfo'
       produces:
       - application/json
       responses:
@@ -1098,7 +1210,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/server.DeliveryPaymentTypes'
+              $ref: '#/definitions/models.DeliveryPaymentTypes'
             type: array
         "400":
           description: Bad Request
@@ -1131,7 +1243,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.ProductInfoDescription'
+            $ref: '#/definitions/models.ProductInfoDescription'
         "400":
           description: Bad Request
           schema:
@@ -1170,8 +1282,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handler.Error'
-      security:
-      - ApiKeyAuth: []
       summary: Refresh
       tags:
       - auth
@@ -1187,7 +1297,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.SignInInput'
+          $ref: '#/definitions/handler.SignInInput'
       produces:
       - application/json
       responses:
@@ -1222,7 +1332,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/server.User'
+          $ref: '#/definitions/models.User'
       produces:
       - application/json
       responses:

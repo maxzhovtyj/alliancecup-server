@@ -42,7 +42,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.Category"
+                            "$ref": "#/definitions/models.Category"
                         }
                     }
                 ],
@@ -100,7 +100,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.ProductInfoDescription"
+                            "$ref": "#/definitions/models.ProductInfoDescription"
                         }
                     }
                 ],
@@ -169,7 +169,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/server.Order"
+                                "$ref": "#/definitions/models.Order"
                             }
                         }
                     },
@@ -310,6 +310,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/filtration-item": {
+            "post": {
+                "description": "Adds a filtration item to a category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "Add filtration for category",
+                "operationId": "add filtration",
+                "parameters": [
+                    {
+                        "description": "filtration info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CategoryFiltration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/new-moderator": {
             "post": {
                 "security": [
@@ -336,7 +389,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     }
                 ],
@@ -394,7 +447,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.Category"
+                            "$ref": "#/definitions/models.Category"
                         }
                     }
                 ],
@@ -452,7 +505,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.ProductInfoDescription"
+                            "$ref": "#/definitions/models.ProductInfoDescription"
                         }
                     }
                 ],
@@ -552,7 +605,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.CartProduct"
+                            "$ref": "#/definitions/models.CartProduct"
                         }
                     }
                 ],
@@ -623,6 +676,65 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/client/change-password": {
+            "put": {
+                "description": "Changes user password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/client"
+                ],
+                "summary": "Client change password",
+                "operationId": "change user password",
+                "parameters": [
+                    {
+                        "description": "Info to change password",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.ChangePasswordInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/handler.Error"
                         }
@@ -716,13 +828,11 @@ const docTemplate = `{
                 "operationId": "deletes from favourites",
                 "parameters": [
                     {
-                        "description": "product id",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.ProductIdInput"
-                        }
+                        "type": "string",
+                        "description": "Product id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -778,7 +888,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/server.Product"
+                                "$ref": "#/definitions/models.Product"
                             }
                         }
                     },
@@ -832,7 +942,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.OrderInfo"
+                            "$ref": "#/definitions/models.OrderInfo"
                         }
                     },
                     "400": {
@@ -975,7 +1085,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.OrderInfo"
+                            "$ref": "#/definitions/models.OrderInfo"
                         }
                     },
                     "400": {
@@ -1061,7 +1171,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/server.Product"
+                                "$ref": "#/definitions/models.Product"
                             }
                         }
                     },
@@ -1107,7 +1217,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.OrderFullInfo"
+                            "$ref": "#/definitions/models.OrderFullInfo"
                         }
                     }
                 ],
@@ -1170,7 +1280,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/server.DeliveryPaymentTypes"
+                                "$ref": "#/definitions/models.DeliveryPaymentTypes"
                             }
                         }
                     },
@@ -1219,7 +1329,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.ProductInfoDescription"
+                            "$ref": "#/definitions/models.ProductInfoDescription"
                         }
                     },
                     "400": {
@@ -1245,11 +1355,6 @@ const docTemplate = `{
         },
         "/auth/refresh": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Gets a new access token using refreshToken",
                 "produces": [
                     "application/json"
@@ -1308,7 +1413,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.SignInInput"
+                            "$ref": "#/definitions/handler.SignInInput"
                         }
                     }
                 ],
@@ -1361,7 +1466,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     }
                 ],
@@ -1401,11 +1506,26 @@ const docTemplate = `{
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.CartProductFullInfo"
+                        "$ref": "#/definitions/models.CartProductFullInfo"
                     }
                 },
                 "sum": {
                     "type": "number"
+                }
+            }
+        },
+        "handler.ChangePasswordInput": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "oldPassword"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string"
+                },
+                "oldPassword": {
+                    "type": "string"
                 }
             }
         },
@@ -1473,6 +1593,21 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.SignInInput": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "handler.SignInResponse": {
             "type": "object",
             "properties": {
@@ -1500,12 +1635,12 @@ const docTemplate = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.Category"
+                        "$ref": "#/definitions/models.Category"
                     }
                 }
             }
         },
-        "server.CartProduct": {
+        "models.CartProduct": {
             "type": "object",
             "required": [
                 "price_for_quantity",
@@ -1524,7 +1659,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.CartProductFullInfo": {
+        "models.CartProductFullInfo": {
             "type": "object",
             "required": [
                 "price_for_quantity",
@@ -1574,13 +1709,15 @@ const docTemplate = `{
                 }
             }
         },
-        "server.Category": {
+        "models.Category": {
             "type": "object",
             "required": [
-                "category_title",
-                "img_url"
+                "category_title"
             ],
             "properties": {
+                "category_description": {
+                    "type": "string"
+                },
                 "category_title": {
                     "type": "string"
                 },
@@ -1592,24 +1729,54 @@ const docTemplate = `{
                 }
             }
         },
-        "server.DeliveryPaymentTypes": {
+        "models.CategoryFiltration": {
+            "type": "object",
+            "required": [
+                "filtrationTitle",
+                "infoDescription"
+            ],
+            "properties": {
+                "categoryId": {
+                    "type": "integer"
+                },
+                "filtrationDescription": {
+                    "type": "string"
+                },
+                "filtrationListId": {
+                    "type": "integer"
+                },
+                "filtrationTitle": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "imgUrl": {
+                    "type": "string"
+                },
+                "infoDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeliveryPaymentTypes": {
             "type": "object",
             "properties": {
                 "deliveryTypes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.DeliveryType"
+                        "$ref": "#/definitions/models.DeliveryType"
                     }
                 },
                 "paymentTypes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.PaymentType"
+                        "$ref": "#/definitions/models.PaymentType"
                     }
                 }
             }
         },
-        "server.DeliveryType": {
+        "models.DeliveryType": {
             "type": "object",
             "properties": {
                 "delivery_type_title": {
@@ -1620,7 +1787,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.Order": {
+        "models.Order": {
             "type": "object",
             "required": [
                 "delivery_type_title",
@@ -1674,47 +1841,47 @@ const docTemplate = `{
                 }
             }
         },
-        "server.OrderFullInfo": {
+        "models.OrderFullInfo": {
             "type": "object",
             "properties": {
                 "delivery": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.OrdersDelivery"
+                        "$ref": "#/definitions/models.OrdersDelivery"
                     }
                 },
                 "info": {
-                    "$ref": "#/definitions/server.Order"
+                    "$ref": "#/definitions/models.Order"
                 },
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.OrderProducts"
+                        "$ref": "#/definitions/models.OrderProducts"
                     }
                 }
             }
         },
-        "server.OrderInfo": {
+        "models.OrderInfo": {
             "type": "object",
             "properties": {
                 "delivery": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.OrdersDelivery"
+                        "$ref": "#/definitions/models.OrdersDelivery"
                     }
                 },
                 "info": {
-                    "$ref": "#/definitions/server.Order"
+                    "$ref": "#/definitions/models.Order"
                 },
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.OrderProductFullInfo"
+                        "$ref": "#/definitions/models.OrderProductFullInfo"
                     }
                 }
             }
         },
-        "server.OrderProductFullInfo": {
+        "models.OrderProductFullInfo": {
             "type": "object",
             "properties": {
                 "amount_in_stock": {
@@ -1755,7 +1922,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.OrderProducts": {
+        "models.OrderProducts": {
             "type": "object",
             "properties": {
                 "price_for_quantity": {
@@ -1769,7 +1936,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.OrdersDelivery": {
+        "models.OrdersDelivery": {
             "type": "object",
             "properties": {
                 "delivery_description": {
@@ -1780,7 +1947,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.PaymentType": {
+        "models.PaymentType": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1791,8 +1958,17 @@ const docTemplate = `{
                 }
             }
         },
-        "server.Product": {
+        "models.Product": {
             "type": "object",
+            "required": [
+                "article",
+                "category_title",
+                "packages_in_box",
+                "price",
+                "product_title",
+                "type_title",
+                "units_in_package"
+            ],
             "properties": {
                 "amount_in_stock": {
                     "type": "number",
@@ -1839,7 +2015,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.ProductInfo": {
+        "models.ProductInfo": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1856,36 +2032,21 @@ const docTemplate = `{
                 }
             }
         },
-        "server.ProductInfoDescription": {
+        "models.ProductInfoDescription": {
             "type": "object",
             "properties": {
                 "description": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/server.ProductInfo"
+                        "$ref": "#/definitions/models.ProductInfo"
                     }
                 },
                 "info": {
-                    "$ref": "#/definitions/server.Product"
+                    "$ref": "#/definitions/models.Product"
                 }
             }
         },
-        "server.SignInInput": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.User": {
+        "models.User": {
             "type": "object",
             "required": [
                 "email",
