@@ -55,6 +55,10 @@ func (p *ProductsPostgres) GetWithParams(params server.SearchParams) ([]server.P
 		query = query.Where("products.price BETWEEN ? AND ?", gtPrice, ltPrice)
 	}
 
+	if params.Search != "" {
+		query = query.Where(sq.Like{"LOWER(products.product_title)": "%" + params.Search + "%"})
+	}
+
 	if params.CreatedAt != "" {
 		query = query.Where(sq.Lt{"products.created_at": params.CreatedAt})
 	}

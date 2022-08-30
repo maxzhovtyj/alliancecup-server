@@ -39,6 +39,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 	price := ctx.Query("priceRange") // TODO price validation
 	createdAt := ctx.Query("createdAt")
 	characteristic := ctx.Query("characteristic")
+	search := ctx.Query("search")
 
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -50,6 +51,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 		PriceRange:     price,
 		CreatedAt:      createdAt,
 		Characteristic: characteristic,
+		Search:         search,
 	})
 
 	if err != nil {

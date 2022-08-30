@@ -32,6 +32,7 @@ type SearchParams struct {
 	PriceRange     string `json:"priceRange"`
 	CreatedAt      string `json:"createdAt"`
 	Characteristic string `json:"characteristic"`
+	Search         string `json:"search"`
 }
 
 type DeliveryType struct {
