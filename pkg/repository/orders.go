@@ -343,8 +343,11 @@ func (o *OrdersPostgres) GetAdminOrders(status string, lastOrderCreatedAt string
 	).
 		From(ordersTable).
 		LeftJoin(deliveryTypesTable + " ON orders.delivery_type_id=delivery_types.id").
-		LeftJoin(paymentTypesTable + " ON orders.payment_type_id=payment_types.id").
-		Where(sq.Eq{"orders.order_status": status})
+		LeftJoin(paymentTypesTable + " ON orders.payment_type_id=payment_types.id")
+
+	if status != "" {
+		queryOrders = queryOrders.Where(sq.Eq{"orders.order_status": status})
+	}
 
 	if lastOrderCreatedAt != "" {
 		queryOrders = queryOrders.Where(sq.Lt{"orders.created_at": lastOrderCreatedAt})

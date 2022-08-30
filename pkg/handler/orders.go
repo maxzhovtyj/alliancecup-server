@@ -149,8 +149,8 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	orderStatus := ctx.Query("order_status")
 
 	if orderStatus != StatusCompleted && orderStatus != StatusProcessed && orderStatus != StatusInProgress {
-		newErrorResponse(ctx, http.StatusBadRequest, "invalid order status")
-		return
+		orderStatus = ""
+		fmt.Println("order status either empty or invalid")
 	}
 
 	orders, err := h.services.Orders.GetAdminOrders(orderStatus, createdAt)
