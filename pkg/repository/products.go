@@ -56,14 +56,17 @@ func (p *ProductsPostgres) GetWithParams(params server.SearchParams) ([]server.P
 	}
 
 	if params.Search != "" {
-		query = query.Where(sq.Like{"LOWER(products.product_title)": "%" + params.Search + "%"})
+		searchToLower := strings.ToLower(params.Search)
+		query = query.Where(sq.Like{"LOWER(products.product_title)": "%" + searchToLower + "%"})
 	}
 
 	if params.CreatedAt != "" {
 		query = query.Where(sq.Lt{"products.created_at": params.CreatedAt})
 	}
 
-	query = query.Where("products.category_id=?", params.CategoryId)
+	if params.CategoryId != 0 {
+		query = query.Where("products.category_id=?", params.CategoryId)
+	}
 
 	ordered := query.OrderBy("products.created_at DESC").Limit(9)
 

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	server "github.com/zh0vtyj/allincecup-server/pkg/models"
 	"net/http"
@@ -31,11 +30,14 @@ type ProductIdInput struct {
 // @Failure      500  {object}  Error
 // @Router       /api/get-products [post]
 func (h *Handler) getProducts(ctx *gin.Context) {
-	categoryId, err := strconv.Atoi(ctx.Query("category"))
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to convert to int category id, err: %v", err).Error())
-		return
+
+	category := ctx.Query("category")
+	var categoryId int
+	var err error
+	if category != "" {
+		categoryId, err = strconv.Atoi(category)
 	}
+
 	price := ctx.Query("priceRange") // TODO price validation
 	createdAt := ctx.Query("createdAt")
 	characteristic := ctx.Query("characteristic")
