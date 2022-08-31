@@ -147,28 +147,29 @@ func (h *Handler) updateCategory(ctx *gin.Context) {
 // @ID 			 deletes category
 // @Accept 	     json
 // @Produce      json
-// @Param        input body DeleteCategoryInput true "category info"
+// @Param        id query int true "category id"
 // @Success      200  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/admin/delete-category [delete]
 func (h *Handler) deleteCategory(ctx *gin.Context) {
-	var input DeleteCategoryInput
+	// TODO "pq: update or delete on table \"products\" violates foreign key constraint \"orders_products_product_id_fkey\" on table \"orders_products\""
 
-	if err := ctx.BindJSON(&input); err != nil {
+	categoryId, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err := h.services.Category.Delete(input.Id, input.CategoryTitle)
+	err = h.services.Category.Delete(categoryId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
-		Id:      input.Id,
+		Id:      categoryId,
 		Message: "category deleted",
 	})
 }

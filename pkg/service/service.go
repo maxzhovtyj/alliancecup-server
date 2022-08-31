@@ -23,7 +23,7 @@ type Category interface {
 	GetFiltration(fkName string, id int) ([]models.CategoryFiltration, error)
 	Update(category models.Category) (int, error)
 	Create(category models.Category) (int, error)
-	Delete(id int, title string) error
+	Delete(id int) error
 	AddFiltration(filtration models.CategoryFiltration) (int, error)
 }
 
@@ -45,6 +45,13 @@ type Shopping interface {
 	DeleteFromFavourites(userId, productId int) error
 }
 
+type Supply interface {
+	New(supply models.SupplyDTO) error
+	Update() error
+	Delete(id int) error
+	GetAll(createdAt string) ([]models.SupplyInfoDTO, error)
+}
+
 type Orders interface {
 	New(order models.OrderFullInfo) (uuid.UUID, error)
 	GetUserOrders(userId int, createdAt string) ([]models.OrderInfo, error)
@@ -60,6 +67,7 @@ type Service struct {
 	Products
 	Shopping
 	Orders
+	Supply
 }
 
 func NewService(repos *repository.Repository) *Service {
@@ -69,5 +77,6 @@ func NewService(repos *repository.Repository) *Service {
 		Category:      NewCategoryService(repos.Category),
 		Shopping:      NewShoppingService(repos.Shopping),
 		Orders:        NewOrdersService(repos.Orders, repos.Products),
+		Supply:        NewSupplyService(repos.Supply),
 	}
 }

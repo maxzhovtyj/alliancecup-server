@@ -60,9 +60,9 @@ func (c *CategoryPostgres) Create(category server.Category) (int, error) {
 	return id, nil
 }
 
-func (c *CategoryPostgres) Delete(id int, title string) error {
-	queryDeleteCategory := fmt.Sprintf("DELETE FROM %s WHERE id=$1 OR category_title=$2", categoriesTable)
-	_, err := c.db.Exec(queryDeleteCategory, id, title)
+func (c *CategoryPostgres) Delete(id int) error {
+	queryDeleteCategory := fmt.Sprintf("DELETE FROM %s WHERE id=$1", categoriesTable)
+	_, err := c.db.Exec(queryDeleteCategory, id)
 	return err
 }
 

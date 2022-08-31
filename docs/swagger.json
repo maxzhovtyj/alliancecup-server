@@ -208,13 +208,11 @@
                 "operationId": "deletes category",
                 "parameters": [
                     {
-                        "description": "category info",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.DeleteCategoryInput"
-                        }
+                        "type": "integer",
+                        "description": "category id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -266,13 +264,11 @@
                 "operationId": "delete product",
                 "parameters": [
                     {
+                        "type": "integer",
                         "description": "product id",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.ProductIdInput"
-                        }
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1103,7 +1099,7 @@
             }
         },
         "/api/get-products": {
-            "get": {
+            "post": {
                 "description": "get products from certain category with params",
                 "produces": [
                     "application/json"
@@ -1519,17 +1515,6 @@
                 },
                 "oldPassword": {
                     "type": "string"
-                }
-            }
-        },
-        "handler.DeleteCategoryInput": {
-            "type": "object",
-            "properties": {
-                "category_title": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 }
             }
         },
@@ -1976,6 +1961,9 @@
                     "example": "Одноразові стакани"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "id": {

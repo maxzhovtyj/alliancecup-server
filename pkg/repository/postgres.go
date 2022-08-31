@@ -22,6 +22,9 @@ const (
 	ordersDeliveryTable       = "orders_delivery"
 	deliveryTypesTable        = "delivery_types"
 	paymentTypesTable         = "payment_types"
+	supplyTable               = "supply"
+	supplyPaymentTable        = "supply_payment"
+	productsSupplyTable       = "supply_products"
 )
 
 type Config struct {

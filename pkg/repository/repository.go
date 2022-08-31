@@ -23,7 +23,7 @@ type Category interface {
 	GetFiltration(fkName string, id int) ([]models.CategoryFiltration, error)
 	Update(category models.Category) (int, error)
 	Create(category models.Category) (int, error)
-	Delete(id int, title string) error
+	Delete(id int) error
 	AddFiltration(filtration models.CategoryFiltration) (int, error)
 }
 
@@ -56,12 +56,19 @@ type Orders interface {
 	ChangeOrderStatus(orderId uuid.UUID, toStatus string) error
 }
 
+type Supply interface {
+	New(supply models.SupplyDTO) error
+	GetAll(createdAt string) ([]models.SupplyInfoDTO, error)
+	UpdateProductsAmount(products []models.ProductSupplyDTO) error
+}
+
 type Repository struct {
 	Authorization
 	Category
 	Products
 	Shopping
 	Orders
+	Supply
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
@@ -71,5 +78,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 		Category:      NewCategoryPostgres(db),
 		Shopping:      NewShoppingPostgres(db),
 		Orders:        NewOrdersPostgres(db),
+		Supply:        NewSupplyPostgres(db),
 	}
 }

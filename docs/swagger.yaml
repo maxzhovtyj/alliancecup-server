@@ -19,13 +19,6 @@ definitions:
     - newPassword
     - oldPassword
     type: object
-  handler.DeleteCategoryInput:
-    properties:
-      category_title:
-        type: string
-      id:
-        type: integer
-    type: object
   handler.Error:
     properties:
       message:
@@ -319,6 +312,8 @@ definitions:
         type: string
       created_at:
         type: string
+      description:
+        type: string
       id:
         example: 5
         type: integer
@@ -516,12 +511,11 @@ paths:
       description: Deletes category
       operationId: deletes category
       parameters:
-      - description: category info
-        in: body
-        name: input
+      - description: category id
+        in: query
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/handler.DeleteCategoryInput'
+        type: integer
       produces:
       - application/json
       responses:
@@ -554,11 +548,10 @@ paths:
       operationId: delete product
       parameters:
       - description: product id
-        in: body
-        name: input
+        in: query
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/handler.ProductIdInput'
+        type: integer
       produces:
       - application/json
       responses:
@@ -1098,7 +1091,7 @@ paths:
       tags:
       - api/client
   /api/get-products:
-    get:
+    post:
       description: get products from certain category with params
       operationId: gets products
       parameters:

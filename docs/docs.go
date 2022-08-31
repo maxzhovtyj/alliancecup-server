@@ -215,13 +215,11 @@ const docTemplate = `{
                 "operationId": "deletes category",
                 "parameters": [
                     {
-                        "description": "category info",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.DeleteCategoryInput"
-                        }
+                        "type": "integer",
+                        "description": "category id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -273,13 +271,11 @@ const docTemplate = `{
                 "operationId": "delete product",
                 "parameters": [
                     {
+                        "type": "integer",
                         "description": "product id",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.ProductIdInput"
-                        }
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1110,7 +1106,7 @@ const docTemplate = `{
             }
         },
         "/api/get-products": {
-            "get": {
+            "post": {
                 "description": "get products from certain category with params",
                 "produces": [
                     "application/json"
@@ -1526,17 +1522,6 @@ const docTemplate = `{
                 },
                 "oldPassword": {
                     "type": "string"
-                }
-            }
-        },
-        "handler.DeleteCategoryInput": {
-            "type": "object",
-            "properties": {
-                "category_title": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 }
             }
         },
@@ -1983,6 +1968,9 @@ const docTemplate = `{
                     "example": "Одноразові стакани"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "id": {

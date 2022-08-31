@@ -171,29 +171,29 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 // @ID 			 delete product
 // @Accept 	     json
 // @Produce      json
-// @Param        input body handler.ProductIdInput true "product id"
+// @Param        id query int true "product id"
 // @Success      200  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/admin/delete-product [delete]
 func (h *Handler) deleteProduct(ctx *gin.Context) {
-	var input ProductIdInput
+	// TODO "pq: update or delete on table \"products\" violates foreign key constraint \"orders_products_product_id_fkey\" on table \"orders_products\""
 
-	err := ctx.BindJSON(&input)
+	productId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err = h.services.Products.Delete(input.Id)
+	err = h.services.Products.Delete(productId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
-		Id:      input.Id,
+		Id:      productId,
 		Message: "product deleted",
 	})
 }
