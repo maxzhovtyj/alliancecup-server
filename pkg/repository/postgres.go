@@ -24,7 +24,7 @@ const (
 	paymentTypesTable         = "payment_types"
 	supplyTable               = "supply"
 	supplyPaymentTable        = "supply_payment"
-	productsSupplyTable       = "supply_products"
+	supplyProductsTable       = "supply_products"
 )
 
 type Config struct {

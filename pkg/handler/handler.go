@@ -87,8 +87,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			admin.POST("/supply", h.newSupply)
 			admin.GET("/supply", h.getAllSupply)
-			admin.DELETE("/supply", h.updateSupply)
-			admin.PUT("/supply", h.deleteSupply)
+			admin.DELETE("/supply", h.deleteSupply)
 		}
 
 		client := api.Group("/client", h.userAuthorized)

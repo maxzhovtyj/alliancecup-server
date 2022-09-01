@@ -42,7 +42,6 @@ func (s *SupplyPostgres) New(supply models.SupplyDTO) error {
 	tx, _ := s.db.Begin()
 
 	var supplyId int
-
 	queryInsetSupplyInfo := fmt.Sprintf(
 		"INSERT INTO %s (supplier, supply_time, comment) values ($1, $2, $3) RETURNING id",
 		supplyTable,
@@ -54,7 +53,8 @@ func (s *SupplyPostgres) New(supply models.SupplyDTO) error {
 		supply.Info.Comment,
 	)
 	if err := row.Scan(&supplyId); err != nil {
-		return tx.Rollback()
+		_ = tx.Rollback()
+		return err
 	}
 
 	for _, payment := range supply.Payment {
@@ -71,14 +71,15 @@ func (s *SupplyPostgres) New(supply models.SupplyDTO) error {
 			payment.PaymentSum,
 		)
 		if err != nil {
-			return tx.Rollback()
+			_ = tx.Rollback()
+			return err
 		}
 	}
 
 	for _, p := range supply.Products {
 		queryInsertProduct := fmt.Sprintf(
 			"INSERT INTO %s (supply_id, product_id, packaging, amount, price_for_unit, sum_without_tax, tax, total_sum) values ($1, $2, $3, $4, $5, $6, $7, $8)",
-			productsSupplyTable,
+			supplyProductsTable,
 		)
 
 		_, err := tx.Exec(
@@ -93,25 +94,67 @@ func (s *SupplyPostgres) New(supply models.SupplyDTO) error {
 			p.TotalSum,
 		)
 		if err != nil {
-			return tx.Rollback()
+			_ = tx.Rollback()
+			return err
 		}
 	}
 
 	return tx.Commit()
 }
 
-func (s *SupplyPostgres) UpdateProductsAmount(products []models.ProductSupplyDTO) error {
+func (s *SupplyPostgres) UpdateProductsAmount(products []models.ProductSupplyDTO, operation string) error {
 	tx, _ := s.db.Begin()
+
+	// TODO check if amount_in_stock is less than amount to delete
+	//q := `
+	//	DO $$
+	//		DECLARE
+	//			selected_product products%rowtype;
+	//		BEGIN
+	//		SELECT *
+	//		FROM products
+	//		INTO selected_product
+	//		WHERE product_id=$1;
+	//
+	//		IF selected_product.amount_in_stock < $2 THEN
+	//			UPDATE products SET amount_in_stock = 0;
+	//		ELSE
+	//			UPDATE products SET amount_in_stock = amount_in_stock-$2;
+	//		END IF
+	//	END $$
+	//`
+
 	for _, p := range products {
 		queryUpdateAmount := fmt.Sprintf(
-			"UPDATE %s SET amount_in_stock=amount_in_stock+$1 WHERE id=$2",
+			"UPDATE %s SET amount_in_stock=amount_in_stock%s$1 WHERE id=$2",
 			productsTable,
+			operation,
 		)
+
 		_, err := tx.Exec(queryUpdateAmount, p.Amount, p.ProductId)
 		if err != nil {
-			return tx.Rollback()
+			_ = tx.Rollback()
+			return err
 		}
 	}
 
 	return tx.Commit()
+}
+
+func (s *SupplyPostgres) DeleteAndGetProducts(id int) ([]models.ProductSupplyDTO, error) {
+	var products []models.ProductSupplyDTO
+	queryGetProducts := fmt.Sprintf("SELECT * FROM %s WHERE supply_id=$1", supplyProductsTable)
+
+	err := s.db.Select(&products, queryGetProducts, id)
+	if err != nil {
+		return nil, err
+	}
+
+	queryDeleteSupply := fmt.Sprintf("DELETE FROM %s WHERE id=$1", supplyTable)
+	_, err = s.db.Exec(queryDeleteSupply, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return products, nil
 }

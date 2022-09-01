@@ -59,7 +59,8 @@ type Orders interface {
 type Supply interface {
 	New(supply models.SupplyDTO) error
 	GetAll(createdAt string) ([]models.SupplyInfoDTO, error)
-	UpdateProductsAmount(products []models.ProductSupplyDTO) error
+	UpdateProductsAmount(products []models.ProductSupplyDTO, operation string) error
+	DeleteAndGetProducts(id int) ([]models.ProductSupplyDTO, error)
 }
 
 type Repository struct {

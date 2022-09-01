@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zh0vtyj/allincecup-server/pkg/models"
 	"net/http"
+	"strconv"
 )
 
 func (h *Handler) getAllSupply(ctx *gin.Context) {
@@ -37,10 +38,21 @@ func (h *Handler) newSupply(ctx *gin.Context) {
 	})
 }
 
-func (h *Handler) updateSupply(ctx *gin.Context) {
-	panic("implement me")
-}
-
 func (h *Handler) deleteSupply(ctx *gin.Context) {
-	panic("implement me")
+	id, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = h.services.Supply.Delete(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"id":      id,
+		"message": "deleted",
+	})
 }
