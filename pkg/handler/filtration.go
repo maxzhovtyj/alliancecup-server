@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server/pkg/models"
+	server "github.com/zh0vtyj/allincecup-server/internal/category"
 	"net/http"
 )
 
@@ -20,7 +20,7 @@ import (
 // @Failure 500 {object} Error
 // @Router /api/admin/filtration-item [post]
 func (h *Handler) addFiltrationItem(ctx *gin.Context) {
-	var input server.CategoryFiltration
+	var input server.Filtration
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())

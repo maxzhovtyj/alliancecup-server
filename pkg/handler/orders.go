@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	server "github.com/zh0vtyj/allincecup-server/pkg/models"
+	server "github.com/zh0vtyj/allincecup-server/internal/order"
 	"net/http"
 )
 
@@ -20,22 +20,22 @@ type OrderResponse struct {
 // @ID creates an order
 // @Accept       json
 // @Produce      json
-// @Param        input body server.OrderFullInfo true "order info"
+// @Param        input body server.Order true "order info"
 // @Success      200  {object}  handler.OrderResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/new-order [post]
 func (h *Handler) newOrder(ctx *gin.Context) {
-	var input server.OrderFullInfo
+	var input server.Info
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if input.Info.OrderSumPrice < 400 {
-		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to create order, minimal orders price is 400hrn").Error())
+	if input.Order.OrderSumPrice < 400 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to create order, minimal order price is 400hrn").Error())
 	}
 
 	id, err := getUserId(ctx)
@@ -45,10 +45,10 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 	}
 
 	if id != 0 {
-		input.Info.UserId = id
+		input.Order.UserId = id
 	}
 
-	orderId, err := h.services.Orders.New(input)
+	orderId, err := h.services.Order.New(input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -64,16 +64,16 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 // @Summary      GetUserOrders
 // @Security 	 ApiKeyAuth
 // @Tags         api/client
-// @Description  gets user orders
-// @ID gets orders
+// @Description  gets user order
+// @ID gets order
 // @Accept       json
 // @Produce      json
 // @Param        created_at query string false "last order created_at for pagination"
-// @Success      200  {object}  server.OrderInfo
+// @Success      200  {object}  server.FullInfo
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/user-orders [get]
+// @Router       /api/client/user-order [get]
 func (h *Handler) userOrders(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {
@@ -87,13 +87,13 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 		return
 	}
 
-	orders, err := h.services.Orders.GetUserOrders(id, createdAt)
+	orders, err := h.services.Order.GetUserOrders(id, createdAt)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"orders": orders,
+		"order": orders,
 	})
 }
 
@@ -105,7 +105,7 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @ID gets order by id
 // @Produce      json
 // @Param        order_id query string true "order id"
-// @Success      200  {object}  server.OrderInfo
+// @Success      200  {object}  server.FullInfo
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -119,7 +119,7 @@ func (h *Handler) getOrderById(ctx *gin.Context) {
 		return
 	}
 
-	orderInfo, err := h.services.Orders.GetOrderById(orderUUID)
+	orderInfo, err := h.services.Order.GetOrderById(orderUUID)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -134,16 +134,16 @@ func (h *Handler) getOrderById(ctx *gin.Context) {
 // @Security 	 ApiKeyAuth
 // @Summary      Get Orders
 // @Tags         api/admin
-// @Description  get orders by status
-// @ID get orders
+// @Description  get order by status
+// @ID get order
 // @Produce      json
 // @Param created_at query string false "Last item created at for pagination"
-// @Param order_status query string true "Sort by orders status"
+// @Param order_status query string true "Sort by order status"
 // @Success      200  {array} server.Order
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/all-orders [get]
+// @Router       /api/admin/all-order [get]
 func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	createdAt := ctx.Query("created_at")
 	orderStatus := ctx.Query("order_status")
@@ -153,7 +153,7 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 		fmt.Println("order status either empty or invalid")
 	}
 
-	orders, err := h.services.Orders.GetAdminOrders(orderStatus, createdAt)
+	orders, err := h.services.Order.GetAdminOrders(orderStatus, createdAt)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -176,7 +176,7 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/order-info-types [get]
 func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
-	deliveryTypes, err := h.services.Orders.DeliveryPaymentTypes()
+	deliveryTypes, err := h.services.Order.DeliveryPaymentTypes()
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, fmt.Errorf("failed to get delivery types due to: %v", err).Error())
 		return
@@ -218,7 +218,7 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 		return
 	}
 
-	err := h.services.Orders.ProcessedOrder(orderInput.OrderId, orderInput.ToStatus)
+	err := h.services.Order.ProcessedOrder(orderInput.OrderId, orderInput.ToStatus)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

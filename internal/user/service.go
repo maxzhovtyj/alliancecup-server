@@ -1,4 +1,4 @@
-package service
+package user
 
 import (
 	"crypto/sha1"
@@ -7,7 +7,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"github.com/zh0vtyj/allincecup-server/pkg/models"
-	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 	"time"
 )
 
@@ -22,6 +21,18 @@ const (
 	moderatorRole     = "MODERATOR"
 )
 
+type AuthorizationService interface {
+	CreateUser(user User) (int, int, error)
+	CreateModerator(user User) (int, int, error)
+	GenerateTokens(email string, password string) (string, string, error)
+	ParseToken(token string) (int, int, error)
+	ParseRefreshToken(refreshToken string) error
+	RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, int, error)
+	CreateNewSession(session *models.Session) (*models.Session, error)
+	Logout(id int) error
+	ChangePassword(userId int, oldPassword, newPassword string) error
+}
+
 type tokenClaims struct {
 	jwt.StandardClaims
 	UserId     int `json:"user_id"`
@@ -29,25 +40,25 @@ type tokenClaims struct {
 }
 
 type AuthService struct {
-	repo repository.Authorization
+	repo AuthorizationStorage
 }
 
-func NewAuthService(repo repository.Authorization) *AuthService {
+func NewAuthService(repo AuthorizationStorage) *AuthService {
 	return &AuthService{repo: repo}
 }
 
-func (s *AuthService) CreateUser(user models.User) (int, int, error) {
+func (s *AuthService) CreateUser(user User) (int, int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, clientRole)
 }
 
-func (s *AuthService) CreateModerator(user models.User) (int, int, error) {
+func (s *AuthService) CreateModerator(user User) (int, int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, moderatorRole)
 }
 
 func (s *AuthService) GenerateTokens(email, password string) (string, string, error) {
-	user, err := s.repo.GetUser(email, generatePasswordHash(password))
+	selectedUser, err := s.repo.GetUser(email, generatePasswordHash(password))
 	if err != nil {
 		return "", "", fmt.Errorf("user are not found")
 	}
@@ -57,8 +68,8 @@ func (s *AuthService) GenerateTokens(email, password string) (string, string, er
 			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
-		user.Id,
-		user.RoleId,
+		selectedUser.Id,
+		selectedUser.RoleId,
 	})
 
 	refreshToken, err := s.GenerateRefreshToken()

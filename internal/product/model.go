@@ -1,4 +1,4 @@
-package models
+package product
 
 import "time"
 
@@ -17,13 +17,13 @@ type Product struct {
 	CreatedAt      time.Time `json:"created_at" db:"created_at"`
 }
 
-type ProductInfo struct {
+type Info struct {
 	ProductId   int    `json:"product_id" db:"product_id" example:"1"`
 	InfoTitle   string `json:"info_title" db:"info_title" example:"Колір"`
 	Description string `json:"description" db:"description" example:"Білий"`
 }
 
-type ProductInfoDescription struct {
-	Info        Product       `json:"info"`
-	Description []ProductInfo `json:"description"`
+type Description struct {
+	Info        Product `json:"info"`
+	Description []Info  `json:"description"`
 }

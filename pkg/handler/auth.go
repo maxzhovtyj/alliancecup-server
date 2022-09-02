@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/zh0vtyj/allincecup-server/docs"
+	"github.com/zh0vtyj/allincecup-server/internal/user"
 	"github.com/zh0vtyj/allincecup-server/pkg/models"
 	"net/http"
 	"net/mail"
@@ -44,7 +45,7 @@ type ChangePasswordInput struct {
 // @Failure      500  {object}  Error
 // @Router       /auth/sign-up [post]
 func (h *Handler) signUp(ctx *gin.Context) {
-	var input models.User
+	var input user.User
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -98,7 +99,7 @@ func (h *Handler) signUp(ctx *gin.Context) {
 // @Failure      500  {object} Error
 // @Router       /api/admin/new-moderator [post]
 func (h *Handler) createModerator(ctx *gin.Context) {
-	var input models.User
+	var input user.User
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -158,13 +159,13 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	userId, userRoleId, err := h.services.ParseToken(accessToken)
+	userId, userRoleId, err := h.services.Authorization.ParseToken(accessToken)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	newSession, err := h.services.CreateNewSession(&models.Session{
+	newSession, err := h.services.Authorization.CreateNewSession(&models.Session{
 		UserId:       userId,
 		RoleId:       userRoleId,
 		RefreshToken: refreshToken,
@@ -282,7 +283,7 @@ func (h *Handler) refresh(ctx *gin.Context) {
 // @ID change user password
 // @Accept json
 // @Produce json
-// @Param input body handler.ChangePasswordInput true  "Info to change password"
+// @Param input body handler.ChangePasswordInput true  "Order to change password"
 // @Success 200  {object} string
 // @Failure 400  {object} Error
 // @Failure 401 {object} Error

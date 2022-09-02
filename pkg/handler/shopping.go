@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server/pkg/models"
+	server "github.com/zh0vtyj/allincecup-server/internal/shopping"
 	"net/http"
 	"strconv"
 )
@@ -180,7 +180,7 @@ func (h *Handler) getFavourites(ctx *gin.Context) {
 		return
 	}
 
-	products, err := h.services.Shopping.GetFavourites(userId)
+	products, err := h.services.Product.GetFavourites(userId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

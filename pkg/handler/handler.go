@@ -58,7 +58,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api", h.userIdentity)
 	{
-		api.GET("/all-categories", h.getCategories)
+		api.GET("/categories", h.getCategories)
 		api.GET("/filtration-list", h.getFiltration)
 		api.GET("/products", h.getProducts)
 		api.GET("/product", h.getProductById)
@@ -69,21 +69,21 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		admin := api.Group("/admin", h.userHasPermission)
 		{
-			admin.POST("/new-moderator", h.createModerator)
+			admin.POST("/moderator", h.createModerator)
 
-			admin.POST("/add-product", h.addProduct)
-			admin.PUT("/update-product", h.updateProduct)
+			admin.POST("/product", h.addProduct)
+			admin.PUT("/product", h.updateProduct)
+			admin.DELETE("/product", h.deleteProduct)
 			//admin.PUT("/update-product-amount") // TODO
-			admin.DELETE("/delete-product", h.deleteProduct)
 
-			admin.POST("/add-category", h.addCategory)
-			admin.PUT("/update-category", h.updateCategory)
-			admin.DELETE("/delete-category", h.deleteCategory)
+			admin.POST("/category", h.addCategory)
+			admin.PUT("/category", h.updateCategory)
+			admin.DELETE("/category", h.deleteCategory)
 
-			admin.GET("/all-orders", h.adminGetOrders)
+			admin.GET("/orders", h.adminGetOrders)
 			//admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
 
-			admin.POST("/filtration-item", h.addFiltrationItem)
+			admin.POST("/filtration", h.addFiltrationItem)
 
 			admin.POST("/supply", h.newSupply)
 			admin.GET("/supply", h.getAllSupply)
@@ -95,15 +95,15 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.PUT("/change-password", h.changePassword)
 			client.DELETE("/logout", h.logout)
 
-			client.GET("/user-orders", h.userOrders)
+			client.GET("/user-order", h.userOrders)
 
-			client.POST("/add-to-cart", h.addToCart)
-			client.GET("/user-cart", h.getFromCartById)
-			client.DELETE("/delete-from-cart", h.deleteFromCart)
+			client.POST("/cart", h.addToCart)
+			client.GET("/cart", h.getFromCartById)
+			client.DELETE("/cart", h.deleteFromCart)
 
-			client.POST("/add-to-favourites", h.addToFavourites)
-			client.GET("/get-favourites", h.getFavourites)
-			client.DELETE("/delete-from-favourites", h.deleteFromFavourites)
+			client.POST("/favourites", h.addToFavourites)
+			client.GET("/favourites", h.getFavourites)
+			client.DELETE("favourites", h.deleteFromFavourites)
 
 			client.GET("/get-order", h.getOrderById)
 		}

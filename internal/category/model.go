@@ -1,4 +1,4 @@
-package models
+package category
 
 type Category struct {
 	Id                  int     `json:"id" db:"id"`
@@ -7,7 +7,7 @@ type Category struct {
 	CategoryDescription *string `json:"category_description" db:"category_description"`
 }
 
-type CategoryFiltration struct {
+type Filtration struct {
 	Id                    int     `json:"id" db:"id"`
 	CategoryId            *int    `json:"categoryId" db:"category_id"`
 	ImgUrl                *string `json:"imgUrl" db:"img_url"`

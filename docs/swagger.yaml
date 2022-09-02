@@ -466,14 +466,14 @@ paths:
       - api/admin
   /api/admin/all-orders:
     get:
-      description: get orders by status
-      operationId: get orders
+      description: get order by status
+      operationId: get order
       parameters:
       - description: Last item created at for pagination
         in: query
         name: created_at
         type: string
-      - description: Sort by orders status
+      - description: Sort by order status
         in: query
         name: order_status
         required: true
@@ -1059,8 +1059,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: gets user orders
-      operationId: gets orders
+      description: gets user order
+      operationId: gets order
       parameters:
       - description: last order created_at for pagination
         in: query

@@ -2,7 +2,8 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server/pkg/models"
+	"github.com/zh0vtyj/allincecup-server/internal/product"
+	server "github.com/zh0vtyj/allincecup-server/internal/shopping"
 	"net/http"
 	"strconv"
 )
@@ -48,7 +49,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 		return
 	}
 
-	products, err := h.services.Products.GetWithParams(server.SearchParams{
+	products, err := h.services.Product.GetWithParams(server.SearchParams{
 		CategoryId:     categoryId,
 		PriceRange:     price,
 		CreatedAt:      createdAt,
@@ -81,14 +82,14 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/add-product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
-	var input server.ProductInfoDescription
+	var input product.Description
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.Products.AddProduct(input.Info, input.Description)
+	id, err := h.services.Product.AddProduct(input.Info, input.Description)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -120,13 +121,13 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 		return
 	}
 
-	product, err := h.services.Products.GetProductById(id)
+	selectedProduct, err := h.services.Product.GetProductById(id)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, product)
+	ctx.JSON(http.StatusOK, selectedProduct)
 }
 
 // updateProduct godoc
@@ -144,14 +145,14 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/update-product [put]
 func (h *Handler) updateProduct(ctx *gin.Context) {
-	var input server.ProductInfoDescription
+	var input product.Description
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.Products.Update(input)
+	id, err := h.services.Product.Update(input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -186,7 +187,7 @@ func (h *Handler) deleteProduct(ctx *gin.Context) {
 		return
 	}
 
-	err = h.services.Products.Delete(productId)
+	err = h.services.Product.Delete(productId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

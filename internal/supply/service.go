@@ -1,18 +1,23 @@
-package service
+package supply
 
 import (
 	"fmt"
-	"github.com/zh0vtyj/allincecup-server/pkg/models"
-	"github.com/zh0vtyj/allincecup-server/pkg/repository"
 	"math"
 )
 
-type SupplyService struct {
-	repo repository.Supply
+type Service interface {
+	New(supply Supply) error
+	Update() error
+	Delete(id int) error
+	GetAll(createdAt string) ([]InfoDTO, error)
 }
 
-func NewSupplyService(repo repository.Supply) *SupplyService {
-	return &SupplyService{repo: repo}
+type service struct {
+	repo Storage
+}
+
+func NewSupplyService(repo Storage) *service {
+	return &service{repo: repo}
 }
 
 const float64EqualityThreshold = 1e-9
@@ -21,7 +26,7 @@ func almostEqual(a, b float64) bool {
 	return math.Abs(a-b) <= float64EqualityThreshold
 }
 
-func (s *SupplyService) New(supply models.SupplyDTO) error {
+func (s *service) New(supply Supply) error {
 	var productsSum float64
 	for _, product := range supply.Products {
 		sumWithoutTax := product.Amount * product.PriceForUnit
@@ -62,11 +67,11 @@ func (s *SupplyService) New(supply models.SupplyDTO) error {
 	return nil
 }
 
-func (s *SupplyService) Update() error {
+func (s *service) Update() error {
 	return nil
 }
 
-func (s *SupplyService) Delete(id int) error {
+func (s *service) Delete(id int) error {
 	// delete from supplies
 	products, err := s.repo.DeleteAndGetProducts(id)
 
@@ -79,6 +84,6 @@ func (s *SupplyService) Delete(id int) error {
 	return nil
 }
 
-func (s *SupplyService) GetAll(createdAt string) ([]models.SupplyInfoDTO, error) {
+func (s *service) GetAll(createdAt string) ([]InfoDTO, error) {
 	return s.repo.GetAll(createdAt)
 }

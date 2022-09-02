@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zh0vtyj/allincecup-server/pkg/models"
+	"github.com/zh0vtyj/allincecup-server/internal/supply"
 	"net/http"
 	"strconv"
 )
@@ -20,7 +20,7 @@ func (h *Handler) getAllSupply(ctx *gin.Context) {
 }
 
 func (h *Handler) newSupply(ctx *gin.Context) {
-	var input models.SupplyDTO
+	var input supply.Supply
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())

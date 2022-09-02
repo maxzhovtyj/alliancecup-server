@@ -1,8 +1,8 @@
-package models
+package supply
 
 import "time"
 
-type SupplyInfoDTO struct {
+type InfoDTO struct {
 	Id         int        `json:"-" db:"id"`
 	Supplier   string     `json:"supplier" db:"supplier" binding:"required"`
 	SupplyTime *time.Time `json:"supplyTime" db:"supply_time"`
@@ -10,13 +10,13 @@ type SupplyInfoDTO struct {
 	CreatedAt  time.Time  `json:"createdAt" db:"created_at"`
 }
 
-type SupplyPaymentDTO struct {
+type PaymentDTO struct {
 	PaymentAccount string     `json:"paymentType" db:"payment_account" binding:"required"`
 	PaymentTime    *time.Time `json:"paymentTime" db:"payment_time"`
 	PaymentSum     float64    `json:"paymentSum" db:"payment_sum" binding:"required"`
 }
 
-type ProductSupplyDTO struct {
+type ProductDTO struct {
 	SupplyId      int     `json:"-" db:"supply_id"`
 	ProductId     int     `json:"productId" db:"product_id"`
 	Packaging     string  `json:"packaging" db:"packaging"`
@@ -27,8 +27,8 @@ type ProductSupplyDTO struct {
 	TotalSum      float64 `json:"totalSum" db:"total_sum"`
 }
 
-type SupplyDTO struct {
-	Info     SupplyInfoDTO      `json:"info"`
-	Payment  []SupplyPaymentDTO `json:"payment"`
-	Products []ProductSupplyDTO `json:"products"`
+type Supply struct {
+	Info     InfoDTO      `json:"info"`
+	Payment  []PaymentDTO `json:"payment"`
+	Products []ProductDTO `json:"products"`
 }

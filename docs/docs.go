@@ -132,14 +132,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/admin/all-orders": {
+        "/api/admin/all-order": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "get orders by status",
+                "description": "get order by status",
                 "produces": [
                     "application/json"
                 ],
@@ -147,7 +147,7 @@ const docTemplate = `{
                     "api/admin"
                 ],
                 "summary": "Get Orders",
-                "operationId": "get orders",
+                "operationId": "get order",
                 "parameters": [
                     {
                         "type": "string",
@@ -157,7 +157,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Sort by orders status",
+                        "description": "Sort by order status",
                         "name": "order_status",
                         "in": "query",
                         "required": true
@@ -707,7 +707,7 @@ const docTemplate = `{
                 "operationId": "change user password",
                 "parameters": [
                     {
-                        "description": "Info to change password",
+                        "description": "Order to change password",
                         "name": "input",
                         "in": "body",
                         "required": true,
@@ -1050,14 +1050,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/client/user-orders": {
+        "/api/client/user-order": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "gets user orders",
+                "description": "gets user order",
                 "consumes": [
                     "application/json"
                 ],
@@ -1068,7 +1068,7 @@ const docTemplate = `{
                     "api/client"
                 ],
                 "summary": "GetUserOrders",
-                "operationId": "gets orders",
+                "operationId": "gets order",
                 "parameters": [
                     {
                         "type": "string",
@@ -2070,7 +2070,7 @@ const docTemplate = `{
     }
 }`
 
-// SwaggerInfo holds exported Swagger Info so clients can modify it
+// SwaggerInfo holds exported Swagger Order so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8000",

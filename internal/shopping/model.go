@@ -1,4 +1,4 @@
-package models
+package shopping
 
 import (
 	_ "github.com/google/uuid"

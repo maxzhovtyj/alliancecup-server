@@ -1,4 +1,4 @@
-package models
+package order
 
 import (
 	"github.com/google/uuid"
@@ -22,7 +22,7 @@ type Order struct {
 	ClosedAt          *time.Time `json:"closed_at" db:"closed_at"`
 }
 
-type OrderProducts struct {
+type Product struct {
 	OrderId          uuid.UUID `json:"-" db:"order_id"`
 	ProductId        int       `json:"product_id" db:"product_id"`
 	Quantity         int       `json:"quantity" db:"quantity"`
@@ -35,13 +35,13 @@ type OrdersDelivery struct {
 	DeliveryDescription string    `json:"delivery_description" db:"delivery_description"`
 }
 
-type OrderFullInfo struct {
-	Info     Order            `json:"info"`
-	Products []OrderProducts  `json:"products"`
+type Info struct {
+	Order    Order            `json:"order"`
+	Products []Product        `json:"products"`
 	Delivery []OrdersDelivery `json:"delivery"`
 }
 
-type OrderProductFullInfo struct {
+type ProductFullInfo struct {
 	Id               int       `json:"id" db:"id"`
 	OrderId          uuid.UUID `json:"order_id" db:"order_id"`
 	Article          string    `json:"article" db:"article"`
@@ -56,8 +56,8 @@ type OrderProductFullInfo struct {
 	PriceForQuantity float64   `json:"price_for_quantity" db:"price_for_quantity"`
 }
 
-type OrderInfo struct {
-	Info     Order                  `json:"info"`
-	Products []OrderProductFullInfo `json:"products"`
-	Delivery []OrdersDelivery       `json:"delivery"`
+type FullInfo struct {
+	Info     Order             `json:"info"`
+	Products []ProductFullInfo `json:"products"`
+	Delivery []OrdersDelivery  `json:"delivery"`
 }
