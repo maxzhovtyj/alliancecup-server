@@ -59,10 +59,10 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	api := router.Group("/api", h.userIdentity)
 	{
 		api.GET("/categories", h.getCategories)
-		api.GET("/filtration-list", h.getFiltration)
+		api.GET("/filtration", h.getFiltration)
 		api.GET("/products", h.getProducts)
 		api.GET("/product", h.getProductById)
-		api.POST("/new-order", h.newOrder)
+		api.POST("/order", h.newOrder)
 		api.GET("/order-info-types", h.deliveryPaymentTypes)
 		api.POST("/review")
 		api.GET("/reviews")

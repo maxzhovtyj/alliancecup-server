@@ -43,7 +43,7 @@ type AuthService struct {
 	repo AuthorizationStorage
 }
 
-func NewAuthService(repo AuthorizationStorage) *AuthService {
+func NewAuthService(repo AuthorizationStorage) AuthorizationService {
 	return &AuthService{repo: repo}
 }
 

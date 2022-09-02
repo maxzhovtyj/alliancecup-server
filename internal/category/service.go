@@ -13,7 +13,7 @@ type service struct {
 	repo Storage
 }
 
-func NewCategoryService(repo Storage) *service {
+func NewCategoryService(repo Storage) Service {
 	return &service{repo: repo}
 }
 
