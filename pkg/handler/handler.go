@@ -26,6 +26,33 @@ const (
 	domain             = "localhost"
 )
 
+const (
+	authUrl           = "/auth"
+	apiUrl            = "/api"
+	adminUrl          = "/admin"
+	clientUrl         = "/client"
+	signInUrl         = "/sign-in"
+	signUpUrl         = "/sign-up"
+	logoutUrl         = "/logout"
+	changePasswordUrl = "/change-password"
+	refreshUrl        = "/refresh"
+	categoriesUrl     = "/categories"
+	categoryUrl       = "/category"
+	productsUrl       = "/products"
+	productUrl        = "/product"
+	supplyUrl         = "/supply"
+	reviewsUrl        = "/reviewUrl"
+	reviewUrl         = "/review"
+	cartUrl           = "/cart"
+	favouritesUrl     = "/favourites"
+	filtrationUrl     = "/filtration"
+	ordersUrl         = "/orders"
+	orderUrl          = "/order"
+	userOrdersUrl     = "/user-orders"
+	orderInfoTypesUrl = "/order-info-types"
+	moderatorUrl      = "/moderator"
+)
+
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
@@ -49,63 +76,65 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	auth := router.Group("/auth")
+	auth := router.Group(authUrl)
 	{
-		auth.POST("/sign-up", h.signUp)
-		auth.POST("/sign-in", h.signIn)
-		auth.POST("/refresh", h.refresh)
+		auth.POST(signUpUrl, h.signUp)
+		auth.POST(signInUrl, h.signIn)
+		auth.POST(refreshUrl, h.refresh)
 	}
 
-	api := router.Group("/api", h.userIdentity)
+	api := router.Group(apiUrl, h.userIdentity)
 	{
-		api.GET("/categories", h.getCategories)
-		api.GET("/filtration", h.getFiltration)
-		api.GET("/products", h.getProducts)
-		api.GET("/product", h.getProductById)
-		api.POST("/order", h.newOrder)
-		api.GET("/order-info-types", h.deliveryPaymentTypes)
-		api.POST("/review")
-		api.GET("/reviews")
+		api.GET(categoriesUrl, h.getCategories)
+		api.GET(filtrationUrl, h.getFiltration)
+		api.GET(productsUrl, h.getProducts)
+		api.GET(productUrl, h.getProductById)
+		api.POST(orderUrl, h.newOrder)
+		api.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
+		api.POST(reviewUrl)
+		api.GET(reviewsUrl)
 
-		admin := api.Group("/admin", h.userHasPermission)
+		admin := api.Group(adminUrl, h.userHasPermission)
 		{
-			admin.POST("/moderator", h.createModerator)
+			admin.POST(moderatorUrl, h.createModerator)
 
-			admin.POST("/product", h.addProduct)
-			admin.PUT("/product", h.updateProduct)
-			admin.DELETE("/product", h.deleteProduct)
+			admin.POST(productUrl, h.addProduct)
+			admin.PUT(productUrl, h.updateProduct)
+			admin.DELETE(productUrl, h.deleteProduct)
 			//admin.PUT("/update-product-amount") // TODO
 
-			admin.POST("/category", h.addCategory)
-			admin.PUT("/category", h.updateCategory)
-			admin.DELETE("/category", h.deleteCategory)
+			admin.POST(categoryUrl, h.addCategory)
+			admin.PUT(categoryUrl, h.updateCategory)
+			admin.DELETE(categoryUrl, h.deleteCategory)
 
-			admin.GET("/orders", h.adminGetOrders)
+			admin.GET(ordersUrl, h.adminGetOrders)
 			//admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
 
-			admin.POST("/filtration", h.addFiltrationItem)
+			admin.POST(filtrationUrl, h.addFiltrationItem)
 
-			admin.POST("/supply", h.newSupply)
-			admin.GET("/supply", h.getAllSupply)
-			admin.DELETE("/supply", h.deleteSupply)
+			admin.POST(supplyUrl, h.newSupply)
+			admin.GET(supplyUrl, h.getAllSupply)
+			admin.DELETE(supplyUrl, h.deleteSupply)
+
+			admin.DELETE(reviewUrl)
 		}
 
-		client := api.Group("/client", h.userAuthorized)
+		client := api.Group(clientUrl, h.userAuthorized)
 		{
-			client.PUT("/change-password", h.changePassword)
-			client.DELETE("/logout", h.logout)
+			client.PUT(changePasswordUrl, h.changePassword)
+			client.DELETE(logoutUrl, h.logout)
 
-			client.GET("/user-order", h.userOrders)
+			client.GET(userOrdersUrl, h.userOrders)
 
-			client.POST("/cart", h.addToCart)
-			client.GET("/cart", h.getFromCartById)
-			client.DELETE("/cart", h.deleteFromCart)
+			client.POST(cartUrl, h.addToCart)
+			client.GET(cartUrl, h.getFromCartById)
+			client.DELETE(cartUrl, h.deleteFromCart)
 
-			client.POST("/favourites", h.addToFavourites)
-			client.GET("/favourites", h.getFavourites)
-			client.DELETE("favourites", h.deleteFromFavourites)
+			client.POST(favouritesUrl, h.addToFavourites)
+			client.GET(favouritesUrl, h.getFavourites)
+			client.DELETE(favouritesUrl, h.deleteFromFavourites)
 
-			client.GET("/get-order", h.getOrderById)
+			client.GET(orderUrl, h.getOrderById)
 		}
 	}
 

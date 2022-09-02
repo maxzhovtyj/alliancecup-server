@@ -13,6 +13,11 @@ type OrderResponse struct {
 	Message string    `json:"message"`
 }
 
+type ProcessedOrderStatus struct {
+	OrderId  uuid.UUID `json:"orderId" binding:"required"`
+	ToStatus string    `json:"toStatus" binding:"required"`
+}
+
 // newOrder godoc
 // @Summary      NewOrder
 // @Tags         api
@@ -104,14 +109,14 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @Description  gets user order full info by its id
 // @ID gets order by id
 // @Produce      json
-// @Param        order_id query string true "order id"
+// @Param        id query string true "order id"
 // @Success      200  {object}  server.FullInfo
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/client/get-order [get]
 func (h *Handler) getOrderById(ctx *gin.Context) {
-	orderId := ctx.Query("order_id")
+	orderId := ctx.Query("id")
 
 	orderUUID, err := uuid.Parse(orderId)
 	if err != nil {
@@ -183,11 +188,6 @@ func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, deliveryTypes)
-}
-
-type ProcessedOrderStatus struct {
-	OrderId  uuid.UUID `json:"orderId" binding:"required"`
-	ToStatus string    `json:"toStatus" binding:"required"`
 }
 
 // processedOrder godoc

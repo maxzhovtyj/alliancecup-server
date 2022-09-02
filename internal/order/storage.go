@@ -5,8 +5,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/internal/db"
 	server "github.com/zh0vtyj/allincecup-server/internal/shopping"
+	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 )
 
 type Storage interface {
@@ -45,14 +45,14 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	var deliveryTypeId int
-	queryGetDeliveryId := fmt.Sprintf("SELECT id FROM %s WHERE delivery_type_title=$1", db.DeliveryTypesTable)
+	queryGetDeliveryId := fmt.Sprintf("SELECT id FROM %s WHERE delivery_type_title=$1", postgres.DeliveryTypesTable)
 	err := o.db.Get(&deliveryTypeId, queryGetDeliveryId, order.Order.DeliveryTypeTitle)
 	if err != nil {
 		return [16]byte{}, fmt.Errorf("failed to create order, delivery type not found %s, error: %v", order.Order.DeliveryTypeTitle, err)
 	}
 
 	var paymentTypeId int
-	queryGetPaymentTypeId := fmt.Sprintf("SELECT id FROM %s WHERE payment_type_title=$1", db.PaymentTypesTable)
+	queryGetPaymentTypeId := fmt.Sprintf("SELECT id FROM %s WHERE payment_type_title=$1", postgres.PaymentTypesTable)
 	err = o.db.Get(&paymentTypeId, queryGetPaymentTypeId, order.Order.PaymentTypeTitle)
 	if err != nil {
 		return [16]byte{}, fmt.Errorf("failed to create order, payment type not found %s, error: %v", order.Order.PaymentTypeTitle, err)
@@ -62,7 +62,7 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 		orderInfoColumnsInsert = append(orderInfoColumnsInsert, "user_id")
 	}
 
-	queryInsertOrder := psql.Insert(db.OrdersTable).Columns(orderInfoColumnsInsert...)
+	queryInsertOrder := psql.Insert(postgres.OrdersTable).Columns(orderInfoColumnsInsert...)
 
 	if order.Order.UserId != 0 {
 		queryInsertOrder = queryInsertOrder.Values(
@@ -104,7 +104,7 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 	}
 
 	for _, product := range order.Products {
-		queryInsertProducts, args, err := psql.Insert(db.OrdersProductsTable).
+		queryInsertProducts, args, err := psql.Insert(postgres.OrdersProductsTable).
 			Columns("order_id", "product_id", "quantity", "price_for_quantity").
 			Values(orderId, product.ProductId, product.Quantity, product.PriceForQuantity).
 			ToSql()
@@ -119,7 +119,7 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 	}
 
 	for _, delivery := range order.Delivery {
-		queryInsertDelivery, args, err := psql.Insert(db.OrdersDeliveryTable).
+		queryInsertDelivery, args, err := psql.Insert(postgres.OrdersDeliveryTable).
 			Columns("order_id", "delivery_title", "delivery_description").
 			Values(orderId, delivery.DeliveryTitle, delivery.DeliveryDescription).ToSql()
 
@@ -131,7 +131,7 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 	}
 
 	if order.Order.UserId != 0 {
-		queryDeleteCartProducts, args, err := psql.Delete(db.CartsProductsTable).Where(sq.Eq{"cart_id": order.Order.UserId}).ToSql()
+		queryDeleteCartProducts, args, err := psql.Delete(postgres.CartsProductsTable).Where(sq.Eq{"cart_id": order.Order.UserId}).ToSql()
 		if err != nil {
 			_ = tx.Rollback()
 			return [16]byte{}, err
@@ -150,7 +150,7 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]FullInfo, error
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	var ordersAmount int
-	queryOrdersAmount, args, err := psql.Select("count(*)").From(db.OrdersTable).Where(sq.Eq{"user_id": userId}).ToSql()
+	queryOrdersAmount, args, err := psql.Select("count(*)").From(postgres.OrdersTable).Where(sq.Eq{"user_id": userId}).ToSql()
 	if err != nil {
 		return nil, err
 	}
@@ -182,9 +182,9 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]FullInfo, error
 		"order.created_at",
 		"order.closed_at",
 	).
-		From(db.OrdersTable).
-		LeftJoin(db.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
-		LeftJoin(db.PaymentTypesTable + " ON order.payment_type_id=payment_types.id").
+		From(postgres.OrdersTable).
+		LeftJoin(postgres.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
+		LeftJoin(postgres.PaymentTypesTable + " ON order.payment_type_id=payment_types.id").
 		Where(sq.Eq{"user_id": userId})
 
 	if createdAt != "" {
@@ -222,8 +222,8 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]FullInfo, error
 				"quantity",
 				"price_for_quantity",
 			).
-			From(db.OrdersProductsTable).
-			LeftJoin(db.ProductsTable + " ON orders_products.product_id=products.id").
+			From(postgres.OrdersProductsTable).
+			LeftJoin(postgres.ProductsTable + " ON orders_products.product_id=products.id").
 			Where(sq.Eq{"orders_products.order_id": orders[i].Info.Id}).
 			ToSql()
 		if err != nil {
@@ -237,7 +237,7 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]FullInfo, error
 
 		queryOrderDelivery, args, err := psql.
 			Select("*").
-			From(db.OrdersDeliveryTable).
+			From(postgres.OrdersDeliveryTable).
 			Where(sq.Eq{"order_id": orders[i].Info.Id}).
 			ToSql()
 		if err != nil {
@@ -275,9 +275,9 @@ func (o *storage) GetOrderById(orderId uuid.UUID) (FullInfo, error) {
 			"order.created_at",
 			"order.closed_at",
 		).
-		From(db.OrdersTable).
-		LeftJoin(db.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
-		LeftJoin(db.PaymentTypesTable + " ON order.payment_type_id=payment_types.id").
+		From(postgres.OrdersTable).
+		LeftJoin(postgres.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
+		LeftJoin(postgres.PaymentTypesTable + " ON order.payment_type_id=payment_types.id").
 		Where(sq.Eq{"order.id": orderId})
 
 	queryOrderInfoSql, args, err := queryOrderInfo.ToSql()
@@ -304,8 +304,8 @@ func (o *storage) GetOrderById(orderId uuid.UUID) (FullInfo, error) {
 			"products.packages_in_box",
 			"products.created_at",
 		).
-		From(db.OrdersProductsTable).
-		LeftJoin(db.ProductsTable + " ON products.id=orders_products.product_id").
+		From(postgres.OrdersProductsTable).
+		LeftJoin(postgres.ProductsTable + " ON products.id=orders_products.product_id").
 		Where(sq.Eq{"order_id": orderId})
 
 	queryProductsSql, args, err := queryProducts.ToSql()
@@ -318,7 +318,7 @@ func (o *storage) GetOrderById(orderId uuid.UUID) (FullInfo, error) {
 		return FullInfo{}, err
 	}
 
-	queryDelivery := psql.Select("*").From(db.OrdersDeliveryTable).Where(sq.Eq{"order_id": orderId})
+	queryDelivery := psql.Select("*").From(postgres.OrdersDeliveryTable).Where(sq.Eq{"order_id": orderId})
 	queryDeliverySql, args, err := queryDelivery.ToSql()
 	if err != nil {
 		return FullInfo{}, err
@@ -352,9 +352,9 @@ func (o *storage) GetAdminOrders(status string, lastOrderCreatedAt string) ([]Or
 		"order.created_at",
 		"order.closed_at",
 	).
-		From(db.OrdersTable).
-		LeftJoin(db.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
-		LeftJoin(db.PaymentTypesTable + " ON order.payment_type_id=payment_types.id")
+		From(postgres.OrdersTable).
+		LeftJoin(postgres.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
+		LeftJoin(postgres.PaymentTypesTable + " ON order.payment_type_id=payment_types.id")
 
 	if status != "" {
 		queryOrders = queryOrders.Where(sq.Eq{"order.order_status": status})
@@ -380,7 +380,7 @@ func (o *storage) GetAdminOrders(status string, lastOrderCreatedAt string) ([]Or
 }
 
 func (o *storage) GetDeliveryTypes() (deliveryTypes []server.DeliveryType, err error) {
-	queryGetDeliveryTypes := fmt.Sprintf("SELECT * FROM %s", db.DeliveryTypesTable)
+	queryGetDeliveryTypes := fmt.Sprintf("SELECT * FROM %s", postgres.DeliveryTypesTable)
 
 	err = o.db.Select(&deliveryTypes, queryGetDeliveryTypes)
 	if err != nil {
@@ -391,7 +391,7 @@ func (o *storage) GetDeliveryTypes() (deliveryTypes []server.DeliveryType, err e
 }
 
 func (o *storage) GetPaymentTypes() (paymentTypes []server.PaymentType, err error) {
-	queryGetPaymentTypes := fmt.Sprintf("SELECT * FROM %s", db.PaymentTypesTable)
+	queryGetPaymentTypes := fmt.Sprintf("SELECT * FROM %s", postgres.PaymentTypesTable)
 
 	err = o.db.Select(&paymentTypes, queryGetPaymentTypes)
 	if err != nil {
@@ -402,7 +402,7 @@ func (o *storage) GetPaymentTypes() (paymentTypes []server.PaymentType, err erro
 }
 
 func (o *storage) ChangeOrderStatus(orderId uuid.UUID, toStatus string) error {
-	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id=$2", db.OrdersTable)
+	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id=$2", postgres.OrdersTable)
 
 	_, err := o.db.Exec(queryUpdateStatus, toStatus, orderId)
 	if err != nil {

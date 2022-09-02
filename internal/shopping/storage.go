@@ -4,7 +4,7 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/internal/db"
+	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 )
 
 type Storage interface {
@@ -26,13 +26,13 @@ func NewShoppingPostgres(db *sqlx.DB) *storage {
 
 func (s *storage) AddToCart(userId int, info CartProduct) (float64, error) {
 	var userCartId int
-	queryGetCartId := fmt.Sprintf("SELECT id FROM %s WHERE user_id=$1 LIMIT 1", db.CartsTable)
+	queryGetCartId := fmt.Sprintf("SELECT id FROM %s WHERE user_id=$1 LIMIT 1", postgres.CartsTable)
 	err := s.db.Get(&userCartId, queryGetCartId, userId)
 	if err != nil {
 		return 0, err
 	}
 
-	queryAddToCart := fmt.Sprintf("INSERT INTO %s (cart_id, product_id, quantity, price_for_quantity) values ($1, $2, $3, $4)", db.CartsProductsTable)
+	queryAddToCart := fmt.Sprintf("INSERT INTO %s (cart_id, product_id, quantity, price_for_quantity) values ($1, $2, $3, $4)", postgres.CartsProductsTable)
 	_, err = s.db.Exec(queryAddToCart, userCartId, info.ProductId, info.Quantity, info.PriceForQuantity)
 	if err != nil {
 		return 0, err
@@ -43,7 +43,7 @@ func (s *storage) AddToCart(userId int, info CartProduct) (float64, error) {
 
 func (s *storage) PriceValidation(productId, quantity int) (float64, error) {
 	var price float64
-	query := fmt.Sprintf("SELECT price FROM %s WHERE id=$1", db.ProductsTable)
+	query := fmt.Sprintf("SELECT price FROM %s WHERE id=$1", postgres.ProductsTable)
 	if err := s.db.Get(&price, query, productId); err != nil {
 		return 0, err
 	}
@@ -53,7 +53,7 @@ func (s *storage) PriceValidation(productId, quantity int) (float64, error) {
 
 func (s *storage) GetProductsInCart(userId int) ([]CartProductFullInfo, error) {
 	var cartId int
-	queryGetCartId := fmt.Sprintf("SELECT id FROM %s WHERE user_id=$1", db.CartsTable)
+	queryGetCartId := fmt.Sprintf("SELECT id FROM %s WHERE user_id=$1", postgres.CartsTable)
 	if err := s.db.Get(&cartId, queryGetCartId, userId); err != nil {
 		return nil, err
 	}
@@ -74,8 +74,8 @@ func (s *storage) GetProductsInCart(userId int) ([]CartProductFullInfo, error) {
 		"carts_products.quantity",
 		"carts_products.price_for_quantity",
 	).
-		From(db.CartsProductsTable).
-		LeftJoin(db.ProductsTable + " ON carts_products.product_id=products.id").
+		From(postgres.CartsProductsTable).
+		LeftJoin(postgres.ProductsTable + " ON carts_products.product_id=products.id").
 		Where(sq.Eq{"carts_products.cart_id": cartId}).ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build sql query to get products from cart due to: %v", err)
@@ -89,19 +89,19 @@ func (s *storage) GetProductsInCart(userId int) ([]CartProductFullInfo, error) {
 }
 
 func (s *storage) DeleteFromCart(productId int) error {
-	queryDelete := fmt.Sprintf("DELETE FROM %s WHERE product_id=$1", db.CartsProductsTable)
+	queryDelete := fmt.Sprintf("DELETE FROM %s WHERE product_id=$1", postgres.CartsProductsTable)
 	_, err := s.db.Exec(queryDelete, productId)
 	return err
 }
 
 func (s *storage) AddToFavourites(userId, productId int) error {
-	queryAddToFavourites := fmt.Sprintf("INSERT INTO %s (user_id, product_id) values ($1, $2)", db.FavouritesTable)
+	queryAddToFavourites := fmt.Sprintf("INSERT INTO %s (user_id, product_id) values ($1, $2)", postgres.FavouritesTable)
 	_, err := s.db.Exec(queryAddToFavourites, userId, productId)
 	return err
 }
 
 func (s *storage) DeleteFromFavourites(userId, productId int) error {
-	queryDeleteProduct := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1 AND product_id=$2", db.FavouritesTable)
+	queryDeleteProduct := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1 AND product_id=$2", postgres.FavouritesTable)
 	_, err := s.db.Exec(queryDeleteProduct, userId, productId)
 	if err != nil {
 		return err

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/internal/db"
+	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 )
 
 type Storage interface {
@@ -26,7 +26,7 @@ func (s *storage) GetAll(createdAt string) ([]InfoDTO, error) {
 	var supply []InfoDTO
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	querySelectInfo := psql.Select("*").From(db.SupplyTable)
+	querySelectInfo := psql.Select("*").From(postgres.SupplyTable)
 	if createdAt != "" {
 		querySelectInfo = querySelectInfo.Where(sq.Lt{"created_at": createdAt})
 	}
@@ -51,7 +51,7 @@ func (s *storage) New(supply Supply) error {
 	var supplyId int
 	queryInsetSupplyInfo := fmt.Sprintf(
 		"INSERT INTO %s (supplier, supply_time, comment) values ($1, $2, $3) RETURNING id",
-		db.SupplyTable,
+		postgres.SupplyTable,
 	)
 	row := tx.QueryRow(
 		queryInsetSupplyInfo,
@@ -67,7 +67,7 @@ func (s *storage) New(supply Supply) error {
 	for _, payment := range supply.Payment {
 		queryInsertPayment := fmt.Sprintf(
 			"INSERT INTO %s (supply_id, payment_account, payment_time, payment_sum) values ($1, $2, $3, $4)",
-			db.SupplyPaymentTable,
+			postgres.SupplyPaymentTable,
 		)
 
 		_, err := tx.Exec(
@@ -86,7 +86,7 @@ func (s *storage) New(supply Supply) error {
 	for _, p := range supply.Products {
 		queryInsertProduct := fmt.Sprintf(
 			"INSERT INTO %s (supply_id, product_id, packaging, amount, price_for_unit, sum_without_tax, tax, total_sum) values ($1, $2, $3, $4, $5, $6, $7, $8)",
-			db.SupplyProductsTable,
+			postgres.SupplyProductsTable,
 		)
 
 		_, err := tx.Exec(
@@ -134,7 +134,7 @@ func (s *storage) UpdateProductsAmount(products []ProductDTO, operation string) 
 	for _, p := range products {
 		queryUpdateAmount := fmt.Sprintf(
 			"UPDATE %s SET amount_in_stock=amount_in_stock%s$1 WHERE id=$2",
-			db.ProductsTable,
+			postgres.ProductsTable,
 			operation,
 		)
 
@@ -150,14 +150,14 @@ func (s *storage) UpdateProductsAmount(products []ProductDTO, operation string) 
 
 func (s *storage) DeleteAndGetProducts(id int) ([]ProductDTO, error) {
 	var products []ProductDTO
-	queryGetProducts := fmt.Sprintf("SELECT * FROM %s WHERE supply_id=$1", db.SupplyProductsTable)
+	queryGetProducts := fmt.Sprintf("SELECT * FROM %s WHERE supply_id=$1", postgres.SupplyProductsTable)
 
 	err := s.db.Select(&products, queryGetProducts, id)
 	if err != nil {
 		return nil, err
 	}
 
-	queryDeleteSupply := fmt.Sprintf("DELETE FROM %s WHERE id=$1", db.SupplyTable)
+	queryDeleteSupply := fmt.Sprintf("DELETE FROM %s WHERE id=$1", postgres.SupplyTable)
 	_, err = s.db.Exec(queryDeleteSupply, id)
 	if err != nil {
 		return nil, err
