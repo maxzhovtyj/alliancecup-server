@@ -2,8 +2,8 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zh0vtyj/allincecup-server/internal/product"
-	server "github.com/zh0vtyj/allincecup-server/internal/shopping"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
+	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"net/http"
 	"strconv"
 )
@@ -15,7 +15,7 @@ type ProductIdInput struct {
 // getProducts godoc
 // @Summary      GetProducts
 // @Tags         api
-// @Description  get products from certain category with params
+// @Product  get products from certain category with params
 // @ID 			 gets products
 // @Produce      json
 // @Param 		 category query string true "Category"
@@ -25,7 +25,7 @@ type ProductIdInput struct {
 // @Param 		 price query string false "Price"
 // @Param 		 characteristic query string false "characteristic"
 // @Param		 created_at query string false "Created At"
-// @Success      200  {array}   server.Product
+// @Success      200  {array}   product.Product
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -71,25 +71,25 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Summary      AddProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Description  Adds a new product
+// @Product  Adds a new product
 // @ID 			 adds product
 // @Accept 	     json
 // @Produce      json
-// @Param        input body server.ProductInfoDescription true "product info"
+// @Param        input body product.Info true "product info"
 // @Success      201  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/admin/add-product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
-	var input product.Description
+	var input product.Info
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.Product.AddProduct(input.Info, input.Description)
+	id, err := h.services.Product.AddProduct(input.Product, input.Description)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -104,11 +104,11 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 // getProductById godoc
 // @Summary      GetProductById
 // @Tags         api
-// @Description  get product full info by its id
+// @Product  get product full info by its id
 // @ID 			 gets full product info
 // @Produce      json
 // @Param 		 id query int true "Product id"
-// @Success      200  {object}  server.ProductInfoDescription
+// @Success      200  {object}  product.Info
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -134,18 +134,18 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Summary      UpdateProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Description  Updates product
+// @Product  Updates product
 // @ID 			 updates product
 // @Accept 	     json
 // @Produce      json
-// @Param        input body server.ProductInfoDescription true "product info"
+// @Param        input body product.Info true "product info"
 // @Success      200  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/admin/update-product [put]
 func (h *Handler) updateProduct(ctx *gin.Context) {
-	var input product.Description
+	var input product.Info
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -168,7 +168,7 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 // @Summary      DeleteProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Description  Deletes product
+// @Product  Deletes product
 // @ID 			 delete product
 // @Accept 	     json
 // @Produce      json

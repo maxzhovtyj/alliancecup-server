@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	server "github.com/zh0vtyj/allincecup-server/internal/order"
+	server "github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"net/http"
 )
 
@@ -25,7 +25,7 @@ type ProcessedOrderStatus struct {
 // @ID creates an order
 // @Accept       json
 // @Produce      json
-// @Param        input body server.Order true "order info"
+// @Param        input body order.Order true "order info"
 // @Success      200  {object}  handler.OrderResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -110,7 +110,7 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @ID gets order by id
 // @Produce      json
 // @Param        id query string true "order id"
-// @Success      200  {object}  server.FullInfo
+// @Success      200  {object}  order.FullInfo
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -144,7 +144,7 @@ func (h *Handler) getOrderById(ctx *gin.Context) {
 // @Produce      json
 // @Param created_at query string false "Last item created at for pagination"
 // @Param order_status query string true "Sort by order status"
-// @Success      200  {array} server.Order
+// @Success      200  {array}   order.Order
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -175,7 +175,7 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 // @Description  get payment and delivery types
 // @ID get order info types
 // @Produce      json
-// @Success      200  {array}   server.DeliveryPaymentTypes
+// @Success      200  {array}   shopping.DeliveryPaymentTypes
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -198,7 +198,7 @@ func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
 // @Accept 	  	 json
 // @Produce      json
 // @Param 		 input body handler.ProcessedOrderStatus true "order status"
-// @Success      200  {array}   server.DeliveryPaymentTypes
+// @Success      200  {object}  string
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error

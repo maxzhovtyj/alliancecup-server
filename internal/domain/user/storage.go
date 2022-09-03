@@ -3,8 +3,8 @@ package user
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/zh0vtyj/allincecup-server/internal/models"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
-	"github.com/zh0vtyj/allincecup-server/pkg/models"
 )
 
 type AuthorizationStorage interface {

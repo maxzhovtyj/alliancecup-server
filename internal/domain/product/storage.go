@@ -4,7 +4,7 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	server "github.com/zh0vtyj/allincecup-server/internal/shopping"
+	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 	"strconv"
 	"strings"
@@ -13,10 +13,10 @@ import (
 type Storage interface {
 	Search(searchInput string) ([]Product, error)
 	GetWithParams(params server.SearchParams) ([]Product, error)
-	GetProductById(id int) (Description, error)
-	AddProduct(product Product, info []Info) (int, error)
+	GetProductById(id int) (Info, error)
+	AddProduct(product Product, info []Description) (int, error)
 	GetFavourites(userId int) ([]Product, error)
-	Update(product Description) (int, error)
+	Update(product Info) (int, error)
 	Delete(productId int) error
 }
 
@@ -106,7 +106,7 @@ func (s *storage) Search(searchInput string) ([]Product, error) {
 	return products, err
 }
 
-func (s *storage) AddProduct(product Product, info []Info) (int, error) {
+func (s *storage) AddProduct(product Product, info []Description) (int, error) {
 	tx, err := s.db.Begin()
 
 	var categoryId int
@@ -162,19 +162,19 @@ func (s *storage) AddProduct(product Product, info []Info) (int, error) {
 	return productId, tx.Commit()
 }
 
-func (s *storage) Update(product Description) (int, error) {
+func (s *storage) Update(product Info) (int, error) {
 	tx, _ := s.db.Begin()
 
 	var newCategoryId int
 	queryGetCategoryId := fmt.Sprintf("SELECT id FROM %s WHERE category_title=$1 LIMIT 1", postgres.CategoriesTable)
-	if err := s.db.Get(&newCategoryId, queryGetCategoryId, product.Info.CategoryTitle); err != nil {
+	if err := s.db.Get(&newCategoryId, queryGetCategoryId, product.Product.CategoryTitle); err != nil {
 		_ = tx.Rollback()
 		return 0, err
 	}
 
 	var newTypeId int
 	queryGetTypeId := fmt.Sprintf("SELECT id FROM %s WHERE type_title=$1 LIMIT 1", postgres.ProductTypesTable)
-	if err := s.db.Get(&newTypeId, queryGetTypeId, product.Info.TypeTitle); err != nil {
+	if err := s.db.Get(&newTypeId, queryGetTypeId, product.Product.TypeTitle); err != nil {
 		_ = tx.Rollback()
 		return 0, err
 	}
@@ -184,16 +184,16 @@ func (s *storage) Update(product Description) (int, error) {
 		postgres.ProductsTable)
 	_, err := tx.Exec(
 		queryUpdateProduct,
-		product.Info.Article,
+		product.Product.Article,
 		newCategoryId,
-		product.Info.ProductTitle,
-		product.Info.ImgUrl,
+		product.Product.ProductTitle,
+		product.Product.ImgUrl,
 		newTypeId,
-		product.Info.AmountInStock,
-		product.Info.Price,
-		product.Info.UnitsInPackage,
-		product.Info.PackagesInBox,
-		product.Info.Id,
+		product.Product.AmountInStock,
+		product.Product.Price,
+		product.Product.UnitsInPackage,
+		product.Product.PackagesInBox,
+		product.Product.Id,
 	)
 	if err != nil {
 		_ = tx.Rollback()
@@ -201,7 +201,7 @@ func (s *storage) Update(product Description) (int, error) {
 	}
 
 	queryDeleteOldDescription := fmt.Sprintf("DELETE FROM %s WHERE product_id=$1", postgres.ProductsInfoTable)
-	_, err = tx.Exec(queryDeleteOldDescription, product.Info.Id)
+	_, err = tx.Exec(queryDeleteOldDescription, product.Product.Id)
 	if err != nil {
 		_ = tx.Rollback()
 		return 0, err
@@ -209,14 +209,14 @@ func (s *storage) Update(product Description) (int, error) {
 
 	for i := range product.Description {
 		queryInsertInfo := fmt.Sprintf("INSERT INTO %s (product_id, info_title, description) values ($1, $2, $3)", postgres.ProductsInfoTable)
-		_, err = tx.Exec(queryInsertInfo, product.Info.Id, product.Description[i].InfoTitle, product.Description[i].Description)
+		_, err = tx.Exec(queryInsertInfo, product.Product.Id, product.Description[i].InfoTitle, product.Description[i].Description)
 		if err != nil {
 			_ = tx.Rollback()
 			return 0, err
 		}
 	}
 
-	return product.Info.Id, tx.Commit()
+	return product.Product.Id, tx.Commit()
 }
 
 func (s *storage) Delete(productId int) error {
@@ -239,8 +239,8 @@ func (s *storage) Delete(productId int) error {
 	return tx.Commit()
 }
 
-func (s *storage) GetProductById(id int) (Description, error) {
-	var product Description
+func (s *storage) GetProductById(id int) (Info, error) {
+	var product Info
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
@@ -250,15 +250,15 @@ func (s *storage) GetProductById(id int) (Description, error) {
 		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id").
 		Where(sq.Eq{"products.id": id}).ToSql()
 
-	err = s.db.Get(&product.Info, queryGetProduct, args...)
+	err = s.db.Get(&product.Product, queryGetProduct, args...)
 	if err != nil {
-		return Description{}, err
+		return Info{}, err
 	}
 
 	queryGetProductInfo := fmt.Sprintf("SELECT * FROM %s WHERE product_id=$1", postgres.ProductsInfoTable)
 	err = s.db.Select(&product.Description, queryGetProductInfo, id)
 	if err != nil {
-		return Description{}, err
+		return Info{}, err
 	}
 
 	return product, err

@@ -3,7 +3,7 @@ package order
 import (
 	"fmt"
 	"github.com/google/uuid"
-	server "github.com/zh0vtyj/allincecup-server/internal/shopping"
+	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 )
 
 type Service interface {
@@ -31,13 +31,13 @@ func NewOrdersService(repo Storage) Service {
 //			return 0, err
 //		}
 //		inputPrice := item.PriceForQuantity / float64(item.Quantity)
-//		if p.Info.Price != inputPrice {
+//		if p.Product.Price != inputPrice {
 //			return 0, fmt.Errorf("invalid product price")
 //		}
-//		if p.Info.Price*float64(item.Quantity) != item.PriceForQuantity {
+//		if p.Product.Price*float64(item.Quantity) != item.PriceForQuantity {
 //			return 0, fmt.Errorf("price for quantity mismatch")
 //		}
-//		sum += p.Info.Price * float64(item.Quantity)
+//		sum += p.Product.Price * float64(item.Quantity)
 //	}
 //	return sum, nil
 //}

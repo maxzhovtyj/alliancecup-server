@@ -2,12 +2,12 @@ package repository
 
 import (
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/internal/category"
-	"github.com/zh0vtyj/allincecup-server/internal/order"
-	"github.com/zh0vtyj/allincecup-server/internal/product"
-	"github.com/zh0vtyj/allincecup-server/internal/shopping"
-	"github.com/zh0vtyj/allincecup-server/internal/supply"
-	"github.com/zh0vtyj/allincecup-server/internal/user"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/supply"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
 )
 
 type Repository struct {

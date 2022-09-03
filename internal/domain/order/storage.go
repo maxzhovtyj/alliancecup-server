@@ -5,7 +5,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	server "github.com/zh0vtyj/allincecup-server/internal/shopping"
+	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 )
 

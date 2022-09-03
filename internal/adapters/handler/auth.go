@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/zh0vtyj/allincecup-server/docs"
-	"github.com/zh0vtyj/allincecup-server/internal/user"
-	"github.com/zh0vtyj/allincecup-server/pkg/models"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
+	"github.com/zh0vtyj/allincecup-server/internal/models"
 	"net/http"
 	"net/mail"
 	"os"
@@ -38,7 +38,7 @@ type ChangePasswordInput struct {
 // @ID create account
 // @Accept       json
 // @Produce      json
-// @Param        input body models.User true "account info"
+// @Param        input body user.User true "account info"
 // @Success      200  {integer} integer 2
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -92,7 +92,7 @@ func (h *Handler) signUp(ctx *gin.Context) {
 // @ID create account for moderator
 // @Accept       json
 // @Produce      json
-// @Param        input body models.User true "account info"
+// @Param        input body user.User true "account info"
 // @Success      200  {integer} integer 2
 // @Failure      400  {object} Error
 // @Failure      404  {object} Error

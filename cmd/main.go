@@ -6,10 +6,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	server "github.com/zh0vtyj/allincecup-server"
+	"github.com/zh0vtyj/allincecup-server/internal/adapters/handler"
+	"github.com/zh0vtyj/allincecup-server/internal/repository"
+	"github.com/zh0vtyj/allincecup-server/internal/service"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
-	"github.com/zh0vtyj/allincecup-server/pkg/handler"
-	"github.com/zh0vtyj/allincecup-server/pkg/repository"
-	"github.com/zh0vtyj/allincecup-server/pkg/service"
 	"os"
 )
 

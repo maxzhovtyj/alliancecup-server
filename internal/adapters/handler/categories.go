@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server/internal/category"
+	server "github.com/zh0vtyj/allincecup-server/internal/domain/category"
 	"net/http"
 	"strconv"
 )
@@ -29,7 +29,7 @@ type DeleteCategoryInput struct {
 // @ID get categories
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}   allCategoriesResponse
+// @Success      200  {object}  allCategoriesResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -79,7 +79,7 @@ func (h *Handler) getFiltration(ctx *gin.Context) {
 // @ID 			 adds category
 // @Accept 	     json
 // @Produce      json
-// @Param        input body server.Category true "category info"
+// @Param        input body category.Category true "category info"
 // @Success      201  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -113,7 +113,7 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 // @ID 			 updates category
 // @Accept 	     json
 // @Produce      json
-// @Param        input body server.Category true "category info"
+// @Param        input body category.Category true "category info"
 // @Success      200  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error

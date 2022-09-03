@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server/internal/category"
+	server "github.com/zh0vtyj/allincecup-server/internal/domain/category"
 	"net/http"
 )
 
@@ -13,7 +13,7 @@ import (
 // @ID add filtration
 // @Accept json
 // @Produce json
-// @Param input body server.CategoryFiltration true "filtration info"
+// @Param input body category.Filtration true "filtration info"
 // @Success 201 {object} string
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error

@@ -6,7 +6,7 @@ import (
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
 	_ "github.com/zh0vtyj/allincecup-server/docs"
-	"github.com/zh0vtyj/allincecup-server/pkg/service"
+	"github.com/zh0vtyj/allincecup-server/internal/service"
 	"net/http"
 )
 

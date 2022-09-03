@@ -3,10 +3,19 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server/internal/shopping"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"net/http"
 	"strconv"
 )
+
+type CartProductsResponse struct {
+	Products []shopping.CartProductFullInfo `json:"products"`
+	Sum      float64                        `json:"sum"`
+}
+
+type AddToFavouritesInput struct {
+	ProductId int `json:"product_id"`
+}
 
 // addToCart godoc
 // @Summary      AddToCart
@@ -16,7 +25,7 @@ import (
 // @ID adds a product to a cart
 // @Accept       json
 // @Produce      json
-// @Param        input body server.CartProduct true "product info"
+// @Param        input body shopping.CartProduct true "product info"
 // @Success      200  {object}  string 2
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -30,7 +39,7 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 		return
 	}
 
-	var input server.CartProduct
+	var input shopping.CartProduct
 
 	if err = ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -47,11 +56,6 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 		"price_for_quantity": price,
 		"message":            "product added",
 	})
-}
-
-type CartProductsResponse struct {
-	Products []server.CartProductFullInfo `json:"products"`
-	Sum      float64                      `json:"sum"`
 }
 
 // getFromCart godoc
@@ -118,10 +122,6 @@ func (h *Handler) deleteFromCart(ctx *gin.Context) {
 	})
 }
 
-type AddToFavouritesInput struct {
-	ProductId int `json:"product_id"`
-}
-
 // addToFavourites godoc
 // @Summary      AddToFavourites
 // @Security 	 ApiKeyAuth
@@ -168,7 +168,7 @@ func (h *Handler) addToFavourites(ctx *gin.Context) {
 // @Description  gets user favourite products
 // @ID get favourites
 // @Produce      json
-// @Success      200  {array}  	server.Product
+// @Success      200  {array}  	product.Product
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
