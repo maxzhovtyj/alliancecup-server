@@ -269,6 +269,21 @@ definitions:
     - type_title
     - units_in_package
     type: object
+  review.CreateReviewDTO:
+    properties:
+      mark:
+        type: integer
+      reviewText:
+        type: string
+      userId:
+        type: integer
+      userName:
+        type: string
+    required:
+    - mark
+    - reviewText
+    - userName
+    type: object
   shopping.CartProduct:
     properties:
       price_for_quantity:
@@ -368,43 +383,6 @@ info:
   title: AllianceCup API
   version: "1.0"
 paths:
-  /api/admin/add-category:
-    post:
-      consumes:
-      - application/json
-      description: Adds a new category
-      operationId: adds category
-      parameters:
-      - description: category info
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/category.Category'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/handler.ItemProcessedResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handler.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handler.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handler.Error'
-      security:
-      - ApiKeyAuth: []
-      summary: AddCategory
-      tags:
-      - api/admin
   /api/admin/add-product:
     post:
       consumes:
@@ -479,6 +457,43 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get Orders
+      tags:
+      - api/admin
+  /api/admin/category:
+    post:
+      consumes:
+      - application/json
+      description: Adds a new category
+      operationId: adds category
+      parameters:
+      - description: category info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/category.Category'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.ItemProcessedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: AddCategory
       tags:
       - api/admin
   /api/admin/delete-category:
@@ -697,7 +712,7 @@ paths:
       summary: UpdateProduct
       tags:
       - api/admin
-  /api/all-categories:
+  /api/categories:
     get:
       consumes:
       - application/json
@@ -1065,6 +1080,47 @@ paths:
       summary: GetUserOrders
       tags:
       - api/client
+  /api/filtration:
+    get:
+      consumes:
+      - application/json
+      description: gets filtration list for a products
+      operationId: get filtration
+      parameters:
+      - description: parent id
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: parent name
+        in: query
+        name: parentName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/category.Filtration'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: GetFiltration
+      tags:
+      - api
   /api/get-products:
     post:
       operationId: gets products
@@ -1221,6 +1277,41 @@ paths:
           schema:
             $ref: '#/definitions/handler.Error'
       summary: GetProductById
+      tags:
+      - api
+  /api/review:
+    post:
+      consumes:
+      - application/json
+      description: creates a new review
+      operationId: create review
+      parameters:
+      - description: review info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/review.CreateReviewDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.ItemProcessedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: AddReview
       tags:
       - api
   /auth/refresh:

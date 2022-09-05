@@ -25,6 +25,7 @@ const (
 	SupplyTable               = "supply"
 	SupplyPaymentTable        = "supply_payment"
 	SupplyProductsTable       = "supply_products"
+	ProductsReviewTable       = "products_review"
 )
 
 type Config struct {

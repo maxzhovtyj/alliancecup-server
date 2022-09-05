@@ -6,7 +6,7 @@ import (
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
 	_ "github.com/zh0vtyj/allincecup-server/docs"
-	"github.com/zh0vtyj/allincecup-server/internal/service"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
 	"net/http"
 )
 
@@ -91,7 +91,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.GET(productUrl, h.getProductById)
 		api.POST(orderUrl, h.newOrder)
 		api.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
-		api.POST(reviewUrl)
+		api.POST(reviewUrl, h.addReview)
 		api.GET(reviewsUrl)
 
 		admin := api.Group(adminUrl, h.userHasPermission)

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
-	"github.com/zh0vtyj/allincecup-server/internal/models"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
 	"time"
 )
 

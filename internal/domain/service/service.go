@@ -4,10 +4,11 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/repository"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/review"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/supply"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
-	"github.com/zh0vtyj/allincecup-server/internal/repository"
 )
 
 type Service struct {
@@ -17,6 +18,7 @@ type Service struct {
 	Order         order.Service
 	Shopping      shopping.Service
 	Supply        supply.Service
+	Review        review.Service
 }
 
 func NewService(repos *repository.Repository) *Service {
@@ -27,5 +29,6 @@ func NewService(repos *repository.Repository) *Service {
 		Order:         order.NewOrdersService(repos.Order),
 		Shopping:      shopping.NewShoppingService(repos.Shopping),
 		Supply:        supply.NewSupplyService(repos.Supply),
+		Review:        review.NewReviewService(repos.Review),
 	}
 }

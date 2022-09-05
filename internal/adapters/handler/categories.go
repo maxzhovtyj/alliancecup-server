@@ -33,7 +33,7 @@ type DeleteCategoryInput struct {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/all-categories [get]
+// @Router       /api/categories [get]
 func (h *Handler) getCategories(ctx *gin.Context) {
 	categories, err := h.services.Category.GetAll()
 	if err != nil {
@@ -44,6 +44,20 @@ func (h *Handler) getCategories(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, allCategoriesResponse{Data: categories})
 }
 
+// getFiltration godoc
+// @Summary GetFiltration
+// @Tags api
+// @Description gets filtration list for a products
+// @ID get filtration
+// @Accept json
+// @Produce json
+// @Param id query int true "parent id"
+// @Param parentName query string true "parent name"
+// @Success 200 {array} category.Filtration
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /api/filtration [get]
 func (h *Handler) getFiltration(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
@@ -84,7 +98,7 @@ func (h *Handler) getFiltration(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/add-category [post]
+// @Router       /api/admin/category [post]
 func (h *Handler) addCategory(ctx *gin.Context) {
 	var input server.Category
 
