@@ -7,7 +7,7 @@ import (
 
 type Order struct {
 	Id                uuid.UUID  `json:"id" db:"id"`
-	UserId            int        `json:"-" db:"user_id"`
+	UserId            *int       `json:"user_id" db:"user_id"`
 	UserLastName      string     `json:"user_lastname" binding:"required" db:"user_lastname"`
 	UserFirstName     string     `json:"user_firstname" binding:"required" db:"user_firstname"`
 	UserMiddleName    string     `json:"user_middle_name" binding:"required" db:"user_middle_name"`

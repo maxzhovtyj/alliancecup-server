@@ -3,10 +3,11 @@ package supply
 import "time"
 
 type InfoDTO struct {
-	Id         int        `json:"-" db:"id"`
+	Id         int        `json:"id" db:"id"`
 	Supplier   string     `json:"supplier" db:"supplier" binding:"required"`
 	SupplyTime *time.Time `json:"supplyTime" db:"supply_time"`
 	Comment    string     `json:"comment" db:"comment"`
+	Sum        float64    `json:"sum" db:"sum"`
 	CreatedAt  time.Time  `json:"createdAt" db:"created_at"`
 }
 

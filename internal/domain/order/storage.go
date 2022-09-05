@@ -28,6 +28,7 @@ func NewOrdersPostgres(db *sqlx.DB) *storage {
 }
 
 var orderInfoColumnsInsert = []string{
+	"user_id",
 	"user_lastname",
 	"user_firstname",
 	"user_middle_name",
@@ -58,38 +59,20 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 		return [16]byte{}, fmt.Errorf("failed to create order, payment type not found %s, error: %v", order.Order.PaymentTypeTitle, err)
 	}
 
-	if order.Order.UserId != 0 {
-		orderInfoColumnsInsert = append(orderInfoColumnsInsert, "user_id")
-	}
-
 	queryInsertOrder := psql.Insert(postgres.OrdersTable).Columns(orderInfoColumnsInsert...)
 
-	if order.Order.UserId != 0 {
-		queryInsertOrder = queryInsertOrder.Values(
-			order.Order.UserLastName,
-			order.Order.UserFirstName,
-			order.Order.UserMiddleName,
-			order.Order.UserPhoneNumber,
-			order.Order.UserEmail,
-			order.Order.OrderComment,
-			order.Order.OrderSumPrice,
-			deliveryTypeId,
-			paymentTypeId,
-			order.Order.UserId,
-		)
-	} else {
-		queryInsertOrder = queryInsertOrder.Values(
-			order.Order.UserLastName,
-			order.Order.UserFirstName,
-			order.Order.UserMiddleName,
-			order.Order.UserPhoneNumber,
-			order.Order.UserEmail,
-			order.Order.OrderComment,
-			order.Order.OrderSumPrice,
-			deliveryTypeId,
-			paymentTypeId,
-		)
-	}
+	queryInsertOrder = queryInsertOrder.Values(
+		order.Order.UserId,
+		order.Order.UserLastName,
+		order.Order.UserFirstName,
+		order.Order.UserMiddleName,
+		order.Order.UserPhoneNumber,
+		order.Order.UserEmail,
+		order.Order.OrderComment,
+		order.Order.OrderSumPrice,
+		deliveryTypeId,
+		paymentTypeId,
+	)
 
 	queryInsertOrderSql, args, err := queryInsertOrder.ToSql()
 	if err != nil {
@@ -100,6 +83,7 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 	row := tx.QueryRow(queryInsertOrderSql+" RETURNING id", args...)
 	if err = row.Scan(&orderId); err != nil {
 		_ = tx.Rollback()
+		fmt.Println(queryInsertOrderSql)
 		return [16]byte{}, fmt.Errorf("failed to insert new order into table due to: %v", err)
 	}
 
@@ -130,7 +114,7 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 		}
 	}
 
-	if order.Order.UserId != 0 {
+	if order.Order.UserId != nil {
 		queryDeleteCartProducts, args, err := psql.Delete(postgres.CartsProductsTable).Where(sq.Eq{"cart_id": order.Order.UserId}).ToSql()
 		if err != nil {
 			_ = tx.Rollback()

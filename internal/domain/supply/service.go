@@ -54,6 +54,8 @@ func (s *service) New(supply Supply) error {
 		return fmt.Errorf("all products sum and payment accounts sum doesn't match, %f != %f", productsSum, paymentsSum)
 	}
 
+	supply.Info.Sum = productsSum
+
 	err := s.repo.New(supply)
 	if err != nil {
 		return err

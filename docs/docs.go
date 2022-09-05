@@ -16,125 +16,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/admin/add-product": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api/admin"
-                ],
-                "summary": "AddProduct",
-                "operationId": "adds product",
-                "parameters": [
-                    {
-                        "description": "product info",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/product.Info"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ItemProcessedResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/admin/all-order": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "get order by status",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api/admin"
-                ],
-                "summary": "Get Orders",
-                "operationId": "get order",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Last item created at for pagination",
-                        "name": "created_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort by order status",
-                        "name": "order_status",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/order.Order"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/api/admin/category": {
             "put": {
                 "security": [
@@ -303,62 +184,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/admin/delete-product": {
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api/admin"
-                ],
-                "summary": "DeleteProduct",
-                "operationId": "delete product",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "product id",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ItemProcessedResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/admin/filtration-item": {
+        "/api/admin/filtration": {
             "post": {
                 "security": [
                     {
@@ -416,7 +242,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/admin/new-moderator": {
+        "/api/admin/moderator": {
             "post": {
                 "security": [
                     {
@@ -451,6 +277,68 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/orders": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get order by status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "Get Orders",
+                "operationId": "get order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Last item created at for pagination",
+                        "name": "created_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort by order status",
+                        "name": "order_status",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/order.Order"
+                            }
                         }
                     },
                     "400": {
@@ -532,7 +420,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/admin/update-product": {
+        "/api/admin/product": {
             "put": {
                 "security": [
                     {
@@ -559,6 +447,114 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/product.Info"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "AddProduct",
+                "operationId": "adds product",
+                "parameters": [
+                    {
+                        "description": "product info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.Info"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "DeleteProduct",
+                "operationId": "delete product",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "product id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -631,7 +627,49 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/client/add-to-cart": {
+        "/api/client/cart": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "gets products from a cart",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/client"
+                ],
+                "summary": "GetProductsInCart",
+                "operationId": "gets products from a cart",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.CartProductsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -687,16 +725,14 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/client/add-to-favourites": {
-            "post": {
+            },
+            "delete": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "adds a product to favourites",
+                "description": "deletes a product from users cart",
                 "consumes": [
                     "application/json"
                 ],
@@ -706,17 +742,15 @@ const docTemplate = `{
                 "tags": [
                     "api/client"
                 ],
-                "summary": "AddToFavourites",
-                "operationId": "adds to favourites",
+                "summary": "DeleteFromCart",
+                "operationId": "deletes from cart",
                 "parameters": [
                     {
-                        "description": "product id",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.ProductIdInput"
-                        }
+                        "type": "string",
+                        "description": "Product id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -811,119 +845,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/client/delete-from-cart": {
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "deletes a product from users cart",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api/client"
-                ],
-                "summary": "DeleteFromCart",
-                "operationId": "deletes from cart",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Product id",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ItemProcessedResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/client/delete-from-favourites": {
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "deletes product from favourites",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api/client"
-                ],
-                "summary": "DeleteFromFavourites",
-                "operationId": "deletes from favourites",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Product id",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handler.ItemProcessedResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/client/get-favourites": {
+        "/api/client/favourites": {
             "get": {
                 "security": [
                     {
@@ -968,28 +890,82 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/client/get-order": {
-            "get": {
+            },
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "gets user order full info by its id",
+                "description": "adds a product to favourites",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "api/client"
                 ],
-                "summary": "GetOrderById",
-                "operationId": "gets order by id",
+                "summary": "AddToFavourites",
+                "operationId": "adds to favourites",
+                "parameters": [
+                    {
+                        "description": "product id",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.ProductIdInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "deletes product from favourites",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/client"
+                ],
+                "summary": "DeleteFromFavourites",
+                "operationId": "deletes from favourites",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "order id",
+                        "description": "Product id",
                         "name": "id",
                         "in": "query",
                         "required": true
@@ -999,7 +975,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/order.FullInfo"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.ItemProcessedResponse"
+                            }
                         }
                     },
                     "400": {
@@ -1067,27 +1046,36 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/client/user-cart": {
+        "/api/client/order": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "gets products from a cart",
+                "description": "gets user order full info by its id",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "api/client"
                 ],
-                "summary": "GetProductsInCart",
-                "operationId": "gets products from a cart",
+                "summary": "GetOrderById",
+                "operationId": "gets order by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "order id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.CartProductsResponse"
+                            "$ref": "#/definitions/order.FullInfo"
                         }
                     },
                     "400": {
@@ -1227,93 +1215,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/get-products": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api"
-                ],
-                "summary": "GetProducts",
-                "operationId": "gets products",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Category",
-                        "name": "category",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Size",
-                        "name": "size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Type",
-                        "name": "type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search",
-                        "name": "search",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Price",
-                        "name": "price",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "characteristic",
-                        "name": "characteristic",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Created At",
-                        "name": "created_at",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/product.Product"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/new-order": {
+        "/api/order": {
             "post": {
                 "description": "creates a new order",
                 "consumes": [
@@ -1432,6 +1334,92 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/product.Info"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/products": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "GetProducts",
+                "operationId": "gets products",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category",
+                        "name": "category",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Size",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Price",
+                        "name": "price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "characteristic",
+                        "name": "characteristic",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created At",
+                        "name": "created_at",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/product.Product"
+                            }
                         }
                     },
                     "400": {

@@ -8,7 +8,7 @@ import (
 )
 
 func (h *Handler) getAllSupply(ctx *gin.Context) {
-	createdAt := ctx.Query("createAt")
+	createdAt := ctx.Query("createdAt")
 
 	s, err := h.services.Supply.GetAll(createdAt)
 	if err != nil {

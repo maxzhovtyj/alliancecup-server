@@ -1,9 +1,10 @@
 CREATE TABLE supply
 (
     id          serial primary key,
-    supplier    varchar(256) not null,
-    supply_time timestamptz default (now()),
+    supplier    varchar(256)   not null,
+    supply_time timestamptz default (now() at time zone 'utc-3'),
     comment     text,
+    sum         decimal(12, 2) not null,
     created_at  timestamp   default (now() at time zone 'utc-3')
 );
 
@@ -11,7 +12,7 @@ CREATE TABLE supply_payment
 (
     supply_id       int references supply (id) on delete cascade not null,
     payment_account varchar(256) default '-',
-    payment_time    timestamptz  default (now()),
+    payment_time    timestamp    default (now() at time zone 'utc-3'),
     payment_sum     decimal(12, 2)                               not null
 );
 

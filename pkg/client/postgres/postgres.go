@@ -19,7 +19,7 @@ const (
 	FavouritesTable           = "favourites"
 	DeliveryTypesTable        = "delivery_types"
 	PaymentTypesTable         = "payment_types"
-	OrdersTable               = "order"
+	OrdersTable               = "orders"
 	OrdersProductsTable       = "orders_products"
 	OrdersDeliveryTable       = "orders_delivery"
 	SupplyTable               = "supply"

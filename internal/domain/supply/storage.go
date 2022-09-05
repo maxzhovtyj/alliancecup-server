@@ -50,13 +50,14 @@ func (s *storage) New(supply Supply) error {
 
 	var supplyId int
 	queryInsetSupplyInfo := fmt.Sprintf(
-		"INSERT INTO %s (supplier, supply_time, comment) values ($1, $2, $3) RETURNING id",
+		"INSERT INTO %s (supplier, supply_time, sum, comment) values ($1, $2, $3, $4) RETURNING id",
 		postgres.SupplyTable,
 	)
 	row := tx.QueryRow(
 		queryInsetSupplyInfo,
 		supply.Info.Supplier,
 		supply.Info.SupplyTime,
+		supply.Info.Sum,
 		supply.Info.Comment,
 	)
 	if err := row.Scan(&supplyId); err != nil {

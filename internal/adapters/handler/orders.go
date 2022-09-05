@@ -41,6 +41,7 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 
 	if input.Order.OrderSumPrice < 400 {
 		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to create order, minimal order price is 400hrn").Error())
+		return
 	}
 
 	id, err := getUserId(ctx)
@@ -50,7 +51,7 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 	}
 
 	if id != 0 {
-		input.Order.UserId = id
+		input.Order.UserId = &id
 	}
 
 	orderId, err := h.services.Order.New(input)
