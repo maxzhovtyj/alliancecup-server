@@ -1,18 +1,18 @@
 CREATE TABLE supply
 (
-    id              serial primary key,
-    supplier        varchar(256)   not null,
-    supply_time     timestamptz  default (now()),
-    comment         text,
-    created_at      timestamp  default (now() at time zone 'utc-3')
+    id          serial primary key,
+    supplier    varchar(256) not null,
+    supply_time timestamptz default (now()),
+    comment     text,
+    created_at  timestamp   default (now() at time zone 'utc-3')
 );
 
 CREATE TABLE supply_payment
 (
-    supply_id int references supply(id) on delete cascade not null,
+    supply_id       int references supply (id) on delete cascade not null,
     payment_account varchar(256) default '-',
     payment_time    timestamptz  default (now()),
-    payment_sum     decimal(12, 2) not null
+    payment_sum     decimal(12, 2)                               not null
 );
 
 CREATE TABLE supply_products
@@ -33,5 +33,6 @@ CREATE TABLE products_review
     user_id     int references users (id) on delete cascade default null,
     user_name   varchar(64),
     mark        int                                         default 5,
-    review_text text not null
+    review_text text not null,
+    created_at  timestamp                                   default (now() at time zone 'utc-3')
 );

@@ -41,7 +41,7 @@ const (
 	productsUrl       = "/products"
 	productUrl        = "/product"
 	supplyUrl         = "/supply"
-	reviewsUrl        = "/reviewUrl"
+	reviewsUrl        = "/reviews"
 	reviewUrl         = "/review"
 	cartUrl           = "/cart"
 	favouritesUrl     = "/favourites"
@@ -92,7 +92,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.POST(orderUrl, h.newOrder)
 		api.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
 		api.POST(reviewUrl, h.addReview)
-		api.GET(reviewsUrl)
+		api.GET(reviewsUrl, h.getReviews)
 
 		admin := api.Group(adminUrl, h.userHasPermission)
 		{
@@ -116,7 +116,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.GET(supplyUrl, h.getAllSupply)
 			admin.DELETE(supplyUrl, h.deleteSupply)
 
-			admin.DELETE(reviewUrl)
+			admin.DELETE(reviewUrl, h.deleteReview)
 		}
 
 		client := api.Group(clientUrl, h.userAuthorized)

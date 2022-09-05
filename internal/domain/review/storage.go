@@ -2,11 +2,13 @@ package review
 
 import (
 	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 )
 
 type Storage interface {
+	Get(createdAt string, productId int) ([]SelectReviewsDTO, error)
 	Create(dto CreateReviewDTO) (int, error)
 	Delete(reviewId int) error
 }
@@ -35,7 +37,7 @@ func (s *storage) Create(dto CreateReviewDTO) (int, error) {
 }
 
 func (s *storage) Delete(reviewId int) error {
-	queryDeleteReview := fmt.Sprintf("DELETE FROM %s WHERE review_id=$1", postgres.ProductsReviewTable)
+	queryDeleteReview := fmt.Sprintf("DELETE FROM %s WHERE id=$1", postgres.ProductsReviewTable)
 
 	_, err := s.db.Exec(queryDeleteReview, reviewId)
 	if err != nil {
@@ -43,4 +45,30 @@ func (s *storage) Delete(reviewId int) error {
 	}
 
 	return nil
+}
+
+func (s *storage) Get(createdAt string, productId int) ([]SelectReviewsDTO, error) {
+	var reviews []SelectReviewsDTO
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	querySelectReviews := psql.Select("*").From(postgres.ProductsReviewTable)
+
+	if createdAt != "" {
+		querySelectReviews = querySelectReviews.Where(sq.Lt{"created_at": createdAt})
+	}
+
+	if productId != 0 {
+		querySelectReviews = querySelectReviews.Where(sq.Eq{"product_id": productId})
+	}
+
+	ordered := querySelectReviews.OrderBy("created_at DESC").Limit(12)
+
+	querySelectReviewsSql, args, err := ordered.ToSql()
+	err = s.db.Select(&reviews, querySelectReviewsSql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to select reviews from db, %v", err)
+	}
+
+	return reviews, nil
 }

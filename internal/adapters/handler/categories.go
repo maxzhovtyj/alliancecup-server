@@ -86,19 +86,19 @@ func (h *Handler) getFiltration(ctx *gin.Context) {
 }
 
 // addCategory godoc
-// @Summary      AddCategory
-// @Security 	 ApiKeyAuth
-// @Tags         api/admin
-// @Description  Adds a new category
-// @ID 			 adds category
-// @Accept 	     json
-// @Produce      json
-// @Param        input body category.Category true "category info"
-// @Success      201  {object}  handler.ItemProcessedResponse
-// @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
-// @Failure      500  {object}  Error
-// @Router       /api/admin/category [post]
+// @Summary AddCategory
+// @Security ApiKeyAuth
+// @Tags api/admin
+// @Description Adds a new category
+// @ID adds category
+// @Accept json
+// @Produce json
+// @Param input body category.Category true "category info"
+// @Success 201 {object} handler.ItemProcessedResponse
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router  /api/admin/category [post]
 func (h *Handler) addCategory(ctx *gin.Context) {
 	var input server.Category
 
@@ -132,7 +132,7 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/update-category [put]
+// @Router       /api/admin/category [put]
 func (h *Handler) updateCategory(ctx *gin.Context) {
 	var input server.Category
 
@@ -166,7 +166,7 @@ func (h *Handler) updateCategory(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/delete-category [delete]
+// @Router       /api/admin/category [delete]
 func (h *Handler) deleteCategory(ctx *gin.Context) {
 	// TODO "pq: update or delete on table \"products\" violates foreign key constraint \"orders_products_product_id_fkey\" on table \"orders_products\""
 
