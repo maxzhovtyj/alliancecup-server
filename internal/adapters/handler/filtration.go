@@ -8,6 +8,7 @@ import (
 
 // addFiltrationItem godoc
 // @Summary Add filtration for category
+// @Security ApiKeyAuth
 // @Tags api/admin
 // @Description Adds a filtration item to a category
 // @ID add filtration
@@ -18,7 +19,7 @@ import (
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
-// @Router /api/admin/filtration-item [post]
+// @Router /api/admin/filtration [post]
 func (h *Handler) addFiltrationItem(ctx *gin.Context) {
 	var input server.Filtration
 

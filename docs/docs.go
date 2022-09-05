@@ -136,6 +136,62 @@ const docTemplate = `{
             }
         },
         "/api/admin/category": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "UpdateCategory",
+                "operationId": "updates category",
+                "parameters": [
+                    {
+                        "description": "category info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/category.Category"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -191,9 +247,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/admin/delete-category": {
+            },
             "delete": {
                 "security": [
                     {
@@ -306,6 +360,11 @@ const docTemplate = `{
         },
         "/api/admin/filtration-item": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Adds a filtration item to a category",
                 "consumes": [
                     "application/json"
@@ -415,14 +474,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/admin/update-category": {
+        "/api/admin/processed-order": {
             "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Updates category",
+                "description": "handler for admin/moderator to processed order by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -432,16 +491,16 @@ const docTemplate = `{
                 "tags": [
                     "api/admin"
                 ],
-                "summary": "UpdateCategory",
-                "operationId": "updates category",
+                "summary": "Processed order by id",
+                "operationId": "processed order",
                 "parameters": [
                     {
-                        "description": "category info",
+                        "description": "order status",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/category.Category"
+                            "$ref": "#/definitions/handler.ProcessedOrderStatus"
                         }
                     }
                 ],
@@ -449,7 +508,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -690,6 +749,11 @@ const docTemplate = `{
         },
         "/api/client/change-password": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Changes user password",
                 "consumes": [
                     "application/json"
@@ -1304,34 +1368,23 @@ const docTemplate = `{
         },
         "/api/order-info-types": {
             "get": {
-                "description": "handler for admin/moderator to processed order by id",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "get payment and delivery types",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "api/admin"
+                    "api"
                 ],
-                "summary": "Processed order by id",
-                "operationId": "processed order",
-                "parameters": [
-                    {
-                        "description": "order status",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.ProcessedOrderStatus"
-                        }
-                    }
-                ],
+                "summary": "Get order info types",
+                "operationId": "get order info types",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/shopping.DeliveryPaymentTypes"
+                            }
                         }
                     },
                     "400": {
@@ -1432,6 +1485,122 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "deletes review by its id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "DeleteReview",
+                "operationId": "delete review",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "review id",
+                        "name": "reviewId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/reviews": {
+            "get": {
+                "description": "gets reviews by product id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "GetReviews",
+                "operationId": "gets reviews",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "product id",
+                        "name": "productId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "last review createdAt",
+                        "name": "createAt",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/review.SelectReviewsDTO"
+                            }
                         }
                     },
                     "400": {
@@ -2006,6 +2175,29 @@ const docTemplate = `{
                 "userName"
             ],
             "properties": {
+                "mark": {
+                    "type": "integer"
+                },
+                "reviewText": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "review.SelectReviewsDTO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
                 "mark": {
                     "type": "integer"
                 },

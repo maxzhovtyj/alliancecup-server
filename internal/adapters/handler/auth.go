@@ -97,7 +97,7 @@ func (h *Handler) signUp(ctx *gin.Context) {
 // @Failure      400  {object} Error
 // @Failure      404  {object} Error
 // @Failure      500  {object} Error
-// @Router       /api/admin/new-moderator [post]
+// @Router       /api/admin/moderator [post]
 func (h *Handler) createModerator(ctx *gin.Context) {
 	var input user.User
 
@@ -278,6 +278,7 @@ func (h *Handler) refresh(ctx *gin.Context) {
 
 // changePassword godoc
 // @Summary Client change password
+// @Security ApiKeyAuth
 // @Tags api/client
 // @Description Changes user password
 // @ID change user password

@@ -30,7 +30,7 @@ type AddToFavouritesInput struct {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/add-to-cart [post]
+// @Router       /api/client/cart [post]
 func (h *Handler) addToCart(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
 
@@ -69,7 +69,7 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/user-cart [get]
+// @Router       /api/client/cart [get]
 func (h *Handler) getFromCartById(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
 	if err != nil {
@@ -102,7 +102,7 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/delete-from-cart [delete]
+// @Router       /api/client/cart [delete]
 func (h *Handler) deleteFromCart(ctx *gin.Context) {
 	productId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
@@ -135,7 +135,7 @@ func (h *Handler) deleteFromCart(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/add-to-favourites [post]
+// @Router       /api/client/favourites [post]
 func (h *Handler) addToFavourites(ctx *gin.Context) {
 	var input ProductIdInput
 	userId, err := getUserId(ctx)
@@ -172,7 +172,7 @@ func (h *Handler) addToFavourites(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/get-favourites [get]
+// @Router       /api/client/favourites [get]
 func (h *Handler) getFavourites(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
 	if err != nil {
@@ -204,7 +204,7 @@ func (h *Handler) getFavourites(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/delete-from-favourites [delete]
+// @Router       /api/client/favourites [delete]
 func (h *Handler) deleteFromFavourites(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {

@@ -43,6 +43,7 @@ func (h *Handler) addReview(ctx *gin.Context) {
 
 // deleteReview godoc
 // @Summary DeleteReview
+// @Security ApiKeyAuth
 // @Tags api/admin
 // @Description deletes review by its id
 // @ID delete review

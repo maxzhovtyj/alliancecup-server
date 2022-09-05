@@ -284,6 +284,21 @@ definitions:
     - reviewText
     - userName
     type: object
+  review.SelectReviewsDTO:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      mark:
+        type: integer
+      reviewText:
+        type: string
+      userId:
+        type: integer
+      userName:
+        type: string
+    type: object
   shopping.CartProduct:
     properties:
       price_for_quantity:
@@ -460,6 +475,41 @@ paths:
       tags:
       - api/admin
   /api/admin/category:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes category
+      operationId: deletes category
+      parameters:
+      - description: category id
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ItemProcessedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteCategory
+      tags:
+      - api/admin
     post:
       consumes:
       - application/json
@@ -496,18 +546,18 @@ paths:
       summary: AddCategory
       tags:
       - api/admin
-  /api/admin/delete-category:
-    delete:
+    put:
       consumes:
       - application/json
-      description: Deletes category
-      operationId: deletes category
+      description: Updates category
+      operationId: updates category
       parameters:
-      - description: category id
-        in: query
-        name: id
+      - description: category info
+        in: body
+        name: input
         required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/category.Category'
       produces:
       - application/json
       responses:
@@ -529,7 +579,7 @@ paths:
             $ref: '#/definitions/handler.Error'
       security:
       - ApiKeyAuth: []
-      summary: DeleteCategory
+      summary: UpdateCategory
       tags:
       - api/admin
   /api/admin/delete-product:
@@ -599,6 +649,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handler.Error'
+      security:
+      - ApiKeyAuth: []
       summary: Add filtration for category
       tags:
       - api/admin
@@ -639,26 +691,26 @@ paths:
       summary: CreateModerator
       tags:
       - api/admin
-  /api/admin/update-category:
+  /api/admin/processed-order:
     put:
       consumes:
       - application/json
-      description: Updates category
-      operationId: updates category
+      description: handler for admin/moderator to processed order by id
+      operationId: processed order
       parameters:
-      - description: category info
+      - description: order status
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/category.Category'
+          $ref: '#/definitions/handler.ProcessedOrderStatus'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.ItemProcessedResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -673,7 +725,7 @@ paths:
             $ref: '#/definitions/handler.Error'
       security:
       - ApiKeyAuth: []
-      summary: UpdateCategory
+      summary: Processed order by id
       tags:
       - api/admin
   /api/admin/update-product:
@@ -850,6 +902,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handler.Error'
+      security:
+      - ApiKeyAuth: []
       summary: Client change password
       tags:
       - api/client
@@ -1215,24 +1269,17 @@ paths:
       - api
   /api/order-info-types:
     get:
-      consumes:
-      - application/json
-      description: handler for admin/moderator to processed order by id
-      operationId: processed order
-      parameters:
-      - description: order status
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/handler.ProcessedOrderStatus'
+      description: get payment and delivery types
+      operationId: get order info types
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: string
+            items:
+              $ref: '#/definitions/shopping.DeliveryPaymentTypes'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -1245,9 +1292,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handler.Error'
-      summary: Processed order by id
+      summary: Get order info types
       tags:
-      - api/admin
+      - api
   /api/product:
     get:
       operationId: gets full product info
@@ -1280,6 +1327,43 @@ paths:
       tags:
       - api
   /api/review:
+    delete:
+      description: deletes review by its id
+      operationId: delete review
+      parameters:
+      - description: review id
+        in: query
+        name: reviewId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ItemProcessedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteReview
+      tags:
+      - api/admin
     post:
       consumes:
       - application/json
@@ -1312,6 +1396,45 @@ paths:
           schema:
             $ref: '#/definitions/handler.Error'
       summary: AddReview
+      tags:
+      - api
+  /api/reviews:
+    get:
+      consumes:
+      - application/json
+      description: gets reviews by product id
+      operationId: gets reviews
+      parameters:
+      - description: product id
+        in: query
+        name: productId
+        type: integer
+      - description: last review createdAt
+        in: query
+        name: createAt
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/review.SelectReviewsDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: GetReviews
       tags:
       - api
   /auth/refresh:

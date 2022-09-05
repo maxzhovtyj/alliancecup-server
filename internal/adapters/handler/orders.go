@@ -30,7 +30,7 @@ type ProcessedOrderStatus struct {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/new-order [post]
+// @Router       /api/order [post]
 func (h *Handler) newOrder(ctx *gin.Context) {
 	var input server.Info
 
@@ -114,7 +114,7 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/get-order [get]
+// @Router       /api/client/order [get]
 func (h *Handler) getOrderById(ctx *gin.Context) {
 	orderId := ctx.Query("id")
 
@@ -148,7 +148,7 @@ func (h *Handler) getOrderById(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/all-order [get]
+// @Router       /api/admin/orders [get]
 func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	createdAt := ctx.Query("created_at")
 	orderStatus := ctx.Query("order_status")
@@ -192,6 +192,7 @@ func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
 
 // processedOrder godoc
 // @Summary      Processed order by id
+// @Security 	 ApiKeyAuth
 // @Tags         api/admin
 // @Description  handler for admin/moderator to processed order by id
 // @ID processed order
@@ -202,7 +203,7 @@ func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/order-info-types [get]
+// @Router       /api/admin/processed-order [put]
 func (h *Handler) processedOrder(ctx *gin.Context) {
 	var orderInput ProcessedOrderStatus
 

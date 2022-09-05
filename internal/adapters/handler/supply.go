@@ -10,13 +10,13 @@ import (
 func (h *Handler) getAllSupply(ctx *gin.Context) {
 	createdAt := ctx.Query("createAt")
 
-	supply, err := h.services.Supply.GetAll(createdAt)
+	s, err := h.services.Supply.GetAll(createdAt)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, supply)
+	ctx.JSON(http.StatusOK, s)
 }
 
 func (h *Handler) newSupply(ctx *gin.Context) {

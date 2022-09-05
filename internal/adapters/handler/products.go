@@ -29,7 +29,7 @@ type ProductIdInput struct {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/get-products [post]
+// @Router       /api/products [post]
 func (h *Handler) getProducts(ctx *gin.Context) {
 
 	category := ctx.Query("category")
@@ -80,7 +80,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/add-product [post]
+// @Router       /api/admin/product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
 	var input product.Info
 
@@ -143,7 +143,7 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/update-product [put]
+// @Router       /api/admin/product [put]
 func (h *Handler) updateProduct(ctx *gin.Context) {
 	var input product.Info
 
@@ -177,7 +177,7 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/delete-product [delete]
+// @Router       /api/admin/product [delete]
 func (h *Handler) deleteProduct(ctx *gin.Context) {
 	// TODO "pq: update or delete on table \"products\" violates foreign key constraint \"orders_products_product_id_fkey\" on table \"orders_products\""
 

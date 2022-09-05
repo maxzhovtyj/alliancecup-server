@@ -101,7 +101,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
 			admin.DELETE(productUrl, h.deleteProduct)
-			//admin.PUT("/update-product-amount") // TODO
+			//admin.PUT("/product-amount") // TODO
 
 			admin.POST(categoryUrl, h.addCategory)
 			admin.PUT(categoryUrl, h.updateCategory)
