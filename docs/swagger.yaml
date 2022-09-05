@@ -1,10 +1,43 @@
 basePath: /
 definitions:
+  category.Category:
+    properties:
+      category_description:
+        type: string
+      category_title:
+        type: string
+      id:
+        type: integer
+      img_url:
+        type: string
+    required:
+    - category_title
+    type: object
+  category.Filtration:
+    properties:
+      categoryId:
+        type: integer
+      filtrationDescription:
+        type: string
+      filtrationListId:
+        type: integer
+      filtrationTitle:
+        type: string
+      id:
+        type: integer
+      imgUrl:
+        type: string
+      infoDescription:
+        type: string
+    required:
+    - filtrationTitle
+    - infoDescription
+    type: object
   handler.CartProductsResponse:
     properties:
       products:
         items:
-          $ref: '#/definitions/models.CartProductFullInfo'
+          $ref: '#/definitions/shopping.CartProductFullInfo'
         type: array
       sum:
         type: number
@@ -82,110 +115,23 @@ definitions:
     properties:
       data:
         items:
-          $ref: '#/definitions/models.Category'
+          $ref: '#/definitions/category.Category'
         type: array
     type: object
-  models.CartProduct:
+  order.FullInfo:
     properties:
-      price_for_quantity:
-        type: number
-      product_id:
-        type: integer
-      quantity:
-        type: integer
-    required:
-    - price_for_quantity
-    - product_id
-    - quantity
-    type: object
-  models.CartProductFullInfo:
-    properties:
-      amount_in_stock:
-        example: 120
-        type: number
-      article:
-        example: "000123"
-        type: string
-      created_at:
-        type: string
-      img_url:
-        example: https://google-images.com/some-img123
-        type: string
-      packages_in_box:
-        example: 50
-        type: integer
-      price:
-        example: 3.75
-        type: number
-      price_for_quantity:
-        type: number
-      product_id:
-        type: integer
-      product_title:
-        example: Стакан одноразовий Крафт 110мл
-        type: string
-      quantity:
-        type: integer
-      units_in_package:
-        example: 30
-        type: integer
-    required:
-    - price_for_quantity
-    - product_id
-    - quantity
-    type: object
-  models.Category:
-    properties:
-      category_description:
-        type: string
-      category_title:
-        type: string
-      id:
-        type: integer
-      img_url:
-        type: string
-    required:
-    - category_title
-    type: object
-  models.CategoryFiltration:
-    properties:
-      categoryId:
-        type: integer
-      filtrationDescription:
-        type: string
-      filtrationListId:
-        type: integer
-      filtrationTitle:
-        type: string
-      id:
-        type: integer
-      imgUrl:
-        type: string
-      infoDescription:
-        type: string
-    required:
-    - filtrationTitle
-    - infoDescription
-    type: object
-  models.DeliveryPaymentTypes:
-    properties:
-      deliveryTypes:
+      delivery:
         items:
-          $ref: '#/definitions/models.DeliveryType'
+          $ref: '#/definitions/order.OrdersDelivery'
         type: array
-      paymentTypes:
+      info:
+        $ref: '#/definitions/order.Order'
+      products:
         items:
-          $ref: '#/definitions/models.PaymentType'
+          $ref: '#/definitions/order.ProductFullInfo'
         type: array
     type: object
-  models.DeliveryType:
-    properties:
-      delivery_type_title:
-        type: string
-      id:
-        type: string
-    type: object
-  models.Order:
+  order.Order:
     properties:
       closed_at:
         type: string
@@ -223,33 +169,14 @@ definitions:
     - user_middle_name
     - user_phone_number
     type: object
-  models.OrderFullInfo:
+  order.OrdersDelivery:
     properties:
-      delivery:
-        items:
-          $ref: '#/definitions/models.OrdersDelivery'
-        type: array
-      info:
-        $ref: '#/definitions/models.Order'
-      products:
-        items:
-          $ref: '#/definitions/models.OrderProducts'
-        type: array
+      delivery_description:
+        type: string
+      delivery_title:
+        type: string
     type: object
-  models.OrderInfo:
-    properties:
-      delivery:
-        items:
-          $ref: '#/definitions/models.OrdersDelivery'
-        type: array
-      info:
-        $ref: '#/definitions/models.Order'
-      products:
-        items:
-          $ref: '#/definitions/models.OrderProductFullInfo'
-        type: array
-    type: object
-  models.OrderProductFullInfo:
+  order.ProductFullInfo:
     properties:
       amount_in_stock:
         type: number
@@ -276,30 +203,28 @@ definitions:
       units_in_package:
         type: integer
     type: object
-  models.OrderProducts:
+  product.Description:
     properties:
-      price_for_quantity:
-        type: number
+      description:
+        example: Білий
+        type: string
+      info_title:
+        example: Колір
+        type: string
       product_id:
+        example: 1
         type: integer
-      quantity:
-        type: integer
     type: object
-  models.OrdersDelivery:
+  product.Info:
     properties:
-      delivery_description:
-        type: string
-      delivery_title:
-        type: string
+      description:
+        items:
+          $ref: '#/definitions/product.Description'
+        type: array
+      info:
+        $ref: '#/definitions/product.Product'
     type: object
-  models.PaymentType:
-    properties:
-      id:
-        type: string
-      payment_type_title:
-        type: string
-    type: object
-  models.Product:
+  product.Product:
     properties:
       amount_in_stock:
         example: 120
@@ -344,28 +269,96 @@ definitions:
     - type_title
     - units_in_package
     type: object
-  models.ProductInfo:
+  review.CreateReviewDTO:
     properties:
-      description:
-        example: Білий
-        type: string
-      info_title:
-        example: Колір
-        type: string
-      product_id:
-        example: 1
+      mark:
         type: integer
+      reviewText:
+        type: string
+      userId:
+        type: integer
+      userName:
+        type: string
+    required:
+    - mark
+    - reviewText
+    - userName
     type: object
-  models.ProductInfoDescription:
+  shopping.CartProduct:
     properties:
-      description:
-        items:
-          $ref: '#/definitions/models.ProductInfo'
-        type: array
-      info:
-        $ref: '#/definitions/models.Product'
+      price_for_quantity:
+        type: number
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    required:
+    - price_for_quantity
+    - product_id
+    - quantity
     type: object
-  models.User:
+  shopping.CartProductFullInfo:
+    properties:
+      amount_in_stock:
+        example: 120
+        type: number
+      article:
+        example: "000123"
+        type: string
+      created_at:
+        type: string
+      img_url:
+        example: https://google-images.com/some-img123
+        type: string
+      packages_in_box:
+        example: 50
+        type: integer
+      price:
+        example: 3.75
+        type: number
+      price_for_quantity:
+        type: number
+      product_id:
+        type: integer
+      product_title:
+        example: Стакан одноразовий Крафт 110мл
+        type: string
+      quantity:
+        type: integer
+      units_in_package:
+        example: 30
+        type: integer
+    required:
+    - price_for_quantity
+    - product_id
+    - quantity
+    type: object
+  shopping.DeliveryPaymentTypes:
+    properties:
+      deliveryTypes:
+        items:
+          $ref: '#/definitions/shopping.DeliveryType'
+        type: array
+      paymentTypes:
+        items:
+          $ref: '#/definitions/shopping.PaymentType'
+        type: array
+    type: object
+  shopping.DeliveryType:
+    properties:
+      delivery_type_title:
+        type: string
+      id:
+        type: string
+    type: object
+  shopping.PaymentType:
+    properties:
+      id:
+        type: string
+      payment_type_title:
+        type: string
+    type: object
+  user.User:
     properties:
       email:
         type: string
@@ -390,48 +383,10 @@ info:
   title: AllianceCup API
   version: "1.0"
 paths:
-  /api/admin/add-category:
-    post:
-      consumes:
-      - application/json
-      description: Adds a new category
-      operationId: adds category
-      parameters:
-      - description: category info
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/models.Category'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/handler.ItemProcessedResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handler.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handler.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handler.Error'
-      security:
-      - ApiKeyAuth: []
-      summary: AddCategory
-      tags:
-      - api/admin
   /api/admin/add-product:
     post:
       consumes:
       - application/json
-      description: Adds a new product
       operationId: adds product
       parameters:
       - description: product info
@@ -439,7 +394,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.ProductInfoDescription'
+          $ref: '#/definitions/product.Info'
       produces:
       - application/json
       responses:
@@ -464,16 +419,16 @@ paths:
       summary: AddProduct
       tags:
       - api/admin
-  /api/admin/all-orders:
+  /api/admin/all-order:
     get:
-      description: get orders by status
-      operationId: get orders
+      description: get order by status
+      operationId: get order
       parameters:
       - description: Last item created at for pagination
         in: query
         name: created_at
         type: string
-      - description: Sort by orders status
+      - description: Sort by order status
         in: query
         name: order_status
         required: true
@@ -485,7 +440,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Order'
+              $ref: '#/definitions/order.Order'
             type: array
         "400":
           description: Bad Request
@@ -502,6 +457,43 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get Orders
+      tags:
+      - api/admin
+  /api/admin/category:
+    post:
+      consumes:
+      - application/json
+      description: Adds a new category
+      operationId: adds category
+      parameters:
+      - description: category info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/category.Category'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.ItemProcessedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: AddCategory
       tags:
       - api/admin
   /api/admin/delete-category:
@@ -544,7 +536,6 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Deletes product
       operationId: delete product
       parameters:
       - description: product id
@@ -588,7 +579,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.CategoryFiltration'
+          $ref: '#/definitions/category.Filtration'
       produces:
       - application/json
       responses:
@@ -623,7 +614,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.User'
+          $ref: '#/definitions/user.User'
       produces:
       - application/json
       responses:
@@ -660,7 +651,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.Category'
+          $ref: '#/definitions/category.Category'
       produces:
       - application/json
       responses:
@@ -689,7 +680,6 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates product
       operationId: updates product
       parameters:
       - description: product info
@@ -697,7 +687,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.ProductInfoDescription'
+          $ref: '#/definitions/product.Info'
       produces:
       - application/json
       responses:
@@ -722,7 +712,7 @@ paths:
       summary: UpdateProduct
       tags:
       - api/admin
-  /api/all-categories:
+  /api/categories:
     get:
       consumes:
       - application/json
@@ -762,7 +752,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.CartProduct'
+          $ref: '#/definitions/shopping.CartProduct'
       produces:
       - application/json
       responses:
@@ -831,7 +821,7 @@ paths:
       description: Changes user password
       operationId: change user password
       parameters:
-      - description: Info to change password
+      - description: Order to change password
         in: body
         name: input
         required: true
@@ -946,7 +936,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Product'
+              $ref: '#/definitions/product.Product'
             type: array
         "400":
           description: Bad Request
@@ -972,7 +962,7 @@ paths:
       parameters:
       - description: order id
         in: query
-        name: order_id
+        name: id
         required: true
         type: string
       produces:
@@ -981,7 +971,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.OrderInfo'
+            $ref: '#/definitions/order.FullInfo'
         "400":
           description: Bad Request
           schema:
@@ -1055,12 +1045,12 @@ paths:
       summary: GetProductsInCart
       tags:
       - api/client
-  /api/client/user-orders:
+  /api/client/user-order:
     get:
       consumes:
       - application/json
-      description: gets user orders
-      operationId: gets orders
+      description: gets user order
+      operationId: gets order
       parameters:
       - description: last order created_at for pagination
         in: query
@@ -1072,7 +1062,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.OrderInfo'
+            $ref: '#/definitions/order.FullInfo'
         "400":
           description: Bad Request
           schema:
@@ -1090,9 +1080,49 @@ paths:
       summary: GetUserOrders
       tags:
       - api/client
+  /api/filtration:
+    get:
+      consumes:
+      - application/json
+      description: gets filtration list for a products
+      operationId: get filtration
+      parameters:
+      - description: parent id
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: parent name
+        in: query
+        name: parentName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/category.Filtration'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: GetFiltration
+      tags:
+      - api
   /api/get-products:
     post:
-      description: get products from certain category with params
       operationId: gets products
       parameters:
       - description: Category
@@ -1131,7 +1161,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Product'
+              $ref: '#/definitions/product.Product'
             type: array
         "400":
           description: Bad Request
@@ -1160,7 +1190,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.OrderFullInfo'
+          $ref: '#/definitions/order.Order'
       produces:
       - application/json
       responses:
@@ -1202,9 +1232,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.DeliveryPaymentTypes'
-            type: array
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -1222,7 +1250,6 @@ paths:
       - api/admin
   /api/product:
     get:
-      description: get product full info by its id
       operationId: gets full product info
       parameters:
       - description: Product id
@@ -1236,7 +1263,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.ProductInfoDescription'
+            $ref: '#/definitions/product.Info'
         "400":
           description: Bad Request
           schema:
@@ -1250,6 +1277,41 @@ paths:
           schema:
             $ref: '#/definitions/handler.Error'
       summary: GetProductById
+      tags:
+      - api
+  /api/review:
+    post:
+      consumes:
+      - application/json
+      description: creates a new review
+      operationId: create review
+      parameters:
+      - description: review info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/review.CreateReviewDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.ItemProcessedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: AddReview
       tags:
       - api
   /auth/refresh:
@@ -1325,7 +1387,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.User'
+          $ref: '#/definitions/user.User'
       produces:
       - application/json
       responses:

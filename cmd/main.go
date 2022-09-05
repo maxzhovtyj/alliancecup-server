@@ -6,9 +6,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	server "github.com/zh0vtyj/allincecup-server"
-	"github.com/zh0vtyj/allincecup-server/pkg/handler"
-	"github.com/zh0vtyj/allincecup-server/pkg/repository"
-	"github.com/zh0vtyj/allincecup-server/pkg/service"
+	"github.com/zh0vtyj/allincecup-server/internal/adapters/handler"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/repository"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
+	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 	"os"
 )
 
@@ -33,7 +34,7 @@ func main() {
 		logrus.Fatalf("error occured while loading .env file: %s", err.Error())
 	}
 
-	db, err := repository.NewPostgresDB(repository.Config{
+	storage, err := postgres.NewPostgresDB(postgres.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),
@@ -46,7 +47,7 @@ func main() {
 		logrus.Fatalf("error occured while initializing db: %s", err.Error())
 	}
 
-	repos := repository.NewRepository(db)
+	repos := repository.NewRepository(storage)
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 

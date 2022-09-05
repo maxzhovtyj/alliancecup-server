@@ -16,7 +16,126 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/admin/add-category": {
+        "/api/admin/add-product": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "AddProduct",
+                "operationId": "adds product",
+                "parameters": [
+                    {
+                        "description": "product info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.Info"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/all-order": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get order by status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "Get Orders",
+                "operationId": "get order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Last item created at for pagination",
+                        "name": "created_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort by order status",
+                        "name": "order_status",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/order.Order"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/category": {
             "post": {
                 "security": [
                     {
@@ -42,7 +161,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Category"
+                            "$ref": "#/definitions/category.Category"
                         }
                     }
                 ],
@@ -51,126 +170,6 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/handler.ItemProcessedResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/admin/add-product": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Adds a new product",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api/admin"
-                ],
-                "summary": "AddProduct",
-                "operationId": "adds product",
-                "parameters": [
-                    {
-                        "description": "product info",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ProductInfoDescription"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ItemProcessedResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/admin/all-orders": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "get orders by status",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api/admin"
-                ],
-                "summary": "Get Orders",
-                "operationId": "get orders",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Last item created at for pagination",
-                        "name": "created_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort by orders status",
-                        "name": "order_status",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Order"
-                            }
                         }
                     },
                     "400": {
@@ -257,7 +256,6 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Deletes product",
                 "consumes": [
                     "application/json"
                 ],
@@ -327,7 +325,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CategoryFiltration"
+                            "$ref": "#/definitions/category.Filtration"
                         }
                     }
                 ],
@@ -385,7 +383,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/user.User"
                         }
                     }
                 ],
@@ -443,7 +441,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Category"
+                            "$ref": "#/definitions/category.Category"
                         }
                     }
                 ],
@@ -482,7 +480,6 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Updates product",
                 "consumes": [
                     "application/json"
                 ],
@@ -501,7 +498,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ProductInfoDescription"
+                            "$ref": "#/definitions/product.Info"
                         }
                     }
                 ],
@@ -533,7 +530,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/all-categories": {
+        "/api/categories": {
             "get": {
                 "description": "get all categories",
                 "consumes": [
@@ -601,7 +598,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CartProduct"
+                            "$ref": "#/definitions/shopping.CartProduct"
                         }
                     }
                 ],
@@ -707,7 +704,7 @@ const docTemplate = `{
                 "operationId": "change user password",
                 "parameters": [
                     {
-                        "description": "Info to change password",
+                        "description": "Order to change password",
                         "name": "input",
                         "in": "body",
                         "required": true,
@@ -884,7 +881,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Product"
+                                "$ref": "#/definitions/product.Product"
                             }
                         }
                     },
@@ -929,7 +926,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "order id",
-                        "name": "order_id",
+                        "name": "id",
                         "in": "query",
                         "required": true
                     }
@@ -938,7 +935,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.OrderInfo"
+                            "$ref": "#/definitions/order.FullInfo"
                         }
                     },
                     "400": {
@@ -1050,14 +1047,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/client/user-orders": {
+        "/api/client/user-order": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "gets user orders",
+                "description": "gets user order",
                 "consumes": [
                     "application/json"
                 ],
@@ -1068,7 +1065,7 @@ const docTemplate = `{
                     "api/client"
                 ],
                 "summary": "GetUserOrders",
-                "operationId": "gets orders",
+                "operationId": "gets order",
                 "parameters": [
                     {
                         "type": "string",
@@ -1081,7 +1078,68 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.OrderInfo"
+                            "$ref": "#/definitions/order.FullInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/filtration": {
+            "get": {
+                "description": "gets filtration list for a products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "GetFiltration",
+                "operationId": "get filtration",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "parent id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "parent name",
+                        "name": "parentName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/category.Filtration"
+                            }
                         }
                     },
                     "400": {
@@ -1107,7 +1165,6 @@ const docTemplate = `{
         },
         "/api/get-products": {
             "post": {
-                "description": "get products from certain category with params",
                 "produces": [
                     "application/json"
                 ],
@@ -1167,7 +1224,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Product"
+                                "$ref": "#/definitions/product.Product"
                             }
                         }
                     },
@@ -1213,7 +1270,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.OrderFullInfo"
+                            "$ref": "#/definitions/order.Order"
                         }
                     }
                 ],
@@ -1274,10 +1331,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.DeliveryPaymentTypes"
-                            }
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -1303,7 +1357,6 @@ const docTemplate = `{
         },
         "/api/product": {
             "get": {
-                "description": "get product full info by its id",
                 "produces": [
                     "application/json"
                 ],
@@ -1325,7 +1378,60 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.ProductInfoDescription"
+                            "$ref": "#/definitions/product.Info"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/review": {
+            "post": {
+                "description": "creates a new review",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "AddReview",
+                "operationId": "create review",
+                "parameters": [
+                    {
+                        "description": "review info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/review.CreateReviewDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
                         }
                     },
                     "400": {
@@ -1462,7 +1568,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/user.User"
                         }
                     }
                 ],
@@ -1496,13 +1602,63 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "category.Category": {
+            "type": "object",
+            "required": [
+                "category_title"
+            ],
+            "properties": {
+                "category_description": {
+                    "type": "string"
+                },
+                "category_title": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "img_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "category.Filtration": {
+            "type": "object",
+            "required": [
+                "filtrationTitle",
+                "infoDescription"
+            ],
+            "properties": {
+                "categoryId": {
+                    "type": "integer"
+                },
+                "filtrationDescription": {
+                    "type": "string"
+                },
+                "filtrationListId": {
+                    "type": "integer"
+                },
+                "filtrationTitle": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "imgUrl": {
+                    "type": "string"
+                },
+                "infoDescription": {
+                    "type": "string"
+                }
+            }
+        },
         "handler.CartProductsResponse": {
             "type": "object",
             "properties": {
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.CartProductFullInfo"
+                        "$ref": "#/definitions/shopping.CartProductFullInfo"
                     }
                 },
                 "sum": {
@@ -1620,159 +1776,32 @@ const docTemplate = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Category"
+                        "$ref": "#/definitions/category.Category"
                     }
                 }
             }
         },
-        "models.CartProduct": {
-            "type": "object",
-            "required": [
-                "price_for_quantity",
-                "product_id",
-                "quantity"
-            ],
-            "properties": {
-                "price_for_quantity": {
-                    "type": "number"
-                },
-                "product_id": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.CartProductFullInfo": {
-            "type": "object",
-            "required": [
-                "price_for_quantity",
-                "product_id",
-                "quantity"
-            ],
-            "properties": {
-                "amount_in_stock": {
-                    "type": "number",
-                    "example": 120
-                },
-                "article": {
-                    "type": "string",
-                    "example": "000123"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "img_url": {
-                    "type": "string",
-                    "example": "https://google-images.com/some-img123"
-                },
-                "packages_in_box": {
-                    "type": "integer",
-                    "example": 50
-                },
-                "price": {
-                    "type": "number",
-                    "example": 3.75
-                },
-                "price_for_quantity": {
-                    "type": "number"
-                },
-                "product_id": {
-                    "type": "integer"
-                },
-                "product_title": {
-                    "type": "string",
-                    "example": "Стакан одноразовий Крафт 110мл"
-                },
-                "quantity": {
-                    "type": "integer"
-                },
-                "units_in_package": {
-                    "type": "integer",
-                    "example": 30
-                }
-            }
-        },
-        "models.Category": {
-            "type": "object",
-            "required": [
-                "category_title"
-            ],
-            "properties": {
-                "category_description": {
-                    "type": "string"
-                },
-                "category_title": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "img_url": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CategoryFiltration": {
-            "type": "object",
-            "required": [
-                "filtrationTitle",
-                "infoDescription"
-            ],
-            "properties": {
-                "categoryId": {
-                    "type": "integer"
-                },
-                "filtrationDescription": {
-                    "type": "string"
-                },
-                "filtrationListId": {
-                    "type": "integer"
-                },
-                "filtrationTitle": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "imgUrl": {
-                    "type": "string"
-                },
-                "infoDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DeliveryPaymentTypes": {
+        "order.FullInfo": {
             "type": "object",
             "properties": {
-                "deliveryTypes": {
+                "delivery": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DeliveryType"
+                        "$ref": "#/definitions/order.OrdersDelivery"
                     }
                 },
-                "paymentTypes": {
+                "info": {
+                    "$ref": "#/definitions/order.Order"
+                },
+                "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.PaymentType"
+                        "$ref": "#/definitions/order.ProductFullInfo"
                     }
                 }
             }
         },
-        "models.DeliveryType": {
-            "type": "object",
-            "properties": {
-                "delivery_type_title": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Order": {
+        "order.Order": {
             "type": "object",
             "required": [
                 "delivery_type_title",
@@ -1826,47 +1855,18 @@ const docTemplate = `{
                 }
             }
         },
-        "models.OrderFullInfo": {
+        "order.OrdersDelivery": {
             "type": "object",
             "properties": {
-                "delivery": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.OrdersDelivery"
-                    }
+                "delivery_description": {
+                    "type": "string"
                 },
-                "info": {
-                    "$ref": "#/definitions/models.Order"
-                },
-                "products": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.OrderProducts"
-                    }
+                "delivery_title": {
+                    "type": "string"
                 }
             }
         },
-        "models.OrderInfo": {
-            "type": "object",
-            "properties": {
-                "delivery": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.OrdersDelivery"
-                    }
-                },
-                "info": {
-                    "$ref": "#/definitions/models.Order"
-                },
-                "products": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.OrderProductFullInfo"
-                    }
-                }
-            }
-        },
-        "models.OrderProductFullInfo": {
+        "order.ProductFullInfo": {
             "type": "object",
             "properties": {
                 "amount_in_stock": {
@@ -1907,43 +1907,38 @@ const docTemplate = `{
                 }
             }
         },
-        "models.OrderProducts": {
+        "product.Description": {
             "type": "object",
             "properties": {
-                "price_for_quantity": {
-                    "type": "number"
+                "description": {
+                    "type": "string",
+                    "example": "Білий"
+                },
+                "info_title": {
+                    "type": "string",
+                    "example": "Колір"
                 },
                 "product_id": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
-        "models.OrdersDelivery": {
+        "product.Info": {
             "type": "object",
             "properties": {
-                "delivery_description": {
-                    "type": "string"
+                "description": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/product.Description"
+                    }
                 },
-                "delivery_title": {
-                    "type": "string"
+                "info": {
+                    "$ref": "#/definitions/product.Product"
                 }
             }
         },
-        "models.PaymentType": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "payment_type_title": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Product": {
+        "product.Product": {
             "type": "object",
             "required": [
                 "article",
@@ -2003,38 +1998,137 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ProductInfo": {
+        "review.CreateReviewDTO": {
             "type": "object",
+            "required": [
+                "mark",
+                "reviewText",
+                "userName"
+            ],
             "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Білий"
+                "mark": {
+                    "type": "integer"
                 },
-                "info_title": {
-                    "type": "string",
-                    "example": "Колір"
+                "reviewText": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "shopping.CartProduct": {
+            "type": "object",
+            "required": [
+                "price_for_quantity",
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "price_for_quantity": {
+                    "type": "number"
                 },
                 "product_id": {
-                    "type": "integer",
-                    "example": 1
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
                 }
             }
         },
-        "models.ProductInfoDescription": {
+        "shopping.CartProductFullInfo": {
+            "type": "object",
+            "required": [
+                "price_for_quantity",
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "amount_in_stock": {
+                    "type": "number",
+                    "example": 120
+                },
+                "article": {
+                    "type": "string",
+                    "example": "000123"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "img_url": {
+                    "type": "string",
+                    "example": "https://google-images.com/some-img123"
+                },
+                "packages_in_box": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "price": {
+                    "type": "number",
+                    "example": 3.75
+                },
+                "price_for_quantity": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "product_title": {
+                    "type": "string",
+                    "example": "Стакан одноразовий Крафт 110мл"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "units_in_package": {
+                    "type": "integer",
+                    "example": 30
+                }
+            }
+        },
+        "shopping.DeliveryPaymentTypes": {
             "type": "object",
             "properties": {
-                "description": {
+                "deliveryTypes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ProductInfo"
+                        "$ref": "#/definitions/shopping.DeliveryType"
                     }
                 },
-                "info": {
-                    "$ref": "#/definitions/models.Product"
+                "paymentTypes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/shopping.PaymentType"
+                    }
                 }
             }
         },
-        "models.User": {
+        "shopping.DeliveryType": {
+            "type": "object",
+            "properties": {
+                "delivery_type_title": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "shopping.PaymentType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "payment_type_title": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.User": {
             "type": "object",
             "required": [
                 "email",
