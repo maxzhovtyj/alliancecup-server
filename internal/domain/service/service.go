@@ -28,7 +28,7 @@ func NewService(repos *repository.Repository, logger *logging.Logger) *Service {
 		Authorization: user.NewAuthService(repos.Authorization),
 		Product:       product.NewProductsService(repos.Product),
 		Category:      category.NewCategoryService(repos.Category),
-		Order:         order.NewOrdersService(repos.Order),
+		Order:         order.NewOrdersService(repos.Order, repos.Product),
 		Shopping:      shopping.NewShoppingService(repos.Shopping),
 		Supply:        supply.NewSupplyService(repos.Supply),
 		Review:        review.NewReviewService(repos.Review),
