@@ -9,6 +9,7 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/supply"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
+	"github.com/zh0vtyj/allincecup-server/pkg/logging"
 )
 
 type Service struct {
@@ -19,9 +20,10 @@ type Service struct {
 	Shopping      shopping.Service
 	Supply        supply.Service
 	Review        review.Service
+	logger        *logging.Logger
 }
 
-func NewService(repos *repository.Repository) *Service {
+func NewService(repos *repository.Repository, logger *logging.Logger) *Service {
 	return &Service{
 		Authorization: user.NewAuthService(repos.Authorization),
 		Product:       product.NewProductsService(repos.Product),
@@ -30,5 +32,6 @@ func NewService(repos *repository.Repository) *Service {
 		Shopping:      shopping.NewShoppingService(repos.Shopping),
 		Supply:        supply.NewSupplyService(repos.Supply),
 		Review:        review.NewReviewService(repos.Review),
+		logger:        logger,
 	}
 }

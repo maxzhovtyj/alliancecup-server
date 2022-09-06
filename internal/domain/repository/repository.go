@@ -9,6 +9,7 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/supply"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
+	"github.com/zh0vtyj/allincecup-server/pkg/logging"
 )
 
 type Repository struct {
@@ -19,9 +20,10 @@ type Repository struct {
 	Shopping      shopping.Storage
 	Supply        supply.Storage
 	Review        review.Storage
+	logger        *logging.Logger
 }
 
-func NewRepository(db *sqlx.DB) *Repository {
+func NewRepository(db *sqlx.DB, logger *logging.Logger) *Repository {
 	return &Repository{
 		Authorization: user.NewAuthPostgres(db),
 		Product:       product.NewProductsPostgres(db),
@@ -30,5 +32,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 		Order:         order.NewOrdersPostgres(db),
 		Supply:        supply.NewSupplyPostgres(db),
 		Review:        review.NewReviewStorage(db),
+		logger:        logger,
 	}
 }

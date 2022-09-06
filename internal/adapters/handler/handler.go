@@ -7,15 +7,20 @@ import (
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
 	_ "github.com/zh0vtyj/allincecup-server/docs"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
+	"github.com/zh0vtyj/allincecup-server/pkg/logging"
 	"net/http"
 )
 
 type Handler struct {
 	services *service.Service
+	logger   *logging.Logger
 }
 
-func NewHandler(services *service.Service) *Handler {
-	return &Handler{services: services}
+func NewHandler(services *service.Service, logger *logging.Logger) *Handler {
+	return &Handler{
+		services: services,
+		logger:   logger,
+	}
 }
 
 const (

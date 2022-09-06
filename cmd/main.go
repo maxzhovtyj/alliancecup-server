@@ -1,16 +1,14 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	server "github.com/zh0vtyj/allincecup-server"
 	"github.com/zh0vtyj/allincecup-server/internal/adapters/handler"
+	"github.com/zh0vtyj/allincecup-server/internal/config"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/repository"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
-	"os"
+	"github.com/zh0vtyj/allincecup-server/pkg/logging"
 )
 
 // @title AllianceCup API
@@ -24,42 +22,29 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	logrus.SetFormatter(new(logrus.JSONFormatter))
+	logger := logging.GetLogger()
 
-	if err := initConfig(); err != nil {
-		logrus.Fatalf("error initializing config: %s", err.Error())
-	}
+	logger.Info("config initializing...")
+	cfg := config.GetConfig()
 
-	if err := godotenv.Load(); err != nil {
-		logrus.Fatalf("error occured while loading .env file: %s", err.Error())
-	}
-
-	storage, err := postgres.NewPostgresDB(postgres.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		Password: os.Getenv("DB_PASSWORD"),
-		DBName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslMode"),
-	})
-
+	logger.Info("storage initializing...")
+	storage, err := postgres.NewPostgresDB(cfg.Storage)
 	if err != nil {
-		logrus.Fatalf("error occured while initializing db: %s", err.Error())
+		logger.Fatalf("error occured while initializing db: %s", err.Error())
 	}
 
-	repos := repository.NewRepository(storage)
-	services := service.NewService(repos)
-	handlers := handler.NewHandler(services)
+	logger.Info("repository initializing...")
+	repos := repository.NewRepository(storage, logger)
 
+	logger.Info("service initializing...")
+	services := service.NewService(repos, logger)
+
+	logger.Info("handler initializing...")
+	handlers := handler.NewHandler(services, logger)
+
+	logger.Info("running the server...")
 	srv := new(server.Server)
-	if err = srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		logrus.Fatalf("error occured while running http server: %s", err.Error())
+	if err = srv.Run(cfg.AppPort, handlers.InitRoutes()); err != nil {
+		logger.Fatalf("error occured while running http server: %s", err.Error())
 	}
-
-}
-
-func initConfig() error {
-	viper.AddConfigPath("configs")
-	viper.SetConfigName("config")
-	return viper.ReadInConfig()
 }
