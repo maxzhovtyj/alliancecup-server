@@ -74,14 +74,15 @@ func (s *service) Update() error {
 }
 
 func (s *service) Delete(id int) error {
+	//TODO
 	// delete from supplies
-	products, err := s.repo.DeleteAndGetProducts(id)
+	//products, err := s.repo.DeleteAndGetProducts(id)
 
 	// delete amount from products
-	err = s.repo.UpdateProductsAmount(products, "-")
-	if err != nil {
-		return err
-	}
+	//err = s.repo.UpdateProductsAmount(products, "-")
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }

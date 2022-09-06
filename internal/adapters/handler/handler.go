@@ -11,18 +11,6 @@ import (
 	"net/http"
 )
 
-type Handler struct {
-	services *service.Service
-	logger   *logging.Logger
-}
-
-func NewHandler(services *service.Service, logger *logging.Logger) *Handler {
-	return &Handler{
-		services: services,
-		logger:   logger,
-	}
-}
-
 const (
 	StatusInProgress   = "IN_PROGRESS"
 	StatusProcessed    = "PROCESSED"
@@ -56,7 +44,20 @@ const (
 	userOrdersUrl     = "/user-orders"
 	orderInfoTypesUrl = "/order-info-types"
 	moderatorUrl      = "/moderator"
+	inventoryUrl      = "inventory"
 )
+
+type Handler struct {
+	services *service.Service
+	logger   *logging.Logger
+}
+
+func NewHandler(services *service.Service, logger *logging.Logger) *Handler {
+	return &Handler{
+		services: services,
+		logger:   logger,
+	}
+}
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
@@ -116,6 +117,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			//admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
 
 			admin.POST(filtrationUrl, h.addFiltrationItem)
+
+			admin.POST(inventoryUrl, h.doStockInventory)
 
 			admin.POST(supplyUrl, h.newSupply)
 			admin.GET(supplyUrl, h.getAllSupply)
