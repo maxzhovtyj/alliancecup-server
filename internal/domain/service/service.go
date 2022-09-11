@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/repository"
@@ -20,6 +21,7 @@ type Service struct {
 	Shopping      shopping.Service
 	Supply        supply.Service
 	Review        review.Service
+	Inventory     inventory.Service
 	logger        *logging.Logger
 }
 
@@ -32,6 +34,7 @@ func NewService(repos *repository.Repository, logger *logging.Logger) *Service {
 		Shopping:      shopping.NewShoppingService(repos.Shopping),
 		Supply:        supply.NewSupplyService(repos.Supply),
 		Review:        review.NewReviewService(repos.Review),
+		Inventory:     inventory.NewInventoryService(repos.Inventory, logger),
 		logger:        logger,
 	}
 }

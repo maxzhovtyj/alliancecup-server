@@ -3,7 +3,11 @@ package inventory
 import "time"
 
 type ProductDTO struct {
-	lastInventory   *time.Time
+	id              int
+	productId       int
+	inventoryId     int
+	productTitle    string
+	createdAt       time.Time
 	initialAmount   float64 // amount from the last inventory
 	supply          float64 // from the last inventory
 	spends          float64 // spending (customers orders) from the last inventory

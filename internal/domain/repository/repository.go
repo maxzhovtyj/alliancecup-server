@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/review"
@@ -20,6 +21,7 @@ type Repository struct {
 	Shopping      shopping.Storage
 	Supply        supply.Storage
 	Review        review.Storage
+	Inventory     inventory.Storage
 	logger        *logging.Logger
 }
 
@@ -32,6 +34,7 @@ func NewRepository(db *sqlx.DB, logger *logging.Logger) *Repository {
 		Order:         order.NewOrdersPostgres(db),
 		Supply:        supply.NewSupplyPostgres(db),
 		Review:        review.NewReviewStorage(db),
+		Inventory:     inventory.NewInventoryStorage(db, logger),
 		logger:        logger,
 	}
 }

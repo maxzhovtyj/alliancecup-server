@@ -27,6 +27,8 @@ const (
 	SupplyPaymentTable        = "supply_payment"
 	SupplyProductsTable       = "supply_products"
 	ProductsReviewTable       = "products_review"
+	InventoryTable            = "inventory"
+	InventoryProductsTable    = "inventory_products"
 )
 
 func NewPostgresDB(cfg config.Storage) (*sqlx.DB, error) {
