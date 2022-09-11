@@ -37,7 +37,7 @@ CREATE TABLE products
     price            decimal(12, 2)                                       not null,
     units_in_package int                                                  not null,
     packages_in_box  int                                                  not null,
-    created_at       timestamptz default (now())
+    created_at       timestamptz default (now() at time zone 'utc-3')
 );
 
 CREATE TABLE carts_products
@@ -54,5 +54,5 @@ CREATE TABLE products_info
     product_id  int references products (id) on delete cascade not null,
     info_title  varchar(255)                                   not null,
     description varchar(255)                                   not null,
-    primary key (product_id, info_title, description)
+    primary key (product_id, info_title)
 );

@@ -8,5 +8,5 @@ CREATE TABLE sessions
     user_agent    varchar(255)                                not null,
     is_blocked    boolean     default false,
     expires_at    timestamptz                                 not null,
-    created_at    timestamptz default (now())
+    created_at    timestamptz default (now() at time zone 'utc-3')
 );

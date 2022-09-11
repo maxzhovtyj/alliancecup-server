@@ -11,7 +11,8 @@ CREATE TABLE users
     password_hash varchar(255) not null,
     name varchar(255) not null,
     phone_number varchar(20) not null unique,
-    role_id int references roles(id) not null
+    role_id int references roles(id) not null,
+    created_at timestamptz default (now() at time zone 'utc-3')
 );
 
 INSERT INTO roles (role_title) VALUES ('CLIENT');

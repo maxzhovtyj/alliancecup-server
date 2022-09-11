@@ -36,8 +36,8 @@ CREATE TABLE orders
     order_sum_price   decimal(12, 2)                     not null,
     delivery_type_id  int references delivery_types (id) not null,
     payment_type_id   int references payment_types (id)  not null,
-    created_at        timestamptz                                 default (now() at time zone 'GMT+3'),
-    closed_at         timestamptz                                 default (null at time zone 'GMT+3')
+    created_at        timestamptz                                 default (now() at time zone 'utc-3'),
+    closed_at         timestamptz                                 default (null at time zone 'utc-3')
 );
 
 CREATE TABLE orders_delivery
