@@ -46,8 +46,7 @@ CREATE TABLE products
     price            decimal(12, 2)                                       not null,
     units_in_package int                                                  not null,
     packages_in_box  int                                                  not null,
-    created_at       timestamptz default (now() at time zone 'utc-3'),
-    last_inventory   timestamptz default null
+    created_at       timestamptz default (now() at time zone 'utc-3')
 );
 
 CREATE TABLE carts_products

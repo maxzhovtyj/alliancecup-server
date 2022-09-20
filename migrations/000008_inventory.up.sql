@@ -11,7 +11,7 @@ CREATE TABLE inventory_products
     last_inventory   timestamptz DEFAULT NULL,
     initial_amount   DECIMAL(12, 2),
     supply           DECIMAL(12, 2),
-    spends           DECIMAL(12, 2),
+    spend            DECIMAL(12, 2),
     write_off        DECIMAL(12, 2),
     write_off_price  DECIMAL(12, 2),
     planned_amount   DECIMAL(12, 2),
@@ -19,3 +19,12 @@ CREATE TABLE inventory_products
     difference_price DECIMAL(12, 2),
     PRIMARY KEY (inventory_id, product_id)
 );
+
+ALTER TABLE products
+    ADD COLUMN current_supply DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE products
+    ADD COLUMN current_spend DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE products
+    ADD COLUMN current_write_off DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE products
+    ADD COLUMN last_inventory timestamptz default null

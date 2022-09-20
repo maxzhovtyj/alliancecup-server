@@ -1,6 +1,9 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
 
 func (h *Handler) doStockInventory(ctx *gin.Context) {
 	// TODO
@@ -8,5 +11,11 @@ func (h *Handler) doStockInventory(ctx *gin.Context) {
 }
 
 func (h *Handler) getInventory(ctx *gin.Context) {
-	h.services.Inventory.Products()
+	products, err := h.services.Inventory.Products()
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, products)
 }

@@ -3,7 +3,7 @@ package inventory
 import "github.com/zh0vtyj/allincecup-server/pkg/logging"
 
 type Service interface {
-	Products()
+	Products() ([]CurrentProductDTO, error)
 }
 
 type service struct {
@@ -18,6 +18,11 @@ func NewInventoryService(repo Storage, logger *logging.Logger) Service {
 	}
 }
 
-func (s *service) Products() {
-	s.repo.GetProducts()
+func (s *service) Products() ([]CurrentProductDTO, error) {
+	products, err := s.repo.GetProducts()
+	if err != nil {
+		return nil, err
+	}
+
+	return products, err
 }

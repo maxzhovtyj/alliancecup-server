@@ -19,3 +19,13 @@ type ProductDTO struct {
 	difference      float64 // plannedAmount - realAmount
 	differencePrice float64 // difference * product price
 }
+
+type CurrentProductDTO struct {
+	ProductId       int        `json:"productId" db:"id"`
+	Title           string     `json:"title" db:"product_title"`
+	CurrentSupply   float64    `json:"currentSupply" db:"current_supply"`
+	CurrentSpend    float64    `json:"currentSpend" db:"current_spend"`
+	CurrentWriteOff float64    `json:"currentWriteOff" db:"current_write_off"`
+	CurrentAmount   float64    `json:"currentAmount" db:"amount_in_stock"`
+	LastInventory   *time.Time `json:"lastInventory" db:"last_inventory"`
+}
