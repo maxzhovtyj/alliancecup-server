@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	"time"
 )
 
 //var inventoryProductsColumn = []string{
@@ -32,11 +33,13 @@ var inventoryProductsColumn = []string{
 	"products.current_spend",
 	"products.current_supply",
 	"products.amount_in_stock",
-	"products.last_inventory",
+	"inventory_products.inventory_id as last_inventory_id",
+	"inventory.created_at as last_inventory",
 }
 
 type Storage interface {
 	GetProducts() ([]CurrentProductDTO, error)
+	DoInventory(products []ProductDTO) error
 }
 
 type storage struct {
@@ -55,22 +58,63 @@ func (s *storage) GetProducts() ([]CurrentProductDTO, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	// TODO select amount_in_stock from the last inventory
-
+	// TODO select if there are not inventories yet
 	var products []CurrentProductDTO
 	querySelectProducts, args, err := psql.
 		Select(inventoryProductsColumn...).
 		Join(postgres.InventoryProductsTable + " ON products.id = inventory_products.product_id").
+		Join(postgres.InventoryTable + " ON inventory_products.inventory_id = inventory.id").
 		From(postgres.ProductsTable).
 		ToSql()
+
+	fmt.Println(querySelectProducts)
 
 	err = s.db.Select(&products, querySelectProducts, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(products)
-
-	s.logger.Println(querySelectProducts, args, err)
-
 	return products, err
+}
+
+func (s *storage) DoInventory(products []ProductDTO) error {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	tx, _ := s.db.Begin()
+
+	// create new inventory and get its id
+	var inventoryId int
+	var createdAt time.Time
+	queryNewInventory := fmt.Sprintf("INSERT INTO %s (created_at) values (now() at time zone 'utc-3') RETURNING id, created_at", postgres.InventoryTable)
+	row := tx.QueryRow(queryNewInventory)
+	if err := row.Scan(&inventoryId, &createdAt); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// inserting essential info
+	for _, p := range products {
+		sql, args, _ := psql.Insert(postgres.InventoryProductsTable).Values(
+			inventoryId,
+			p.ProductId,
+			p.LastInventoryId,
+			p.InitialAmount,
+			p.Supply,
+			p.Spend,
+			p.WriteOff,
+			p.PlannedAmount,
+			p.RealAmount,
+		).ToSql()
+
+		_, err := tx.Exec(sql, args...)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+
+		// update product fields
+		// fmt.Sprintf("UPDATE %s SET ", postgres.ProductsTable)
+	}
+
+	return tx.Commit()
 }
