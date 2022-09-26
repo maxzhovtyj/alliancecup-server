@@ -16,7 +16,7 @@ type Storage interface {
 	GetAdminOrders(status string, lastOrderCreatedAt string) ([]Order, error)
 	GetDeliveryTypes() ([]server.DeliveryType, error)
 	GetPaymentTypes() ([]server.PaymentType, error)
-	ChangeOrderStatus(orderId uuid.UUID, toStatus string) error
+	ProcessedOrder(orderId uuid.UUID) error
 }
 
 type storage struct {
@@ -83,7 +83,6 @@ func (o *storage) New(order Info) (uuid.UUID, error) {
 	row := tx.QueryRow(queryInsertOrderSql+" RETURNING id", args...)
 	if err = row.Scan(&orderId); err != nil {
 		_ = tx.Rollback()
-		fmt.Println(queryInsertOrderSql)
 		return [16]byte{}, fmt.Errorf("failed to insert new order into table due to: %v", err)
 	}
 
@@ -242,39 +241,35 @@ func (o *storage) GetOrderById(orderId uuid.UUID) (FullInfo, error) {
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	queryOrderInfo := psql.
+	queryOrderInfoSql, args, err := psql.
 		Select(
-			"order.id",
-			"order.user_id",
-			"order.user_lastname",
-			"order.user_firstname",
-			"order.user_middle_name",
-			"order.user_phone_number",
-			"order.user_email",
-			"order.order_status",
-			"order.order_comment",
-			"order.order_sum_price",
+			"orders.id",
+			"orders.user_id",
+			"orders.user_lastname",
+			"orders.user_firstname",
+			"orders.user_middle_name",
+			"orders.user_phone_number",
+			"orders.user_email",
+			"orders.order_status",
+			"orders.order_comment",
+			"orders.order_sum_price",
 			"delivery_types.delivery_type_title",
 			"payment_types.payment_type_title",
-			"order.created_at",
-			"order.closed_at",
+			"orders.created_at",
+			"orders.closed_at",
 		).
 		From(postgres.OrdersTable).
-		LeftJoin(postgres.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
-		LeftJoin(postgres.PaymentTypesTable + " ON order.payment_type_id=payment_types.id").
-		Where(sq.Eq{"order.id": orderId})
-
-	queryOrderInfoSql, args, err := queryOrderInfo.ToSql()
-	if err != nil {
-		return FullInfo{}, err
-	}
+		LeftJoin(postgres.DeliveryTypesTable + " ON orders.delivery_type_id=delivery_types.id").
+		LeftJoin(postgres.PaymentTypesTable + " ON orders.payment_type_id=payment_types.id").
+		Where(sq.Eq{"orders.id": orderId}).
+		ToSql()
 
 	err = o.db.Get(&order.Info, queryOrderInfoSql, args...)
 	if err != nil {
-		return FullInfo{}, err
+		return FullInfo{}, fmt.Errorf("failed to get order info due to: %v", err)
 	}
 
-	queryProducts := psql.
+	queryProductsSql, args, err := psql.
 		Select(
 			"orders_products.quantity",
 			"orders_products.price_for_quantity",
@@ -290,27 +285,22 @@ func (o *storage) GetOrderById(orderId uuid.UUID) (FullInfo, error) {
 		).
 		From(postgres.OrdersProductsTable).
 		LeftJoin(postgres.ProductsTable + " ON products.id=orders_products.product_id").
-		Where(sq.Eq{"order_id": orderId})
-
-	queryProductsSql, args, err := queryProducts.ToSql()
-	if err != nil {
-		return FullInfo{}, err
-	}
+		Where(sq.Eq{"order_id": orderId}).
+		ToSql()
 
 	err = o.db.Select(&order.Products, queryProductsSql, args...)
 	if err != nil {
-		return FullInfo{}, err
+		return FullInfo{}, fmt.Errorf("failed to get order products due to: %v", err)
 	}
 
-	queryDelivery := psql.Select("*").From(postgres.OrdersDeliveryTable).Where(sq.Eq{"order_id": orderId})
-	queryDeliverySql, args, err := queryDelivery.ToSql()
-	if err != nil {
-		return FullInfo{}, err
-	}
+	queryDeliverySql, args, err := psql.
+		Select("order_id, delivery_title, delivery_description").
+		From(postgres.OrdersDeliveryTable).
+		Where(sq.Eq{"order_id": orderId}).ToSql()
 
 	err = o.db.Select(&order.Delivery, queryDeliverySql, args...)
 	if err != nil {
-		return FullInfo{}, err
+		return FullInfo{}, fmt.Errorf("failed to get order delivery info due to: %v", err)
 	}
 
 	return order, err
@@ -385,13 +375,52 @@ func (o *storage) GetPaymentTypes() (paymentTypes []server.PaymentType, err erro
 	return paymentTypes, err
 }
 
-func (o *storage) ChangeOrderStatus(orderId uuid.UUID, toStatus string) error {
-	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id=$2", postgres.OrdersTable)
+func (o *storage) ProcessedOrder(orderId uuid.UUID) error {
+	tx, _ := o.db.Begin()
 
-	_, err := o.db.Exec(queryUpdateStatus, toStatus, orderId)
+	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id=$2", postgres.OrdersTable)
+	_, err := tx.Exec(queryUpdateStatus, "PROCESSED", orderId)
 	if err != nil {
+		_ = tx.Rollback()
 		return fmt.Errorf("failed to update order status in database due to: %v", err)
 	}
 
-	return nil
+	order, err := o.GetOrderById(orderId)
+	if err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("failed to get order by its id due to: %v", err)
+	}
+
+	// TODO case when amount_in_stock is less than needed
+	queryUpdateAmount := fmt.Sprintf(
+		`
+		UPDATE %s
+		SET
+			amount_in_stock = amount_in_stock - $1,
+			current_spend = current_spend + $2
+		WHERE id = $3
+		`,
+		postgres.ProductsTable,
+	)
+
+	for _, p := range order.Products {
+		_, err = tx.Exec(queryUpdateAmount, p.Quantity, p.Quantity, p.Id)
+		if err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("failed to update product amount due to %v: ", err)
+		}
+	}
+
+	return tx.Commit()
 }
+
+//func (o *storage) ChangeOrderStatus(orderId uuid.UUID, toStatus string) error {
+//	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id=$2", postgres.OrdersTable)
+//
+//	_, err := o.db.Exec(queryUpdateStatus, toStatus, orderId)
+//	if err != nil {
+//		return fmt.Errorf("failed to update order status in database due to: %v", err)
+//	}
+//
+//	return nil
+//}

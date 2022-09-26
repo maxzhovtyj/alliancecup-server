@@ -13,7 +13,7 @@ type Service interface {
 	GetOrderById(orderId uuid.UUID) (FullInfo, error)
 	GetAdminOrders(status string, lastOrderCreatedAt string) ([]Order, error)
 	DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error)
-	ProcessedOrder(orderId uuid.UUID, toStatus string) error
+	ProcessedOrder(orderId uuid.UUID) error
 }
 
 type service struct {
@@ -94,10 +94,11 @@ func (o *service) DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error) {
 	}, nil
 }
 
-func (o *service) ProcessedOrder(orderId uuid.UUID, toStatus string) error {
-	err := o.repo.ChangeOrderStatus(orderId, toStatus)
+func (o *service) ProcessedOrder(orderId uuid.UUID) error {
+	err := o.repo.ProcessedOrder(orderId)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -5,6 +5,7 @@ import "time"
 type ProductDTO struct {
 	InventoryId     int     `json:"-" db:"inventory_id"`
 	ProductId       int     `json:"productId" db:"product_id"`
+	Price           float64 `json:"price" db:"price"`
 	LastInventoryId *int    `json:"lastInventoryId" db:"last_inventory_id"`
 	InitialAmount   float64 `json:"initialAmount" db:"initial_amount"` // amount from the last inventory
 	Supply          float64 `json:"supply" db:"supply"`                // from the last inventory
