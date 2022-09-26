@@ -29,12 +29,14 @@ import (
 var inventoryProductsColumn = []string{
 	"products.id",
 	"products.product_title",
+	"products.price",
 	"products.current_write_off",
 	"products.current_spend",
 	"products.current_supply",
 	"products.amount_in_stock",
-	"inventory_products.inventory_id as last_inventory_id",
+	"products.last_inventory_id",
 	"inventory.created_at as last_inventory",
+	"inventory_products.real_amount as initial_amount",
 }
 
 type Storage interface {
@@ -62,12 +64,10 @@ func (s *storage) GetProducts() ([]CurrentProductDTO, error) {
 	var products []CurrentProductDTO
 	querySelectProducts, args, err := psql.
 		Select(inventoryProductsColumn...).
-		Join(postgres.InventoryProductsTable + " ON products.id = inventory_products.product_id").
-		Join(postgres.InventoryTable + " ON inventory_products.inventory_id = inventory.id").
+		LeftJoin(postgres.InventoryTable + " ON products.last_inventory_id = inventory.id").
+		LeftJoin(postgres.InventoryProductsTable + " ON products.last_inventory_id = inventory_products.inventory_id").
 		From(postgres.ProductsTable).
 		ToSql()
-
-	fmt.Println(querySelectProducts)
 
 	err = s.db.Select(&products, querySelectProducts, args...)
 	if err != nil {
@@ -92,6 +92,19 @@ func (s *storage) DoInventory(products []ProductDTO) error {
 		return err
 	}
 
+	queryUpdateProduct := fmt.Sprintf(
+		`
+		UPDATE %s
+		SET
+			current_supply = 0,
+			current_spend = 0,
+			current_write_off = 0,
+			last_inventory_id = $1
+		WHERE id = $2
+		`,
+		postgres.ProductsTable,
+	)
+
 	// inserting essential info
 	for _, p := range products {
 		sql, args, _ := psql.Insert(postgres.InventoryProductsTable).Values(
@@ -112,8 +125,12 @@ func (s *storage) DoInventory(products []ProductDTO) error {
 			return err
 		}
 
-		// update product fields
-		// fmt.Sprintf("UPDATE %s SET ", postgres.ProductsTable)
+		// TODO update product fields
+		_, err = tx.Exec(queryUpdateProduct, inventoryId, p.ProductId)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 	}
 
 	return tx.Commit()

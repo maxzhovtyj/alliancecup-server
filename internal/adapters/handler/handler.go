@@ -114,7 +114,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
 			admin.GET(ordersUrl, h.adminGetOrders)
-			//admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
+			admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
 
 			admin.POST(filtrationUrl, h.addFiltrationItem)
 
@@ -125,6 +125,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.GET(inventoryUrl, h.getInventory)
 			admin.POST(inventoryUrl, h.doInventory)
 
+			//admin.POST("write-off") // TODO product write off
 			admin.DELETE(reviewUrl, h.deleteReview)
 		}
 

@@ -114,32 +114,22 @@ func (s *storage) UpdateProductsAmount(products []ProductDTO, operation string) 
 	tx, _ := s.db.Begin()
 
 	// TODO check if amount_in_stock is less than amount to delete
-	//q := `
-	//	DO $$
-	//		DECLARE
-	//			selected_product products%rowtype;
-	//		BEGIN
-	//		SELECT *
-	//		FROM products
-	//		INTO selected_product
-	//		WHERE product_id=$1;
-	//
-	//		IF selected_product.amount_in_stock < $2 THEN
-	//			UPDATE products SET amount_in_stock = 0;
-	//		ELSE
-	//			UPDATE products SET amount_in_stock = amount_in_stock-$2;
-	//		END IF
-	//	END $$
-	//`
+
+	queryUpdateAmount := fmt.Sprintf(
+		`
+		UPDATE %s 
+		SET 
+			amount_in_stock = amount_in_stock %s $1,
+			current_supply = current_supply %s $2 
+		WHERE id = $3
+		`,
+		postgres.ProductsTable,
+		operation,
+		operation,
+	)
 
 	for _, p := range products {
-		queryUpdateAmount := fmt.Sprintf(
-			"UPDATE %s SET amount_in_stock=amount_in_stock%s$1 WHERE id=$2",
-			postgres.ProductsTable,
-			operation,
-		)
-
-		_, err := tx.Exec(queryUpdateAmount, p.Amount, p.ProductId)
+		_, err := tx.Exec(queryUpdateAmount, p.Amount, p.Amount, p.ProductId)
 		if err != nil {
 			_ = tx.Rollback()
 			return err

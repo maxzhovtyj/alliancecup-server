@@ -5,7 +5,7 @@ import "time"
 type ProductDTO struct {
 	InventoryId     int     `json:"-" db:"inventory_id"`
 	ProductId       int     `json:"productId" db:"product_id"`
-	LastInventoryId int     `json:"lastInventoryId" db:"last_inventory_id"`
+	LastInventoryId *int    `json:"lastInventoryId" db:"last_inventory_id"`
 	InitialAmount   float64 `json:"initialAmount" db:"initial_amount"` // amount from the last inventory
 	Supply          float64 `json:"supply" db:"supply"`                // from the last inventory
 	Spend           float64 `json:"spends" db:"spend"`                 // spending (customers orders) from the last inventory
@@ -32,6 +32,8 @@ type ProductDTO struct {
 type CurrentProductDTO struct {
 	ProductId       int        `json:"productId" db:"id"`
 	Title           string     `json:"title" db:"product_title"`
+	Price           float64    `json:"price" db:"price"`
+	InitialAmount   *float64   `json:"initialAmount" db:"initial_amount"`
 	CurrentSupply   float64    `json:"currentSupply" db:"current_supply"`
 	CurrentSpend    float64    `json:"currentSpend" db:"current_spend"`
 	CurrentWriteOff float64    `json:"currentWriteOff" db:"current_write_off"`
