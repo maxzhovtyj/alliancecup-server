@@ -9,39 +9,11 @@ import (
 	"time"
 )
 
-//var inventoryProductsColumn = []string{
-//	"inventory.id",
-//	"inventory_products.inventory_id",
-//	"inventory_products.product_id",
-//	"inventory_products.last_inventory",
-//	"inventory_products.initial_amount",
-//	"inventory_products.supply",
-//	"inventory_products.spends",
-//	"inventory_products.write_off",
-//	"inventory_products.write_off_price",
-//	"inventory_products.planned_amount",
-//	"inventory_products.difference",
-//	"inventory_products.difference_price",
-//	"products.product_title",
-//	"products.last_inventory",
-//}
-
-var inventoryProductsColumn = []string{
-	"products.id",
-	"products.product_title",
-	"products.price",
-	"products.current_write_off",
-	"products.current_spend",
-	"products.current_supply",
-	"products.amount_in_stock",
-	"products.last_inventory_id",
-	"inventory.created_at as last_inventory",
-	"inventory_products.real_amount as initial_amount",
-}
-
 type Storage interface {
 	GetProducts() ([]CurrentProductDTO, error)
-	DoInventory(products []ProductDTO) error
+	DoInventory(products []InsertProductDTO) error
+	GetInventories(createdAt string) ([]DTO, error)
+	getInventoryProductsById(inventoryId int) ([]SelectProductDTO, error)
 }
 
 type storage struct {
@@ -56,14 +28,28 @@ func NewInventoryStorage(db *sqlx.DB, logger *logging.Logger) Storage {
 	}
 }
 
+var ProductsToInventory = []string{
+	"products.id",
+	"products.product_title",
+	"products.price",
+	"products.current_write_off",
+	"products.current_write_off * products.price as write_off_price",
+	"products.current_spend",
+	"products.current_supply",
+	"products.amount_in_stock",
+	"products.last_inventory_id",                       // last inventory id
+	"inventory.created_at as last_inventory",           // last inventory time
+	"inventory_products.real_amount as initial_amount", // amount from the last inventory
+}
+
 func (s *storage) GetProducts() ([]CurrentProductDTO, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	// TODO select amount_in_stock from the last inventory
-	// TODO select if there are not inventories yet
+	// TODO select if there are no inventories yet
 	var products []CurrentProductDTO
 	querySelectProducts, args, err := psql.
-		Select(inventoryProductsColumn...).
+		Select(ProductsToInventory...).
 		LeftJoin(postgres.InventoryTable + " ON products.last_inventory_id = inventory.id").
 		LeftJoin(postgres.InventoryProductsTable + " ON products.last_inventory_id = inventory_products.inventory_id").
 		From(postgres.ProductsTable).
@@ -77,7 +63,7 @@ func (s *storage) GetProducts() ([]CurrentProductDTO, error) {
 	return products, err
 }
 
-func (s *storage) DoInventory(products []ProductDTO) error {
+func (s *storage) DoInventory(products []InsertProductDTO) error {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	tx, _ := s.db.Begin()
@@ -110,6 +96,7 @@ func (s *storage) DoInventory(products []ProductDTO) error {
 		sql, args, _ := psql.Insert(postgres.InventoryProductsTable).Values(
 			inventoryId,
 			p.ProductId,
+			p.Price,
 			p.LastInventoryId,
 			p.InitialAmount,
 			p.Supply,
@@ -122,7 +109,8 @@ func (s *storage) DoInventory(products []ProductDTO) error {
 		_, err := tx.Exec(sql, args...)
 		if err != nil {
 			_ = tx.Rollback()
-			return err
+			s.logger.Println(sql, args)
+			return fmt.Errorf("failed to insert inventory product, %v", err)
 		}
 
 		// TODO update product fields
@@ -134,4 +122,64 @@ func (s *storage) DoInventory(products []ProductDTO) error {
 	}
 
 	return tx.Commit()
+}
+
+func (s *storage) GetInventories(createdAt string) ([]DTO, error) {
+	var inventories []DTO
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	selectInventoryQuery := psql.Select("id, created_at").From(postgres.InventoryTable)
+
+	if createdAt != "" {
+		selectInventoryQuery = selectInventoryQuery.Where(sq.Lt{"created_at": createdAt})
+	}
+
+	selectInventoryQuerySQL, args, err := selectInventoryQuery.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build query to select inventory due to: %v", err)
+	}
+
+	err = s.db.Select(&inventories, selectInventoryQuerySQL, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to select inventories from db due to: %v", err)
+	}
+
+	return inventories, err
+}
+
+var inventoryProducts = []string{
+	"inventory_id",
+	"product_id",
+	"price",
+	"last_inventory_id",
+	"initial_amount",
+	"supply",
+	"spend",
+	"write_off",
+	"write_off * price as write_off_price",
+	"planned_amount",
+	"real_amount",
+	"planned_amount - real_amount as difference",
+	"(planned_amount - real_amount) * price as difference_price",
+}
+
+func (s *storage) getInventoryProductsById(inventoryId int) ([]SelectProductDTO, error) {
+	var products []SelectProductDTO
+
+	query, args, err := postgres.Psql.
+		Select(inventoryProducts...).
+		From(postgres.InventoryProductsTable).
+		Where(sq.Eq{"inventory_id": inventoryId}).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build query to select inventory products, %v", err)
+	}
+
+	err = s.db.Select(&products, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to select inventory products due to: %v", err)
+	}
+
+	return products, err
 }

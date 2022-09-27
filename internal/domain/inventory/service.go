@@ -4,7 +4,9 @@ import "github.com/zh0vtyj/allincecup-server/pkg/logging"
 
 type Service interface {
 	Products() ([]CurrentProductDTO, error)
-	New(dto []ProductDTO) error
+	New(dto []InsertProductDTO) error
+	GetAll(createdAt string) ([]DTO, error)
+	GetInventoryProducts(id int) ([]SelectProductDTO, error)
 }
 
 type service struct {
@@ -28,6 +30,14 @@ func (s *service) Products() ([]CurrentProductDTO, error) {
 	return products, err
 }
 
-func (s *service) New(dto []ProductDTO) error {
+func (s *service) New(dto []InsertProductDTO) error {
 	return s.repo.DoInventory(dto)
+}
+
+func (s *service) GetAll(createdAt string) ([]DTO, error) {
+	return s.repo.GetInventories(createdAt)
+}
+
+func (s *service) GetInventoryProducts(id int) ([]SelectProductDTO, error) {
+	return s.repo.getInventoryProductsById(id)
 }
