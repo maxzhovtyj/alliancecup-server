@@ -160,6 +160,7 @@ var inventoryProducts = []string{
 	"write_off * price as write_off_price",
 	"planned_amount",
 	"real_amount",
+	"real_amount * price as real_amount_price",
 	"planned_amount - real_amount as difference",
 	"(planned_amount - real_amount) * price as difference_price",
 }
