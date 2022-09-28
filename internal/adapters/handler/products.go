@@ -31,7 +31,6 @@ type ProductIdInput struct {
 // @Failure      500  {object}  Error
 // @Router       /api/products [post]
 func (h *Handler) getProducts(ctx *gin.Context) {
-
 	category := ctx.Query("category")
 	var categoryId int
 	var err error

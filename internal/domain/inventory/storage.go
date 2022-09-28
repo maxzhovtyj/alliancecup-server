@@ -161,8 +161,8 @@ var inventoryProducts = []string{
 	"planned_amount",
 	"real_amount",
 	"real_amount * price as real_amount_price",
-	"planned_amount - real_amount as difference",
-	"(planned_amount - real_amount) * price as difference_price",
+	"real_amount - planned_amount as difference",
+	"(real_amount - planned_amount) * price as difference_price",
 }
 
 func (s *storage) getInventoryProductsById(inventoryId int) ([]SelectProductDTO, error) {
