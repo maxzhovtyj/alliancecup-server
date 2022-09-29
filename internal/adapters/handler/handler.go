@@ -120,6 +120,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			admin.POST(supplyUrl, h.newSupply)
 			admin.GET(supplyUrl, h.getAllSupply)
+			admin.GET("supply-products", h.getSupplyProducts)
 			admin.DELETE(supplyUrl, h.deleteSupply)
 
 			admin.GET(inventoryUrl, h.getProductsToInventory)

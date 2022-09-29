@@ -10,6 +10,7 @@ type Service interface {
 	Update() error
 	Delete(id int) error
 	GetAll(createdAt string) ([]InfoDTO, error)
+	Products(id int, createdAt string) ([]ProductDTO, error)
 }
 
 type service struct {
@@ -89,4 +90,8 @@ func (s *service) Delete(id int) error {
 
 func (s *service) GetAll(createdAt string) ([]InfoDTO, error) {
 	return s.repo.GetAll(createdAt)
+}
+
+func (s *service) Products(id int, createdAt string) ([]ProductDTO, error) {
+	return s.repo.Products(id, createdAt)
 }

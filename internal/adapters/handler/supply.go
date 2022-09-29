@@ -19,6 +19,24 @@ func (h *Handler) getAllSupply(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, s)
 }
 
+func (h *Handler) getSupplyProducts(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	createdAt := ctx.Query("createdAt")
+
+	products, err := h.services.Supply.Products(id, createdAt)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, products)
+}
+
 func (h *Handler) newSupply(ctx *gin.Context) {
 	var input supply.Supply
 

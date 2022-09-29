@@ -12,6 +12,7 @@ type Storage interface {
 	GetAll(createdAt string) ([]InfoDTO, error)
 	UpdateProductsAmount(products []ProductDTO, operation string) error
 	DeleteAndGetProducts(id int) ([]ProductDTO, error)
+	Products(id int, createdAt string) ([]ProductDTO, error)
 }
 
 type storage struct {
@@ -152,6 +153,40 @@ func (s *storage) DeleteAndGetProducts(id int) ([]ProductDTO, error) {
 	_, err = s.db.Exec(queryDeleteSupply, id)
 	if err != nil {
 		return nil, err
+	}
+
+	return products, nil
+}
+
+var selectProductsColumn = []string{
+	"supply_id",
+	"product_id",
+	"products.product_title",
+	"products.created_at",
+	"supply_products.packaging",
+	"supply_products.amount",
+	"supply_products.price_for_unit",
+	"supply_products.sum_without_tax",
+	"supply_products.tax",
+	"supply_products.total_sum",
+}
+
+func (s *storage) Products(id int, createdAt string) ([]ProductDTO, error) {
+	var products []ProductDTO
+	query := postgres.Psql.
+		Select(selectProductsColumn...).
+		Join(postgres.ProductsTable + " ON products.id = supply_products.product_id").
+		From(postgres.SupplyProductsTable).
+		Where(sq.Eq{"supply_products.supply_id": id})
+
+	if createdAt != "" {
+		query = query.Where(sq.Lt{"products.created_at": createdAt})
+	}
+
+	querySql, args, err := query.OrderBy("products.created_at DESC").Limit(12).ToSql()
+	err = s.db.Select(&products, querySql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to select supply products due to: %v", err)
 	}
 
 	return products, nil

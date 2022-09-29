@@ -18,14 +18,16 @@ type PaymentDTO struct {
 }
 
 type ProductDTO struct {
-	SupplyId      int     `json:"-" db:"supply_id"`
-	ProductId     int     `json:"productId" binding:"required" db:"product_id"`
-	Packaging     string  `json:"packaging" db:"packaging"`
-	Amount        float64 `json:"amount" binding:"required" db:"amount"`
-	PriceForUnit  float64 `json:"priceForUnit" binding:"required" db:"price_for_unit"`
-	SumWithoutTax float64 `json:"sumWithoutTax" binding:"required" db:"sum_without_tax"`
-	Tax           float64 `json:"tax" binding:"required" db:"tax"`
-	TotalSum      float64 `json:"totalSum" binding:"required" db:"total_sum"`
+	SupplyId      int        `json:"-" db:"supply_id"`
+	ProductId     int        `json:"productId" binding:"required" db:"product_id"`
+	ProductTitle  string     `json:"productTitle" db:"product_title"`
+	CreatedAt     *time.Time `json:"-" db:"created_at"`
+	Packaging     string     `json:"packaging" db:"packaging"`
+	Amount        float64    `json:"amount" binding:"required" db:"amount"`
+	PriceForUnit  float64    `json:"priceForUnit" binding:"required" db:"price_for_unit"`
+	SumWithoutTax float64    `json:"sumWithoutTax" binding:"required" db:"sum_without_tax"`
+	Tax           float64    `json:"tax" binding:"required" db:"tax"`
+	TotalSum      float64    `json:"totalSum" binding:"required" db:"total_sum"`
 }
 
 type Supply struct {

@@ -8,7 +8,7 @@ CREATE TABLE inventory_products
 (
     inventory_id      INT REFERENCES inventory (id) ON DELETE CASCADE NOT NULL,
     product_id        INT REFERENCES products (id) ON DELETE CASCADE  NOT NULL,
-    price             DECIMAL(12, 2)                                  NOT NULL,
+    product_price     DECIMAL(12, 2)                                  NOT NULL,
     last_inventory_id INT REFERENCES inventory (id) ON DELETE CASCADE,
     initial_amount    DECIMAL(12, 2),
     supply            DECIMAL(12, 2),

@@ -31,7 +31,7 @@ func NewInventoryStorage(db *sqlx.DB, logger *logging.Logger) Storage {
 var ProductsToInventory = []string{
 	"products.id",
 	"products.product_title",
-	"products.price",
+	"products.price as product_price",
 	"products.current_write_off",
 	"products.current_write_off * products.price as write_off_price",
 	"products.current_spend",
@@ -96,7 +96,7 @@ func (s *storage) DoInventory(products []InsertProductDTO) error {
 		sql, args, _ := psql.Insert(postgres.InventoryProductsTable).Values(
 			inventoryId,
 			p.ProductId,
-			p.Price,
+			p.ProductPrice,
 			p.LastInventoryId,
 			p.InitialAmount,
 			p.Supply,
@@ -135,7 +135,10 @@ func (s *storage) GetInventories(createdAt string) ([]DTO, error) {
 		selectInventoryQuery = selectInventoryQuery.Where(sq.Lt{"created_at": createdAt})
 	}
 
-	selectInventoryQuerySQL, args, err := selectInventoryQuery.ToSql()
+	selectInventoryQuerySQL, args, err := selectInventoryQuery.
+		OrderBy("created_at DESC").
+		Limit(12).
+		ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build query to select inventory due to: %v", err)
 	}
@@ -149,27 +152,30 @@ func (s *storage) GetInventories(createdAt string) ([]DTO, error) {
 }
 
 var inventoryProducts = []string{
-	"inventory_id",
-	"product_id",
-	"price",
-	"last_inventory_id",
-	"initial_amount",
-	"supply",
-	"spend",
-	"write_off",
-	"write_off * price as write_off_price",
-	"planned_amount",
-	"real_amount",
-	"real_amount * price as real_amount_price",
-	"real_amount - planned_amount as difference",
-	"(real_amount - planned_amount) * price as difference_price",
+	"inventory_products.inventory_id",
+	"inventory_products.product_id",
+	"products.product_title",
+	"inventory_products.product_price",
+	"inventory_products.last_inventory_id",
+	"inventory_products.initial_amount",
+	"inventory_products.supply",
+	"inventory_products.spend",
+	"inventory_products.write_off",
+	"inventory_products.write_off * inventory_products.product_price as write_off_price",
+	"inventory_products.planned_amount",
+	"inventory_products.real_amount",
+	"inventory_products.real_amount * inventory_products.product_price as real_amount_price",
+	"inventory_products.real_amount - inventory_products.planned_amount as difference",
+	"(inventory_products.real_amount - inventory_products.planned_amount) * product_price as difference_price",
 }
 
 func (s *storage) getInventoryProductsById(inventoryId int) ([]SelectProductDTO, error) {
 	var products []SelectProductDTO
 
+	// TODO createdAt
 	query, args, err := postgres.Psql.
 		Select(inventoryProducts...).
+		Join(postgres.ProductsTable + " ON products.id = inventory_products.product_id").
 		From(postgres.InventoryProductsTable).
 		Where(sq.Eq{"inventory_id": inventoryId}).
 		ToSql()
