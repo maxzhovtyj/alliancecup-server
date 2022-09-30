@@ -64,6 +64,19 @@ func (h *Handler) userAuthorized(ctx *gin.Context) {
 	}
 }
 
+func (h *Handler) superAdmin(ctx *gin.Context) {
+	userRoleId, err := getUserRoleId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "no user role or it's wrong type: "+err.Error())
+		return
+	}
+
+	if userRoleId != 3 {
+		newErrorResponse(ctx, http.StatusUnauthorized, "user unauthorized")
+		return
+	}
+}
+
 func getUserId(ctx *gin.Context) (int, error) {
 	id, ok := ctx.Get(userCtx)
 	if !ok {

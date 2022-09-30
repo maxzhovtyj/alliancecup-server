@@ -20,31 +20,35 @@ const (
 )
 
 const (
-	authUrl           = "/auth"
-	apiUrl            = "/api"
-	adminUrl          = "/admin"
-	clientUrl         = "/client"
-	signInUrl         = "/sign-in"
-	signUpUrl         = "/sign-up"
-	logoutUrl         = "/logout"
-	changePasswordUrl = "/change-password"
-	refreshUrl        = "/refresh"
-	categoriesUrl     = "/categories"
-	categoryUrl       = "/category"
-	productsUrl       = "/products"
-	productUrl        = "/product"
-	supplyUrl         = "/supply"
-	reviewsUrl        = "/reviews"
-	reviewUrl         = "/review"
-	cartUrl           = "/cart"
-	favouritesUrl     = "/favourites"
-	filtrationUrl     = "/filtration"
-	ordersUrl         = "/orders"
-	orderUrl          = "/order"
-	userOrdersUrl     = "/user-orders"
-	orderInfoTypesUrl = "/order-info-types"
-	moderatorUrl      = "/moderator"
-	inventoryUrl      = "inventory"
+	authUrl              = "/auth"
+	apiUrl               = "/api"
+	adminUrl             = "/admin"
+	clientUrl            = "/client"
+	signInUrl            = "/sign-in"
+	signUpUrl            = "/sign-up"
+	logoutUrl            = "/logout"
+	changePasswordUrl    = "/change-password"
+	refreshUrl           = "/refresh"
+	categoriesUrl        = "/categories"
+	categoryUrl          = "/category"
+	productsUrl          = "/products"
+	productUrl           = "/product"
+	reviewsUrl           = "/reviews"
+	reviewUrl            = "/review"
+	cartUrl              = "/cart"
+	favouritesUrl        = "/favourites"
+	filtrationUrl        = "/filtration"
+	ordersUrl            = "/orders"
+	orderUrl             = "/order"
+	userOrdersUrl        = "/user-orders"
+	orderInfoTypesUrl    = "/order-info-types"
+	moderatorUrl         = "/moderator"
+	superAdminUrl        = "/super"
+	supplyUrl            = "/supply"
+	supplyProductsUrl    = "/supply-products"
+	inventoryUrl         = "/inventory"
+	inventoriesUrl       = "/inventories"
+	inventoryProductsUrl = "/inventory-products"
 )
 
 type Handler struct {
@@ -114,19 +118,23 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
 			admin.GET(ordersUrl, h.adminGetOrders)
-			admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
+			//admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
 
 			admin.POST(filtrationUrl, h.addFiltrationItem)
 
 			admin.POST(supplyUrl, h.newSupply)
 			admin.GET(supplyUrl, h.getAllSupply)
-			admin.GET("supply-products", h.getSupplyProducts)
+			admin.GET(supplyProductsUrl, h.getSupplyProducts)
 			admin.DELETE(supplyUrl, h.deleteSupply)
 
-			admin.GET(inventoryUrl, h.getProductsToInventory)
-			admin.POST(inventoryUrl, h.doInventory)
-			admin.GET("inventories", h.getInventories)
-			admin.GET("inventory-products", h.getInventoryProducts)
+			// TODO middleware only super admin
+			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
+			{
+				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
+				superAdmin.POST(inventoryUrl, h.doInventory)
+				superAdmin.GET(inventoriesUrl, h.getInventories)
+				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)
+			}
 
 			//admin.POST("write-off") // TODO product write off
 			admin.DELETE(reviewUrl, h.deleteReview)
