@@ -49,6 +49,7 @@ const (
 	inventoryUrl         = "/inventory"
 	inventoriesUrl       = "/inventories"
 	inventoryProductsUrl = "/inventory-products"
+	invoiceUrl           = "/invoice"
 )
 
 type Handler struct {
@@ -103,6 +104,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
 		api.POST(reviewUrl, h.addReview)
 		api.GET(reviewsUrl, h.getReviews)
+
+		api.GET(invoiceUrl, h.getOrderInvoice)
 
 		admin := api.Group(adminUrl, h.userHasPermission)
 		{

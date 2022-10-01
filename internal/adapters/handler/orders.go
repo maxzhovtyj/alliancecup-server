@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	server "github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"net/http"
+	"os"
 )
 
 type OrderResponse struct {
@@ -231,4 +232,29 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 		"orderId": orderInput.OrderId,
 		"message": "order status successfully updated",
 	})
+}
+
+func (h *Handler) getOrderInvoice(ctx *gin.Context) {
+	id, err := uuid.Parse(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	invoice, err := h.services.Order.GetInvoice(id)
+
+	err = invoice.OutputFileAndClose("./tmp/out.pdf")
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.Header("Content-Disposition", "attachment; filename=out.pdf")
+	//ctx.Header("Content-Type", "application/octet-stream")
+	ctx.FileAttachment("/Users/maksymzhovtaniuk/Desktop/Programming/alliancecup/allincecup-server/tmp/out.pdf", "out.pdf")
+
+	err = os.Remove("./tmp/out.pdf")
+	if err != nil {
+		return
+	}
 }
