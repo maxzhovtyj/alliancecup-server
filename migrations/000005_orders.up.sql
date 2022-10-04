@@ -24,7 +24,7 @@ values ('Переказ на карту');
 
 CREATE TABLE orders
 (
-    id                uuid primary key                            default gen_random_uuid(),
+    id                serial primary key,
     user_id           int references users (id) on delete cascade default NULL,
     user_lastname     varchar(128)                       not null,
     user_firstname    varchar(128)                       not null,
@@ -42,7 +42,7 @@ CREATE TABLE orders
 
 CREATE TABLE orders_delivery
 (
-    order_id             uuid references orders (id) on delete cascade not null,
+    order_id             int references orders (id) on delete cascade not null,
     delivery_title       varchar(128)                                  not null,
     delivery_description text                                          not null,
     primary key (order_id, delivery_title, delivery_description)
@@ -50,7 +50,7 @@ CREATE TABLE orders_delivery
 
 CREATE TABLE orders_products
 (
-    order_id           uuid references orders (id) on delete cascade  not null,
+    order_id           int references orders (id) on delete cascade  not null,
     product_id         int references products (id) on delete cascade not null,
     quantity           int                                            not null,
     price_for_quantity decimal(12, 2)                                 not null,

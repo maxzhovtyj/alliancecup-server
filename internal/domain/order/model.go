@@ -1,12 +1,11 @@
 package order
 
 import (
-	"github.com/google/uuid"
 	"time"
 )
 
 type Order struct {
-	Id                uuid.UUID  `json:"id" db:"id"`
+	Id                int        `json:"id" db:"id"`
 	UserId            *int       `json:"user_id" db:"user_id"`
 	UserLastName      string     `json:"user_lastname" binding:"required" db:"user_lastname"`
 	UserFirstName     string     `json:"user_firstname" binding:"required" db:"user_firstname"`
@@ -23,16 +22,16 @@ type Order struct {
 }
 
 type Product struct {
-	OrderId          uuid.UUID `json:"-" db:"order_id"`
-	ProductId        int       `json:"product_id" db:"product_id"`
-	Quantity         int       `json:"quantity" db:"quantity"`
-	PriceForQuantity float64   `json:"price_for_quantity" db:"price_for_quantity"`
+	OrderId          int     `json:"-" db:"order_id"`
+	ProductId        int     `json:"product_id" db:"product_id"`
+	Quantity         int     `json:"quantity" db:"quantity"`
+	PriceForQuantity float64 `json:"price_for_quantity" db:"price_for_quantity"`
 }
 
 type OrdersDelivery struct {
-	OrderId             uuid.UUID `json:"-" db:"order_id"`
-	DeliveryTitle       string    `json:"delivery_title" db:"delivery_title"`
-	DeliveryDescription string    `json:"delivery_description" db:"delivery_description"`
+	OrderId             int    `json:"-" db:"order_id"`
+	DeliveryTitle       string `json:"delivery_title" db:"delivery_title"`
+	DeliveryDescription string `json:"delivery_description" db:"delivery_description"`
 }
 
 type Info struct {
@@ -43,7 +42,7 @@ type Info struct {
 
 type ProductFullInfo struct {
 	Id               int       `json:"id" db:"id"`
-	OrderId          uuid.UUID `json:"order_id" db:"order_id"`
+	OrderId          int       `json:"order_id" db:"order_id"`
 	Article          string    `json:"article" db:"article"`
 	ProductTitle     string    `json:"product_title" db:"product_title"`
 	ImgUrl           string    `json:"img_url" db:"img_url"`

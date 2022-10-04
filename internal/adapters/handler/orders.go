@@ -3,19 +3,19 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	server "github.com/zh0vtyj/allincecup-server/internal/domain/order"
+	order "github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"net/http"
+	"strconv"
 )
 
 type OrderResponse struct {
-	Id      uuid.UUID `json:"id"`
-	Message string    `json:"message"`
+	Id      int    `json:"id"`
+	Message string `json:"message"`
 }
 
 type ProcessedOrderStatus struct {
-	OrderId  uuid.UUID `json:"orderId" binding:"required"`
-	ToStatus string    `json:"toStatus" binding:"required"`
+	OrderId  int    `json:"orderId" binding:"required"`
+	ToStatus string `json:"toStatus" binding:"required"`
 }
 
 // newOrder godoc
@@ -32,7 +32,7 @@ type ProcessedOrderStatus struct {
 // @Failure      500  {object}  Error
 // @Router       /api/order [post]
 func (h *Handler) newOrder(ctx *gin.Context) {
-	var input server.Info
+	var input order.Info
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -117,15 +117,13 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/client/order [get]
 func (h *Handler) getOrderById(ctx *gin.Context) {
-	orderId := ctx.Query("id")
-
-	orderUUID, err := uuid.Parse(orderId)
+	orderId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, "cannot parse uuid: "+err.Error())
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	orderInfo, err := h.services.Order.GetOrderById(orderUUID)
+	orderInfo, err := h.services.Order.GetOrderById(orderId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -236,7 +234,7 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 }
 
 func (h *Handler) getOrderInvoice(ctx *gin.Context) {
-	//id, err := uuid.Parse(ctx.Query("id"))
+	//id, err := strconv.Atoi(ctx.Query("id"))
 	//if err != nil {
 	//	newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	//	return
