@@ -312,33 +312,33 @@ func (o *storage) GetAdminOrders(status string, lastOrderCreatedAt string) ([]Or
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	queryOrders := psql.Select(
-		"order.id",
-		"order.user_lastname",
-		"order.user_firstname",
-		"order.user_middle_name",
-		"order.user_phone_number",
-		"order.user_email",
-		"order.order_status",
-		"order.order_comment",
-		"order.order_sum_price",
+		"orders.id",
+		"orders.user_lastname",
+		"orders.user_firstname",
+		"orders.user_middle_name",
+		"orders.user_phone_number",
+		"orders.user_email",
+		"orders.order_status",
+		"orders.order_comment",
+		"orders.order_sum_price",
 		"delivery_types.delivery_type_title",
 		"payment_types.payment_type_title",
-		"order.created_at",
-		"order.closed_at",
+		"orders.created_at",
+		"orders.closed_at",
 	).
 		From(postgres.OrdersTable).
-		LeftJoin(postgres.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
-		LeftJoin(postgres.PaymentTypesTable + " ON order.payment_type_id=payment_types.id")
+		LeftJoin(postgres.DeliveryTypesTable + " ON orders.delivery_type_id = delivery_types.id").
+		LeftJoin(postgres.PaymentTypesTable + " ON orders.payment_type_id = payment_types.id")
 
 	if status != "" {
-		queryOrders = queryOrders.Where(sq.Eq{"order.order_status": status})
+		queryOrders = queryOrders.Where(sq.Eq{"orders.order_status": status})
 	}
 
 	if lastOrderCreatedAt != "" {
-		queryOrders = queryOrders.Where(sq.Lt{"order.created_at": lastOrderCreatedAt})
+		queryOrders = queryOrders.Where(sq.Lt{"orders.created_at": lastOrderCreatedAt})
 	}
 
-	queryOrders = queryOrders.OrderBy("order.created_at DESC").Limit(12)
+	queryOrders = queryOrders.OrderBy("orders.created_at DESC").Limit(12)
 
 	queryOrdersSql, args, err := queryOrders.ToSql()
 	if err != nil {

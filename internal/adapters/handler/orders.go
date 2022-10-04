@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	server "github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"net/http"
-	"os"
 )
 
 type OrderResponse struct {
@@ -155,9 +154,11 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	createdAt := ctx.Query("created_at")
 	orderStatus := ctx.Query("order_status")
 
-	if orderStatus != StatusCompleted && orderStatus != StatusProcessed && orderStatus != StatusInProgress {
-		orderStatus = ""
-		fmt.Println("order status either empty or invalid")
+	if orderStatus != "" {
+		if orderStatus != StatusCompleted && orderStatus != StatusProcessed && orderStatus != StatusInProgress {
+			newErrorResponse(ctx, http.StatusBadRequest, "order status either empty or invalid")
+			return
+		}
 	}
 
 	orders, err := h.services.Order.GetAdminOrders(orderStatus, createdAt)
@@ -235,26 +236,20 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 }
 
 func (h *Handler) getOrderInvoice(ctx *gin.Context) {
-	id, err := uuid.Parse(ctx.Query("id"))
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
+	//id, err := uuid.Parse(ctx.Query("id"))
+	//if err != nil {
+	//	newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+	//	return
+	//}
 
-	invoice, err := h.services.Order.GetInvoice(id)
-
-	err = invoice.OutputFileAndClose("./tmp/out.pdf")
-	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
+	//invoice, err := h.services.Order.GetInvoice(id)
 
 	ctx.Header("Content-Disposition", "attachment; filename=out.pdf")
 	//ctx.Header("Content-Type", "application/octet-stream")
 	ctx.FileAttachment("/Users/maksymzhovtaniuk/Desktop/Programming/alliancecup/allincecup-server/tmp/out.pdf", "out.pdf")
 
-	err = os.Remove("./tmp/out.pdf")
-	if err != nil {
-		return
-	}
+	//err = os.Remove("./tmp/out.pdf")
+	//if err != nil {
+	//	return
+	//}
 }
