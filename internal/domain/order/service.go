@@ -2,8 +2,11 @@ package order
 
 import (
 	"fmt"
+	"github.com/jung-kurt/gofpdf"
+	goinvoice "github.com/maxzhovtyj/go-invoice"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
 	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
+	"os"
 )
 
 type Service interface {
@@ -13,6 +16,7 @@ type Service interface {
 	GetAdminOrders(status string, lastOrderCreatedAt string) ([]Order, error)
 	DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error)
 	ProcessedOrder(orderId int) error
+	GetInvoice(orderId int) (gofpdf.Fpdf, error)
 }
 
 type service struct {
@@ -100,4 +104,57 @@ func (o *service) ProcessedOrder(orderId int) error {
 	}
 
 	return nil
+}
+
+func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	doc, err := goinvoice.NewWithCyrillic(pwd)
+	if err != nil {
+		return gofpdf.Fpdf{}, err
+	}
+
+	doc.SetPwd(pwd)
+	doc.OrderId = fmt.Sprintf("%d", orderId)
+	doc.SetInvoice(&goinvoice.Invoice{
+		Logo:  nil,
+		Title: "Alliance Cup",
+	})
+	doc.SetCompany(&goinvoice.Company{
+		Name:        "AllianceCup",
+		Address:     "Шухевича, 22",
+		PhoneNumber: "+380(96) 512-15-16",
+		City:        "Рівне",
+		Country:     "Україна",
+	})
+	doc.SetCustomer(&goinvoice.Customer{
+		LastName:     "Жовтанюк",
+		FirstName:    "Максим",
+		MiddleName:   "В'ячеславович",
+		PhoneNumber:  "+380(68) 306-29-75",
+		Email:        "zhovtyjshady@gmail.com",
+		DeliveryType: "Доставка новою поштою",
+		//DeliveryInfo: "м.Рівне, відділення №12",
+	})
+	for i := 0; i < 15; i++ {
+		doc.AppendProductItem(&goinvoice.Product{
+			Title:     "Стакан одноразовий Крафт 180мл",
+			Price:     8.5,
+			Quantity:  100,
+			Total:     850,
+			Packaging: "шт",
+		})
+	}
+
+	pdf, err := doc.BuildPdf()
+	if err != nil {
+		fmt.Println(err.Error())
+		return gofpdf.Fpdf{}, err
+	}
+
+	return pdf, err
 }

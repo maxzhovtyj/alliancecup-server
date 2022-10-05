@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	order "github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -234,20 +235,40 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 }
 
 func (h *Handler) getOrderInvoice(ctx *gin.Context) {
-	//id, err := strconv.Atoi(ctx.Query("id"))
-	//if err != nil {
-	//	newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-	//	return
-	//}
+	id, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
 
-	//invoice, err := h.services.Order.GetInvoice(id)
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
-	ctx.Header("Content-Disposition", "attachment; filename=out.pdf")
+	fileName := fmt.Sprintf("invoice-%d.pdf", id)
+	filePath := fmt.Sprintf("%s/tmp/%s", pwd, fileName)
+
+	invoice, err := h.services.Order.GetInvoice(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = invoice.OutputFileAndClose(filePath)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ContentDispositionValue := fmt.Sprintf("attachment; filename=%s", fileName)
+	ctx.Header("Content-Disposition", ContentDispositionValue)
 	//ctx.Header("Content-Type", "application/octet-stream")
-	ctx.FileAttachment("/Users/maksymzhovtaniuk/Desktop/Programming/alliancecup/allincecup-server/tmp/out.pdf", "out.pdf")
+	ctx.FileAttachment(filePath, fileName)
 
-	//err = os.Remove("./tmp/out.pdf")
-	//if err != nil {
-	//	return
-	//}
+	err = os.Remove(filePath)
+	if err != nil {
+		return
+	}
 }
