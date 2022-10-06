@@ -13,7 +13,7 @@ type Service interface {
 	New(order Info) (int, error)
 	GetUserOrders(userId int, createdAt string) ([]FullInfo, error)
 	GetOrderById(orderId int) (FullInfo, error)
-	GetAdminOrders(status string, lastOrderCreatedAt string) ([]Order, error)
+	AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error)
 	DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error)
 	ProcessedOrder(orderId int) error
 	GetInvoice(orderId int) (gofpdf.Fpdf, error)
@@ -76,8 +76,8 @@ func (o *service) GetOrderById(orderId int) (FullInfo, error) {
 	return o.repo.GetOrderById(orderId)
 }
 
-func (o *service) GetAdminOrders(status string, lastOrderCreatedAt string) ([]Order, error) {
-	return o.repo.GetAdminOrders(status, lastOrderCreatedAt)
+func (o *service) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error) {
+	return o.repo.AdminGetOrders(status, lastOrderCreatedAt, search)
 }
 
 func (o *service) DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error) {
@@ -107,6 +107,11 @@ func (o *service) ProcessedOrder(orderId int) error {
 }
 
 func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
+	order, err := o.repo.GetOrderById(orderId)
+	if err != nil {
+		return gofpdf.Fpdf{}, err
+	}
+
 	pwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
@@ -131,22 +136,32 @@ func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 		City:        "Рівне",
 		Country:     "Україна",
 	})
+
+	var orderDeliveryInfo string
+	for i, d := range order.Delivery {
+		orderDeliveryInfo += d.DeliveryDescription
+		if len(order.Delivery)-1 != i {
+			orderDeliveryInfo += ", "
+		}
+	}
+
 	doc.SetCustomer(&goinvoice.Customer{
-		LastName:     "Жовтанюк",
-		FirstName:    "Максим",
-		MiddleName:   "В'ячеславович",
-		PhoneNumber:  "+380(68) 306-29-75",
-		Email:        "zhovtyjshady@gmail.com",
-		DeliveryType: "Доставка новою поштою",
-		//DeliveryInfo: "м.Рівне, відділення №12",
+		LastName:     order.Info.UserLastName,
+		FirstName:    order.Info.UserFirstName,
+		MiddleName:   order.Info.UserMiddleName,
+		PhoneNumber:  order.Info.UserPhoneNumber,
+		Email:        order.Info.UserEmail,
+		DeliveryType: order.Info.DeliveryTypeTitle,
+		DeliveryInfo: orderDeliveryInfo,
 	})
-	for i := 0; i < 15; i++ {
+
+	for _, p := range order.Products {
 		doc.AppendProductItem(&goinvoice.Product{
-			Title:     "Стакан одноразовий Крафт 180мл",
-			Price:     8.5,
-			Quantity:  100,
-			Total:     850,
-			Packaging: "шт",
+			Title:     p.ProductTitle,
+			Price:     p.Price,
+			Quantity:  float64(p.Quantity),
+			Total:     p.PriceForQuantity,
+			Packaging: "уп",
 		})
 	}
 

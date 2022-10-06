@@ -152,6 +152,7 @@ func (h *Handler) getOrderById(ctx *gin.Context) {
 func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	createdAt := ctx.Query("created_at")
 	orderStatus := ctx.Query("order_status")
+	search := ctx.Query("search")
 
 	if orderStatus != "" {
 		if orderStatus != StatusCompleted && orderStatus != StatusProcessed && orderStatus != StatusInProgress {
@@ -160,15 +161,13 @@ func (h *Handler) adminGetOrders(ctx *gin.Context) {
 		}
 	}
 
-	orders, err := h.services.Order.GetAdminOrders(orderStatus, createdAt)
+	orders, err := h.services.Order.AdminGetOrders(orderStatus, createdAt, search)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"data": orders,
-	})
+	ctx.JSON(http.StatusOK, orders)
 }
 
 // getDeliveryPaymentTypes godoc

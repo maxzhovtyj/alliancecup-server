@@ -6,13 +6,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
+	"strings"
 )
 
 type Storage interface {
 	New(order Info) (int, error)
 	GetUserOrders(userId int, createdAt string) ([]FullInfo, error)
 	GetOrderById(orderId int) (FullInfo, error)
-	GetAdminOrders(status string, lastOrderCreatedAt string) ([]Order, error)
+	AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error)
 	GetDeliveryTypes() ([]server.DeliveryType, error)
 	GetPaymentTypes() ([]server.PaymentType, error)
 	ProcessedOrder(orderId int) error
@@ -305,7 +306,7 @@ func (o *storage) GetOrderById(orderId int) (FullInfo, error) {
 	return order, err
 }
 
-func (o *storage) GetAdminOrders(status string, lastOrderCreatedAt string) ([]Order, error) {
+func (o *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error) {
 	var orders []Order
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -337,12 +338,13 @@ func (o *storage) GetAdminOrders(status string, lastOrderCreatedAt string) ([]Or
 		queryOrders = queryOrders.Where(sq.Lt{"orders.created_at": lastOrderCreatedAt})
 	}
 
-	queryOrders = queryOrders.OrderBy("orders.created_at DESC").Limit(12)
-
-	queryOrdersSql, args, err := queryOrders.ToSql()
-	if err != nil {
-		return nil, err
+	if search != "" {
+		searchName := fmt.Sprintf("LOWER(orders.user_lastname)")
+		searchNameValue := "%" + strings.ToLower(search) + "%"
+		queryOrders = queryOrders.Where(sq.Like{searchName: searchNameValue})
 	}
+
+	queryOrdersSql, args, err := queryOrders.OrderBy("orders.created_at DESC").Limit(12).ToSql()
 
 	err = o.db.Select(&orders, queryOrdersSql, args...)
 	if err != nil {
