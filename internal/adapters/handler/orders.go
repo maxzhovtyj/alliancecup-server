@@ -33,7 +33,7 @@ type ProcessedOrderStatus struct {
 // @Failure      500  {object}  Error
 // @Router       /api/order [post]
 func (h *Handler) newOrder(ctx *gin.Context) {
-	var input order.Info
+	var input order.CreateDTO
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -76,7 +76,7 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        created_at query string false "last order created_at for pagination"
-// @Success      200  {object}  server.FullInfo
+// @Success      200  {object}  server.SelectDTO
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -112,7 +112,7 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @ID gets order by id
 // @Produce      json
 // @Param        id query string true "order id"
-// @Success      200  {object}  order.FullInfo
+// @Success      200  {object}  order.SelectDTO
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error

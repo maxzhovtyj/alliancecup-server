@@ -10,9 +10,9 @@ import (
 )
 
 type Service interface {
-	New(order Info) (int, error)
-	GetUserOrders(userId int, createdAt string) ([]FullInfo, error)
-	GetOrderById(orderId int) (FullInfo, error)
+	New(order CreateDTO) (int, error)
+	GetUserOrders(userId int, createdAt string) ([]SelectDTO, error)
+	GetOrderById(orderId int) (SelectDTO, error)
 	AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error)
 	DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error)
 	ProcessedOrder(orderId int) error
@@ -50,8 +50,7 @@ func (o *service) OrderSumCount(products []Product) (float64, error) {
 	return sum, nil
 }
 
-func (o *service) New(order Info) (int, error) {
-	// TODO
+func (o *service) New(order CreateDTO) (int, error) {
 	sum, err := o.OrderSumCount(order.Products)
 	if err != nil {
 		return 0, err
@@ -68,11 +67,11 @@ func (o *service) New(order Info) (int, error) {
 	return id, nil
 }
 
-func (o *service) GetUserOrders(userId int, createdAt string) ([]FullInfo, error) {
+func (o *service) GetUserOrders(userId int, createdAt string) ([]SelectDTO, error) {
 	return o.repo.GetUserOrders(userId, createdAt)
 }
 
-func (o *service) GetOrderById(orderId int) (FullInfo, error) {
+func (o *service) GetOrderById(orderId int) (SelectDTO, error) {
 	return o.repo.GetOrderById(orderId)
 }
 

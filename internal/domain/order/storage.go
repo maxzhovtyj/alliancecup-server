@@ -10,9 +10,9 @@ import (
 )
 
 type Storage interface {
-	New(order Info) (int, error)
-	GetUserOrders(userId int, createdAt string) ([]FullInfo, error)
-	GetOrderById(orderId int) (FullInfo, error)
+	New(order CreateDTO) (int, error)
+	GetUserOrders(userId int, createdAt string) ([]SelectDTO, error)
+	GetOrderById(orderId int) (SelectDTO, error)
 	AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error)
 	GetDeliveryTypes() ([]server.DeliveryType, error)
 	GetPaymentTypes() ([]server.PaymentType, error)
@@ -40,7 +40,7 @@ var orderInfoColumnsInsert = []string{
 	"payment_type_id",
 }
 
-func (o *storage) New(order Info) (int, error) {
+func (o *storage) New(order CreateDTO) (int, error) {
 	tx, _ := o.db.Begin()
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -129,7 +129,7 @@ func (o *storage) New(order Info) (int, error) {
 	return orderId, tx.Commit()
 }
 
-func (o *storage) GetUserOrders(userId int, createdAt string) ([]FullInfo, error) {
+func (o *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	var ordersAmount int
@@ -147,7 +147,7 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]FullInfo, error
 		ordersLimit = ordersAmount
 	}
 
-	orders := make([]FullInfo, ordersLimit)
+	orders := make([]SelectDTO, ordersLimit)
 
 	query := psql.Select(
 		"order.id",
@@ -236,8 +236,8 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]FullInfo, error
 	return orders, err
 }
 
-func (o *storage) GetOrderById(orderId int) (FullInfo, error) {
-	var order FullInfo
+func (o *storage) GetOrderById(orderId int) (SelectDTO, error) {
+	var order SelectDTO
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
@@ -266,7 +266,7 @@ func (o *storage) GetOrderById(orderId int) (FullInfo, error) {
 
 	err = o.db.Get(&order.Info, queryOrderInfoSql, args...)
 	if err != nil {
-		return FullInfo{}, fmt.Errorf("failed to get order info due to: %v", err)
+		return SelectDTO{}, fmt.Errorf("failed to get order info due to: %v", err)
 	}
 
 	queryProductsSql, args, err := psql.
@@ -290,7 +290,7 @@ func (o *storage) GetOrderById(orderId int) (FullInfo, error) {
 
 	err = o.db.Select(&order.Products, queryProductsSql, args...)
 	if err != nil {
-		return FullInfo{}, fmt.Errorf("failed to get order products due to: %v", err)
+		return SelectDTO{}, fmt.Errorf("failed to get order products due to: %v", err)
 	}
 
 	queryDeliverySql, args, err := psql.
@@ -300,7 +300,7 @@ func (o *storage) GetOrderById(orderId int) (FullInfo, error) {
 
 	err = o.db.Select(&order.Delivery, queryDeliverySql, args...)
 	if err != nil {
-		return FullInfo{}, fmt.Errorf("failed to get order delivery info due to: %v", err)
+		return SelectDTO{}, fmt.Errorf("failed to get order delivery info due to: %v", err)
 	}
 
 	return order, err

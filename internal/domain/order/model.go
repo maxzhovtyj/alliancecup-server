@@ -34,7 +34,7 @@ type OrdersDelivery struct {
 	DeliveryDescription string `json:"delivery_description" db:"delivery_description"`
 }
 
-type Info struct {
+type CreateDTO struct {
 	Order    Order            `json:"order"`
 	Products []Product        `json:"products"`
 	Delivery []OrdersDelivery `json:"delivery"`
@@ -55,7 +55,7 @@ type ProductFullInfo struct {
 	PriceForQuantity float64   `json:"price_for_quantity" db:"price_for_quantity"`
 }
 
-type FullInfo struct {
+type SelectDTO struct {
 	Info     Order             `json:"info"`
 	Products []ProductFullInfo `json:"products"`
 	Delivery []OrdersDelivery  `json:"delivery"`
