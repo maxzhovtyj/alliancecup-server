@@ -223,8 +223,8 @@ github.com/mattn/go-isatty v0.0.14 h1:yVuAays6BHfxijgZPzw+3Zlu5yQgKGP2/hcQbHb7S9
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-sqlite3 v1.14.6 h1:dNPt6NO46WmLVt2DLNpwczCmdV5boIZ6g/tlDrlRUbg=
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
-github.com/maxzhovtyj/go-invoice v0.0.0-20221005144851-d3bc20979614 h1:BguV3nQW2430S2ZLO2WOvhN1YRKcKRFommusYlJDLY0=
-github.com/maxzhovtyj/go-invoice v0.0.0-20221005144851-d3bc20979614/go.mod h1:3opQjn/RBriUDfMk2fpB5TOJOhjhJN16c5n0M0QQ5v4=
+github.com/maxzhovtyj/go-invoice v0.0.0-20221006084917-1a4974ac4320 h1:qVJlzWplmyn6ykxYrb9IRJAUQZtzZP3K+ylo75JGne0=
+github.com/maxzhovtyj/go-invoice v0.0.0-20221006084917-1a4974ac4320/go.mod h1:3opQjn/RBriUDfMk2fpB5TOJOhjhJN16c5n0M0QQ5v4=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
