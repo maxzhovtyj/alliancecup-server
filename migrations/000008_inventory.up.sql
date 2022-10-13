@@ -16,7 +16,8 @@ CREATE TABLE inventory_products
     write_off         DECIMAL(12, 2),
     planned_amount    DECIMAL(12, 2),
     real_amount       DECIMAL(12, 2),
-    PRIMARY KEY (inventory_id, product_id)
+    PRIMARY KEY (inventory_id, product_id),
+    CONSTRAINT valid_product_price CHECK ( product_price > 0 )
 );
 
 ALTER TABLE products

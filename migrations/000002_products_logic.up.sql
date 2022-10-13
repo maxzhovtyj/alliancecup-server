@@ -22,17 +22,18 @@ values ('Стакан');
 
 CREATE TABLE products
 (
-    id               SERIAL PRIMARY KEY,
-    article          TEXT                                                 NOT NULL UNIQUE,
-    category_id      INT REFERENCES categories (id) ON DELETE CASCADE     NOT NULL,
-    product_title    TEXT                                                 NOT NULL,
-    img_url          TEXT,
-    type_id          INT REFERENCES products_types (id) ON DELETE CASCADE NOT NULL,
-    amount_in_stock  DECIMAL(12, 2),
-    price            DECIMAL(12, 2)                                       NOT NULL,
-    units_in_package INT                                                  NOT NULL,
-    packages_in_box  INT                                                  NOT NULL,
-    created_at       TIMESTAMPTZ DEFAULT (now() AT TIME ZONE 'utc-3')
+    id              SERIAL PRIMARY KEY,
+    article         TEXT                                                 NOT NULL UNIQUE,
+    category_id     INT REFERENCES categories (id) ON DELETE CASCADE     NOT NULL,
+    product_title   TEXT                                                 NOT NULL,
+    img_url         TEXT,
+    type_id         INT REFERENCES products_types (id) ON DELETE CASCADE NOT NULL,
+    amount_in_stock DECIMAL(12, 2),
+    price           DECIMAL(12, 2)                                       NOT NULL,
+    packaging       JSONB,
+    created_at      TIMESTAMPTZ DEFAULT (now() AT TIME ZONE 'utc-3'),
+    CONSTRAINT valid_price CHECK ( price > 0 ),
+    CONSTRAINT valid_amount_in_stock CHECK ( amount_in_stock > 0 )
 );
 
 CREATE TABLE carts_products
@@ -41,7 +42,8 @@ CREATE TABLE carts_products
     product_id         INT REFERENCES products (id) ON DELETE CASCADE NOT NULL,
     quantity           INT                                            NOT NULL,
     price_for_quantity DECIMAL(12, 2)                                 NOT NULL,
-    PRIMARY KEY (cart_id, product_id)
+    PRIMARY KEY (cart_id, product_id),
+    CONSTRAINT valid_quantity CHECK ( quantity > 0 )
 );
 
 CREATE TABLE products_info

@@ -31,13 +31,14 @@ CREATE TABLE orders
     user_middle_name  TEXT                               NOT NULL,
     user_phone_number TEXT                               NOT NULL,
     user_email        TEXT                               NOT NULL,
-    order_status      TEXT                                        DEFAULT 'IN_PROGRESS',
-    order_comment     TEXT                                        DEFAULT NULL,
-    order_sum_price   DECIMAL(12, 2)                     NOT NULL,
+    status            TEXT                                        DEFAULT 'IN_PROGRESS',
+    comment           TEXT,
+    sum_price         DECIMAL(12, 2)                     NOT NULL,
     delivery_type_id  INT REFERENCES delivery_types (id) NOT NULL,
     payment_type_id   INT REFERENCES payment_types (id)  NOT NULL,
     created_at        TIMESTAMPTZ                                 DEFAULT (now() AT TIME ZONE 'utc-3'),
-    closed_at         TIMESTAMPTZ                                 DEFAULT (NULL AT TIME ZONE 'utc-3')
+    closed_at         TIMESTAMPTZ                                 DEFAULT (NULL AT TIME ZONE 'utc-3'),
+    CONSTRAINT valid_sum_price CHECK ( sum_price > 0 )
 );
 
 CREATE TABLE orders_delivery
@@ -54,5 +55,7 @@ CREATE TABLE orders_products
     product_id         INT REFERENCES products (id) ON DELETE CASCADE NOT NULL,
     quantity           INT                                            NOT NULL,
     price_for_quantity DECIMAL(12, 2)                                 NOT NULL,
-    PRIMARY KEY (order_id, product_id)
+    PRIMARY KEY (order_id, product_id),
+    CONSTRAINT valid_quantity CHECK ( quantity > 0 ),
+    CONSTRAINT valid_price_for_quantity CHECK ( price_for_quantity > 0 )
 );
