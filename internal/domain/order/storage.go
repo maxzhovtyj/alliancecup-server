@@ -20,11 +20,15 @@ type Storage interface {
 }
 
 type storage struct {
+	qb sq.StatementBuilderType
 	db *sqlx.DB
 }
 
-func NewOrdersPostgres(db *sqlx.DB) *storage {
-	return &storage{db: db}
+func NewOrdersPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
+	return &storage{
+		db: db,
+		qb: psql,
+	}
 }
 
 var orderInfoColumnsInsert = []string{
@@ -40,26 +44,24 @@ var orderInfoColumnsInsert = []string{
 	"payment_type_id",
 }
 
-func (o *storage) New(order CreateDTO) (int, error) {
-	tx, _ := o.db.Begin()
-
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+func (s *storage) New(order CreateDTO) (int, error) {
+	tx, _ := s.db.Begin()
 
 	var deliveryTypeId int
 	queryGetDeliveryId := fmt.Sprintf("SELECT id FROM %s WHERE delivery_type_title=$1", postgres.DeliveryTypesTable)
-	err := o.db.Get(&deliveryTypeId, queryGetDeliveryId, order.Order.DeliveryTypeTitle)
+	err := s.db.Get(&deliveryTypeId, queryGetDeliveryId, order.Order.DeliveryTypeTitle)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create order, delivery type not found %s, error: %v", order.Order.DeliveryTypeTitle, err)
 	}
 
 	var paymentTypeId int
 	queryGetPaymentTypeId := fmt.Sprintf("SELECT id FROM %s WHERE payment_type_title=$1", postgres.PaymentTypesTable)
-	err = o.db.Get(&paymentTypeId, queryGetPaymentTypeId, order.Order.PaymentTypeTitle)
+	err = s.db.Get(&paymentTypeId, queryGetPaymentTypeId, order.Order.PaymentTypeTitle)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create order, payment type not found %s, error: %v", order.Order.PaymentTypeTitle, err)
 	}
 
-	queryInsertOrder := psql.Insert(postgres.OrdersTable).Columns(orderInfoColumnsInsert...)
+	queryInsertOrder := s.qb.Insert(postgres.OrdersTable).Columns(orderInfoColumnsInsert...)
 
 	queryInsertOrder = queryInsertOrder.Values(
 		order.Order.UserId,
@@ -87,7 +89,7 @@ func (o *storage) New(order CreateDTO) (int, error) {
 	}
 
 	for _, product := range order.Products {
-		queryInsertProducts, args, err := psql.Insert(postgres.OrdersProductsTable).
+		queryInsertProducts, args, err := s.qb.Insert(postgres.OrdersProductsTable).
 			Columns("order_id", "product_id", "quantity", "price_for_quantity").
 			Values(orderId, product.ProductId, product.Quantity, product.PriceForQuantity).
 			ToSql()
@@ -102,7 +104,7 @@ func (o *storage) New(order CreateDTO) (int, error) {
 	}
 
 	for _, delivery := range order.Delivery {
-		queryInsertDelivery, args, err := psql.Insert(postgres.OrdersDeliveryTable).
+		queryInsertDelivery, args, err := s.qb.Insert(postgres.OrdersDeliveryTable).
 			Columns("order_id", "delivery_title", "delivery_description").
 			Values(orderId, delivery.DeliveryTitle, delivery.DeliveryDescription).ToSql()
 
@@ -114,7 +116,9 @@ func (o *storage) New(order CreateDTO) (int, error) {
 	}
 
 	if order.Order.UserId != nil {
-		queryDeleteCartProducts, args, err := psql.Delete(postgres.CartsProductsTable).Where(sq.Eq{"cart_id": order.Order.UserId}).ToSql()
+		queryDeleteCartProducts, args, err := s.qb.Delete(postgres.CartsProductsTable).
+			Where(sq.Eq{"cart_id": order.Order.UserId}).
+			ToSql()
 		if err != nil {
 			_ = tx.Rollback()
 			return 0, err
@@ -129,16 +133,17 @@ func (o *storage) New(order CreateDTO) (int, error) {
 	return orderId, tx.Commit()
 }
 
-func (o *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, error) {
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
+func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, error) {
 	var ordersAmount int
-	queryOrdersAmount, args, err := psql.Select("count(*)").From(postgres.OrdersTable).Where(sq.Eq{"user_id": userId}).ToSql()
+	queryOrdersAmount, args, err := s.qb.Select("count(*)").
+		From(postgres.OrdersTable).
+		Where(sq.Eq{"user_id": userId}).
+		ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	if err = o.db.Get(&ordersAmount, queryOrdersAmount, args...); err != nil {
+	if err = s.db.Get(&ordersAmount, queryOrdersAmount, args...); err != nil {
 		return nil, err
 	}
 
@@ -149,7 +154,7 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 
 	orders := make([]SelectDTO, ordersLimit)
 
-	query := psql.Select(
+	query := s.qb.Select(
 		"order.id",
 		"order.user_id",
 		"order.user_lastname",
@@ -182,7 +187,7 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 	}
 
 	for i := 0; i < ordersLimit; i++ {
-		err = o.db.Get(&orders[i].Info, querySql, args...)
+		err = s.db.Get(&orders[i].Info, querySql, args...)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +195,7 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 
 	// TODO "message": "sql: Scan error on column index 1, name \"user_id\": converting NULL to int is unsupported"
 	for i := 0; i < ordersLimit; i++ {
-		queryOrderProducts, args, err := psql.
+		queryOrderProducts, args, err := s.qb.
 			Select(
 				"id",
 				"order_id",
@@ -213,12 +218,12 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 			return nil, err
 		}
 
-		err = o.db.Select(&orders[i].Products, queryOrderProducts, args...)
+		err = s.db.Select(&orders[i].Products, queryOrderProducts, args...)
 		if err != nil {
 			return nil, err
 		}
 
-		queryOrderDelivery, args, err := psql.
+		queryOrderDelivery, args, err := s.qb.
 			Select("*").
 			From(postgres.OrdersDeliveryTable).
 			Where(sq.Eq{"order_id": orders[i].Info.Id}).
@@ -227,7 +232,7 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 			return nil, err
 		}
 
-		err = o.db.Select(&orders[i].Delivery, queryOrderDelivery, args...)
+		err = s.db.Select(&orders[i].Delivery, queryOrderDelivery, args...)
 		if err != nil {
 			return nil, err
 		}
@@ -236,12 +241,10 @@ func (o *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 	return orders, err
 }
 
-func (o *storage) GetOrderById(orderId int) (SelectDTO, error) {
+func (s *storage) GetOrderById(orderId int) (SelectDTO, error) {
 	var order SelectDTO
 
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
-	queryOrderInfoSql, args, err := psql.
+	queryOrderInfoSql, args, err := s.qb.
 		Select(
 			"orders.id",
 			"orders.user_id",
@@ -264,12 +267,12 @@ func (o *storage) GetOrderById(orderId int) (SelectDTO, error) {
 		Where(sq.Eq{"orders.id": orderId}).
 		ToSql()
 
-	err = o.db.Get(&order.Info, queryOrderInfoSql, args...)
+	err = s.db.Get(&order.Info, queryOrderInfoSql, args...)
 	if err != nil {
 		return SelectDTO{}, fmt.Errorf("failed to get order info due to: %v", err)
 	}
 
-	queryProductsSql, args, err := psql.
+	queryProductsSql, args, err := s.qb.
 		Select(
 			"orders_products.quantity",
 			"orders_products.price_for_quantity",
@@ -288,17 +291,17 @@ func (o *storage) GetOrderById(orderId int) (SelectDTO, error) {
 		Where(sq.Eq{"order_id": orderId}).
 		ToSql()
 
-	err = o.db.Select(&order.Products, queryProductsSql, args...)
+	err = s.db.Select(&order.Products, queryProductsSql, args...)
 	if err != nil {
 		return SelectDTO{}, fmt.Errorf("failed to get order products due to: %v", err)
 	}
 
-	queryDeliverySql, args, err := psql.
+	queryDeliverySql, args, err := s.qb.
 		Select("order_id, delivery_title, delivery_description").
 		From(postgres.OrdersDeliveryTable).
 		Where(sq.Eq{"order_id": orderId}).ToSql()
 
-	err = o.db.Select(&order.Delivery, queryDeliverySql, args...)
+	err = s.db.Select(&order.Delivery, queryDeliverySql, args...)
 	if err != nil {
 		return SelectDTO{}, fmt.Errorf("failed to get order delivery info due to: %v", err)
 	}
@@ -306,12 +309,10 @@ func (o *storage) GetOrderById(orderId int) (SelectDTO, error) {
 	return order, err
 }
 
-func (o *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error) {
+func (s *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error) {
 	var orders []Order
 
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
-	queryOrders := psql.Select(
+	queryOrders := s.qb.Select(
 		"orders.id",
 		"orders.user_lastname",
 		"orders.user_firstname",
@@ -346,7 +347,7 @@ func (o *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]O
 
 	queryOrdersSql, args, err := queryOrders.OrderBy("orders.created_at DESC").Limit(12).ToSql()
 
-	err = o.db.Select(&orders, queryOrdersSql, args...)
+	err = s.db.Select(&orders, queryOrdersSql, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -354,10 +355,10 @@ func (o *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]O
 	return orders, nil
 }
 
-func (o *storage) GetDeliveryTypes() (deliveryTypes []server.DeliveryType, err error) {
+func (s *storage) GetDeliveryTypes() (deliveryTypes []server.DeliveryType, err error) {
 	queryGetDeliveryTypes := fmt.Sprintf("SELECT * FROM %s", postgres.DeliveryTypesTable)
 
-	err = o.db.Select(&deliveryTypes, queryGetDeliveryTypes)
+	err = s.db.Select(&deliveryTypes, queryGetDeliveryTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -365,10 +366,10 @@ func (o *storage) GetDeliveryTypes() (deliveryTypes []server.DeliveryType, err e
 	return deliveryTypes, err
 }
 
-func (o *storage) GetPaymentTypes() (paymentTypes []server.PaymentType, err error) {
+func (s *storage) GetPaymentTypes() (paymentTypes []server.PaymentType, err error) {
 	queryGetPaymentTypes := fmt.Sprintf("SELECT * FROM %s", postgres.PaymentTypesTable)
 
-	err = o.db.Select(&paymentTypes, queryGetPaymentTypes)
+	err = s.db.Select(&paymentTypes, queryGetPaymentTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -376,8 +377,8 @@ func (o *storage) GetPaymentTypes() (paymentTypes []server.PaymentType, err erro
 	return paymentTypes, err
 }
 
-func (o *storage) ProcessedOrder(orderId int) error {
-	tx, _ := o.db.Begin()
+func (s *storage) ProcessedOrder(orderId int) error {
+	tx, _ := s.db.Begin()
 
 	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id=$2", postgres.OrdersTable)
 	_, err := tx.Exec(queryUpdateStatus, "PROCESSED", orderId)
@@ -386,7 +387,7 @@ func (o *storage) ProcessedOrder(orderId int) error {
 		return fmt.Errorf("failed to update order status in database due to: %v", err)
 	}
 
-	order, err := o.GetOrderById(orderId)
+	order, err := s.GetOrderById(orderId)
 	if err != nil {
 		_ = tx.Rollback()
 		return fmt.Errorf("failed to get order by its id due to: %v", err)

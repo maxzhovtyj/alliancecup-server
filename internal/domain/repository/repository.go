@@ -1,6 +1,7 @@
 package repository
 
 import (
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
@@ -26,15 +27,17 @@ type Repository struct {
 }
 
 func NewRepository(db *sqlx.DB, logger *logging.Logger) *Repository {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
 	return &Repository{
 		Authorization: user.NewAuthPostgres(db),
-		Product:       product.NewProductsPostgres(db),
+		Product:       product.NewProductsPostgres(db, psql),
 		Category:      category.NewCategoryPostgres(db),
-		Shopping:      shopping.NewShoppingPostgres(db),
-		Order:         order.NewOrdersPostgres(db),
-		Supply:        supply.NewSupplyPostgres(db),
-		Review:        review.NewReviewStorage(db),
-		Inventory:     inventory.NewInventoryStorage(db, logger),
+		Shopping:      shopping.NewShoppingPostgres(db, psql),
+		Order:         order.NewOrdersPostgres(db, psql),
+		Supply:        supply.NewSupplyPostgres(db, psql),
+		Review:        review.NewReviewStorage(db, psql),
+		Inventory:     inventory.NewInventoryStorage(db, psql, logger),
 		logger:        logger,
 	}
 }

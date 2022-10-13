@@ -19,12 +19,14 @@ type Storage interface {
 type storage struct {
 	db     *sqlx.DB
 	logger *logging.Logger
+	qb     sq.StatementBuilderType
 }
 
-func NewInventoryStorage(db *sqlx.DB, logger *logging.Logger) Storage {
+func NewInventoryStorage(db *sqlx.DB, psql sq.StatementBuilderType, logger *logging.Logger) Storage {
 	return &storage{
 		db:     db,
 		logger: logger,
+		qb:     psql,
 	}
 }
 
@@ -43,12 +45,10 @@ var ProductsToInventory = []string{
 }
 
 func (s *storage) GetProducts() ([]CurrentProductDTO, error) {
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
 	// TODO select amount_in_stock from the last inventory
 	// TODO select if there are no inventories yet
 	var products []CurrentProductDTO
-	querySelectProducts, args, err := psql.
+	querySelectProducts, args, err := s.qb.
 		Select(ProductsToInventory...).
 		LeftJoin(postgres.InventoryTable + " ON products.last_inventory_id = inventory.id").
 		LeftJoin(postgres.InventoryProductsTable + " ON products.last_inventory_id = inventory_products.inventory_id").
@@ -64,8 +64,6 @@ func (s *storage) GetProducts() ([]CurrentProductDTO, error) {
 }
 
 func (s *storage) DoInventory(products []InsertProductDTO) error {
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
 	tx, _ := s.db.Begin()
 
 	// create new inventory and get its id
@@ -93,7 +91,7 @@ func (s *storage) DoInventory(products []InsertProductDTO) error {
 
 	// inserting essential info
 	for _, p := range products {
-		sql, args, _ := psql.Insert(postgres.InventoryProductsTable).Values(
+		sql, args, _ := s.qb.Insert(postgres.InventoryProductsTable).Values(
 			inventoryId,
 			p.ProductId,
 			p.ProductPrice,
@@ -127,9 +125,7 @@ func (s *storage) DoInventory(products []InsertProductDTO) error {
 func (s *storage) GetInventories(createdAt string) ([]DTO, error) {
 	var inventories []DTO
 
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
-	selectInventoryQuery := psql.Select("id, created_at").From(postgres.InventoryTable)
+	selectInventoryQuery := s.qb.Select("id, created_at").From(postgres.InventoryTable)
 
 	if createdAt != "" {
 		selectInventoryQuery = selectInventoryQuery.Where(sq.Lt{"created_at": createdAt})
@@ -173,7 +169,7 @@ func (s *storage) getInventoryProductsById(inventoryId int) ([]SelectProductDTO,
 	var products []SelectProductDTO
 
 	// TODO createdAt
-	query, args, err := postgres.Psql.
+	query, args, err := s.qb.
 		Select(inventoryProducts...).
 		Join(postgres.ProductsTable + " ON products.id = inventory_products.product_id").
 		From(postgres.InventoryProductsTable).

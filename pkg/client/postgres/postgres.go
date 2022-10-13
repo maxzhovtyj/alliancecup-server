@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"fmt"
-	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/zh0vtyj/allincecup-server/internal/config"
 )
@@ -31,8 +30,6 @@ const (
 	InventoryTable            = "inventory"
 	InventoryProductsTable    = "inventory_products"
 )
-
-var Psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 func NewPostgresDB(cfg config.Storage) (*sqlx.DB, error) {
 	dsn := fmt.Sprintf(

@@ -21,11 +21,15 @@ type Storage interface {
 }
 
 type storage struct {
+	qb sq.StatementBuilderType
 	db *sqlx.DB
 }
 
-func NewProductsPostgres(db *sqlx.DB) *storage {
-	return &storage{db: db}
+func NewProductsPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
+	return &storage{
+		db: db,
+		qb: psql,
+	}
 }
 
 var productsColumnsSelect = []string{
@@ -43,9 +47,7 @@ var productsColumnsSelect = []string{
 }
 
 func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
-	query := psql.Select(productsColumnsSelect...).
+	query := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
 		LeftJoin(postgres.CategoriesTable + " ON products.category_id=categories.id").
 		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id")
@@ -94,8 +96,7 @@ func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 
 func (s *storage) Search(searchInput string) ([]Product, error) {
 	var products []Product
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	querySearch, args, err := psql.Select(productsColumnsSelect...).
+	querySearch, args, err := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
 		LeftJoin(postgres.CategoriesTable + " ON categories.id=products.category_id").
 		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id").
@@ -242,9 +243,7 @@ func (s *storage) Delete(productId int) error {
 func (s *storage) GetProductById(id int) (Info, error) {
 	var product Info
 
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
-	queryGetProduct, args, err := psql.Select(productsColumnsSelect...).
+	queryGetProduct, args, err := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
 		LeftJoin(postgres.CategoriesTable + " ON categories.id=products.category_id").
 		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id").

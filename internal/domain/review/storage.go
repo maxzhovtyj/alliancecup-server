@@ -15,10 +15,14 @@ type Storage interface {
 
 type storage struct {
 	db *sqlx.DB
+	qb sq.StatementBuilderType
 }
 
-func NewReviewStorage(db *sqlx.DB) Storage {
-	return &storage{db: db}
+func NewReviewStorage(db *sqlx.DB, psql sq.StatementBuilderType) Storage {
+	return &storage{
+		db: db,
+		qb: psql,
+	}
 }
 
 func (s *storage) Create(dto CreateReviewDTO) (int, error) {
@@ -50,9 +54,7 @@ func (s *storage) Delete(reviewId int) error {
 func (s *storage) Get(createdAt string, productId int) ([]SelectReviewsDTO, error) {
 	var reviews []SelectReviewsDTO
 
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
-	querySelectReviews := psql.Select("*").From(postgres.ProductsReviewTable)
+	querySelectReviews := s.qb.Select("*").From(postgres.ProductsReviewTable)
 
 	if createdAt != "" {
 		querySelectReviews = querySelectReviews.Where(sq.Lt{"created_at": createdAt})

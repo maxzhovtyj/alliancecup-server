@@ -18,10 +18,14 @@ type Storage interface {
 
 type storage struct {
 	db *sqlx.DB
+	qb sq.StatementBuilderType
 }
 
-func NewShoppingPostgres(db *sqlx.DB) *storage {
-	return &storage{db: db}
+func NewShoppingPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
+	return &storage{
+		db: db,
+		qb: psql,
+	}
 }
 
 func (s *storage) AddToCart(userId int, info CartProduct) (float64, error) {
@@ -58,10 +62,8 @@ func (s *storage) GetProductsInCart(userId int) ([]CartProductFullInfo, error) {
 		return nil, err
 	}
 
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
 	var productsInCart []CartProductFullInfo
-	queryCartProducts, args, err := psql.Select(
+	queryCartProducts, args, err := s.qb.Select(
 		"carts_products.product_id",
 		"products.article",
 		"products.product_title",

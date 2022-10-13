@@ -17,17 +17,20 @@ type Storage interface {
 
 type storage struct {
 	db *sqlx.DB
+	qb sq.StatementBuilderType
 }
 
-func NewSupplyPostgres(db *sqlx.DB) *storage {
-	return &storage{db: db}
+func NewSupplyPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
+	return &storage{
+		db: db,
+		qb: psql,
+	}
 }
 
 func (s *storage) GetAll(createdAt string) ([]InfoDTO, error) {
 	var supply []InfoDTO
 
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	querySelectInfo := psql.Select("*").From(postgres.SupplyTable)
+	querySelectInfo := s.qb.Select("*").From(postgres.SupplyTable)
 	if createdAt != "" {
 		querySelectInfo = querySelectInfo.Where(sq.Lt{"created_at": createdAt})
 	}
@@ -173,7 +176,7 @@ var selectProductsColumn = []string{
 
 func (s *storage) Products(id int, createdAt string) ([]ProductDTO, error) {
 	var products []ProductDTO
-	query := postgres.Psql.
+	query := s.qb.
 		Select(selectProductsColumn...).
 		Join(postgres.ProductsTable + " ON products.id = supply_products.product_id").
 		From(postgres.SupplyProductsTable).
