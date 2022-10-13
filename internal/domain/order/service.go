@@ -122,6 +122,8 @@ func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 		return gofpdf.Fpdf{}, err
 	}
 
+	doc.Language = "UK"
+
 	doc.SetPwd(pwd)
 	doc.OrderId = fmt.Sprintf("%d", orderId)
 	doc.SetInvoice(&goinvoice.Invoice{
