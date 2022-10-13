@@ -1,7 +1,7 @@
 CREATE TABLE inventory
 (
     id         SERIAL PRIMARY KEY,
-    created_at timestamptz default (now() AT TIME ZONE 'utc-3')
+    created_at TIMESTAMPTZ default (now() AT TIME ZONE 'utc-3')
 );
 
 CREATE TABLE inventory_products

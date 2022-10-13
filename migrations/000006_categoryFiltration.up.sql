@@ -2,12 +2,12 @@ ALTER TABLE categories ADD COLUMN category_description text;
 
 CREATE TABLE categories_filtration
 (
-    id serial primary key,
-    category_id int references categories(id) on delete cascade default NULL,
-    img_url text,
-    info_description varchar(255) not null,
-    filtration_title varchar(255) not null,
-    filtration_description text,
-    filtration_list_id int references categories_filtration(id) default NULL
+    id SERIAL PRIMARY KEY,
+    category_id INT REFERENCES categories(id) ON DELETE CASCADE DEFAULT NULL,
+    img_url TEXT,
+    info_description TEXT NOT NULL,
+    filtration_title TEXT NOT NULL,
+    filtration_description TEXT,
+    filtration_list_id INT REFERENCES categories_filtration(id) DEFAULT NULL
 );
 

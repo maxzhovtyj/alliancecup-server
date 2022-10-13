@@ -1,18 +1,18 @@
 CREATE TABLE roles
 (
-    id serial primary key,
-    role_title varchar(20) not null unique
+    id SERIAL PRIMARY KEY,
+    role_title TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE users
 (
-    id serial primary key,
-    email varchar(255) not null unique,
-    password_hash varchar(255) not null,
-    name varchar(255) not null,
-    phone_number varchar(20) not null unique,
-    role_id int references roles(id) not null,
-    created_at timestamptz default (now() at time zone 'utc-3')
+    id SERIAL PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE ,
+    password_hash TEXT NOT NULL,
+    name TEXT NOT NULL,
+    phone_number varchar(20) NOT NULL UNIQUE,
+    role_id INT REFERENCES roles(id) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT (now() AT TIME ZONE 'utc-3')
 );
 
 INSERT INTO roles (role_title) VALUES ('CLIENT');

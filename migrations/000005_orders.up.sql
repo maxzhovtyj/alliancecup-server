@@ -1,13 +1,13 @@
 CREATE TABLE delivery_types
 (
-    id                  serial primary key,
-    delivery_type_title varchar(128) not null
+    id                  SERIAL PRIMARY KEY,
+    delivery_type_title TEXT NOT NULL
 );
 
 CREATE TABLE payment_types
 (
-    id                 serial primary key,
-    payment_type_title varchar(128) not null
+    id                 SERIAL PRIMARY KEY,
+    payment_type_title TEXT NOT NULL
 );
 
 INSERT INTO delivery_types (delivery_type_title)
@@ -24,35 +24,35 @@ values ('Переказ на карту');
 
 CREATE TABLE orders
 (
-    id                serial primary key,
-    user_id           int references users (id) on delete cascade default NULL,
-    user_lastname     varchar(128)                       not null,
-    user_firstname    varchar(128)                       not null,
-    user_middle_name  varchar(128)                       not null,
-    user_phone_number varchar(20)                        not null,
-    user_email        varchar(64)                        not null,
-    order_status      varchar(64)                                 default 'IN_PROGRESS',
-    order_comment     text                                        default null,
-    order_sum_price   decimal(12, 2)                     not null,
-    delivery_type_id  int references delivery_types (id) not null,
-    payment_type_id   int references payment_types (id)  not null,
-    created_at        timestamptz                                 default (now() at time zone 'utc-3'),
-    closed_at         timestamptz                                 default (null at time zone 'utc-3')
+    id                SERIAL PRIMARY KEY,
+    user_id           INT REFERENCES users (id) ON DELETE CASCADE DEFAULT NULL,
+    user_lastname     TEXT                               NOT NULL,
+    user_firstname    TEXT                               NOT NULL,
+    user_middle_name  TEXT                               NOT NULL,
+    user_phone_number TEXT                               NOT NULL,
+    user_email        TEXT                               NOT NULL,
+    order_status      TEXT                                        DEFAULT 'IN_PROGRESS',
+    order_comment     TEXT                                        DEFAULT NULL,
+    order_sum_price   DECIMAL(12, 2)                     NOT NULL,
+    delivery_type_id  INT REFERENCES delivery_types (id) NOT NULL,
+    payment_type_id   INT REFERENCES payment_types (id)  NOT NULL,
+    created_at        TIMESTAMPTZ                                 DEFAULT (now() AT TIME ZONE 'utc-3'),
+    closed_at         TIMESTAMPTZ                                 DEFAULT (NULL AT TIME ZONE 'utc-3')
 );
 
 CREATE TABLE orders_delivery
 (
-    order_id             int references orders (id) on delete cascade not null,
-    delivery_title       varchar(128)                                  not null,
-    delivery_description text                                          not null,
-    primary key (order_id, delivery_title, delivery_description)
+    order_id             INT REFERENCES orders (id) ON DELETE CASCADE NOT NULL,
+    delivery_title       TEXT                                         NOT NULL,
+    delivery_description TEXT                                         NOT NULL,
+    PRIMARY KEY (order_id, delivery_title, delivery_description)
 );
 
 CREATE TABLE orders_products
 (
-    order_id           int references orders (id) on delete cascade  not null,
-    product_id         int references products (id) on delete cascade not null,
-    quantity           int                                            not null,
-    price_for_quantity decimal(12, 2)                                 not null,
-    primary key (order_id, product_id)
+    order_id           INT REFERENCES orders (id) ON DELETE CASCADE   NOT NULL,
+    product_id         INT REFERENCES products (id) ON DELETE CASCADE NOT NULL,
+    quantity           INT                                            NOT NULL,
+    price_for_quantity DECIMAL(12, 2)                                 NOT NULL,
+    PRIMARY KEY (order_id, product_id)
 );
