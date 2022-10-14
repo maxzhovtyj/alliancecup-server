@@ -40,7 +40,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 
 	price := ctx.Query("priceRange") // TODO price validation
 	createdAt := ctx.Query("createdAt")
-	characteristic := ctx.Query("characteristic")
+	//characteristic := ctx.Query("characteristic")
 	search := ctx.Query("search")
 
 	if err != nil {
@@ -49,11 +49,11 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 	}
 
 	products, err := h.services.Product.GetWithParams(server.SearchParams{
-		CategoryId:     categoryId,
-		PriceRange:     price,
-		CreatedAt:      createdAt,
-		Characteristic: characteristic,
-		Search:         search,
+		CategoryId: categoryId,
+		PriceRange: price,
+		CreatedAt:  createdAt,
+		//Characteristic: characteristic,
+		Search: search,
 	})
 
 	if err != nil {
@@ -61,9 +61,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"data": products,
-	})
+	ctx.JSON(http.StatusOK, products)
 }
 
 // addProduct godoc
@@ -81,14 +79,14 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
-	var input product.Info
+	var input product.Product
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.Product.AddProduct(input.Product, input.Description)
+	id, err := h.services.Product.AddProduct(input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -144,7 +142,7 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/product [put]
 func (h *Handler) updateProduct(ctx *gin.Context) {
-	var input product.Info
+	var input product.Product
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())

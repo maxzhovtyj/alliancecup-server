@@ -13,10 +13,10 @@ import (
 type Storage interface {
 	Search(searchInput string) ([]Product, error)
 	GetWithParams(params server.SearchParams) ([]Product, error)
-	GetProductById(id int) (Info, error)
-	AddProduct(product Product, info []Description) (int, error)
+	GetProductById(id int) (Product, error)
+	AddProduct(product Product) (int, error)
 	GetFavourites(userId int) ([]Product, error)
-	Update(product Info) (int, error)
+	Update(product Product) (int, error)
 	Delete(productId int) error
 }
 
@@ -32,6 +32,9 @@ func NewProductsPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
 	}
 }
 
+//TODO select jsonb packaging field instead of units_in_package and packages_in_box
+//TODO product discount
+
 var productsColumnsSelect = []string{
 	"products.id",
 	"products.article",
@@ -41,8 +44,8 @@ var productsColumnsSelect = []string{
 	"products_types.type_title",
 	"products.amount_in_stock",
 	"products.price",
-	"products.units_in_package",
-	"products.packages_in_box",
+	"products.characteristics",
+	"products.packaging",
 	"products.created_at",
 }
 
@@ -52,10 +55,8 @@ func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 		LeftJoin(postgres.CategoriesTable + " ON products.category_id=categories.id").
 		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id")
 
-	if params.Characteristic != "" {
-		query = query.Join(postgres.ProductsInfoTable + " ON products.id=products_info.product_id").
-			Where(sq.Eq{"products_info.description": params.Characteristic})
-		// TODO select all rows with exact match of characteristics slice
+	if params.Characteristic.Value != "" {
+		query = query.Where("characteristics ->> ? = ?", params.Characteristic.Name, params.Characteristic.Value)
 	}
 
 	if params.PriceRange != "" {
@@ -107,40 +108,42 @@ func (s *storage) Search(searchInput string) ([]Product, error) {
 	return products, err
 }
 
-func (s *storage) AddProduct(product Product, info []Description) (int, error) {
+func (s *storage) AddProduct(product Product) (int, error) {
 	tx, err := s.db.Begin()
-
-	var categoryId int
-	queryGetCategoryId := fmt.Sprintf("SELECT id FROM %s WHERE category_title=$1", postgres.CategoriesTable)
-	categoryRow := tx.QueryRow(queryGetCategoryId, product.CategoryTitle)
-	if err = categoryRow.Scan(&categoryId); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-
-	var typeId int
-	queryGetTypeId := fmt.Sprintf("SELECT id FROM %s WHERE type_title=$1", postgres.ProductTypesTable)
-	typeRow := tx.QueryRow(queryGetTypeId, product.TypeTitle)
-	if err = typeRow.Scan(&typeId); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
 
 	var productId int
 	queryInsertProduct := fmt.Sprintf(
-		"INSERT INTO %s (article, category_id, product_title, img_url, type_id, amount_in_stock, price, units_in_package, packages_in_box) values ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
+		`
+		INSERT INTO %s 
+			(article, category_id, product_title, img_url, type_id, amount_in_stock, price, characteristics, packaging) 
+		VALUES (
+			$1, 
+			(SELECT id FROM %s WHERE category_title = $2),
+			$3,
+			$4,
+			(SELECT id FROM %s WHERE type_title = $5),
+			$6, 
+			$7, 
+			$8, 
+			$9
+		) 
+		RETURNING id
+		`,
 		postgres.ProductsTable,
+		postgres.CategoriesTable,
+		postgres.ProductTypesTable,
 	)
-	insertRow := tx.QueryRow(queryInsertProduct,
+	insertRow := tx.QueryRow(
+		queryInsertProduct,
 		product.Article,
-		categoryId,
+		product.CategoryTitle,
 		product.ProductTitle,
 		product.ImgUrl,
-		typeId,
+		product.TypeTitle,
 		product.AmountInStock,
 		product.Price,
-		product.UnitsInPackage,
-		product.PackagesInBox,
+		product.Characteristics,
+		product.Packaging,
 	)
 
 	if err = insertRow.Scan(&productId); err != nil {
@@ -148,76 +151,62 @@ func (s *storage) AddProduct(product Product, info []Description) (int, error) {
 		return 0, err
 	}
 
-	for i := range info {
-		queryInsertInfo := fmt.Sprintf(
-			"INSERT INTO %s (product_id, info_title, description) values ($1, $2, $3)",
-			postgres.ProductsInfoTable,
-		)
-		_, err = tx.Exec(queryInsertInfo, productId, info[i].InfoTitle, info[i].Description)
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
-		}
-	}
-
 	return productId, tx.Commit()
 }
 
-func (s *storage) Update(product Info) (int, error) {
+func (s *storage) Update(product Product) (int, error) {
 	tx, _ := s.db.Begin()
 
 	var newCategoryId int
 	queryGetCategoryId := fmt.Sprintf("SELECT id FROM %s WHERE category_title=$1 LIMIT 1", postgres.CategoriesTable)
-	if err := s.db.Get(&newCategoryId, queryGetCategoryId, product.Product.CategoryTitle); err != nil {
+	if err := s.db.Get(&newCategoryId, queryGetCategoryId, product.CategoryTitle); err != nil {
 		_ = tx.Rollback()
 		return 0, err
 	}
 
 	var newTypeId int
 	queryGetTypeId := fmt.Sprintf("SELECT id FROM %s WHERE type_title=$1 LIMIT 1", postgres.ProductTypesTable)
-	if err := s.db.Get(&newTypeId, queryGetTypeId, product.Product.TypeTitle); err != nil {
+	if err := s.db.Get(&newTypeId, queryGetTypeId, product.TypeTitle); err != nil {
 		_ = tx.Rollback()
 		return 0, err
 	}
 
 	queryUpdateProduct := fmt.Sprintf(
-		"UPDATE %s SET article=$1, category_id=$2, product_title=$3, img_url=$4, type_id=$5, amount_in_stock=$6, price=$7, units_in_package=$8, packages_in_box=$9 WHERE id=$10",
-		postgres.ProductsTable)
+		`
+		UPDATE %s 
+		SET article = $1,
+			category_id = $2,
+			product_title = $3,
+			img_url = $4,
+			type_id = $5,
+			amount_in_stock = $6,
+			price = $7,
+			characteristics = $8,
+			packaging = $9 
+		WHERE id = $10
+		`,
+		postgres.ProductsTable,
+	)
+
 	_, err := tx.Exec(
 		queryUpdateProduct,
-		product.Product.Article,
+		product.Article,
 		newCategoryId,
-		product.Product.ProductTitle,
-		product.Product.ImgUrl,
+		product.ProductTitle,
+		product.ImgUrl,
 		newTypeId,
-		product.Product.AmountInStock,
-		product.Product.Price,
-		product.Product.UnitsInPackage,
-		product.Product.PackagesInBox,
-		product.Product.Id,
+		product.AmountInStock,
+		product.Price,
+		product.Characteristics,
+		product.Packaging,
+		product.Id,
 	)
 	if err != nil {
 		_ = tx.Rollback()
 		return 0, err
 	}
 
-	queryDeleteOldDescription := fmt.Sprintf("DELETE FROM %s WHERE product_id=$1", postgres.ProductsInfoTable)
-	_, err = tx.Exec(queryDeleteOldDescription, product.Product.Id)
-	if err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-
-	for i := range product.Description {
-		queryInsertInfo := fmt.Sprintf("INSERT INTO %s (product_id, info_title, description) values ($1, $2, $3)", postgres.ProductsInfoTable)
-		_, err = tx.Exec(queryInsertInfo, product.Product.Id, product.Description[i].InfoTitle, product.Description[i].Description)
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
-		}
-	}
-
-	return product.Product.Id, tx.Commit()
+	return product.Id, tx.Commit()
 }
 
 func (s *storage) Delete(productId int) error {
@@ -230,18 +219,11 @@ func (s *storage) Delete(productId int) error {
 		return err
 	}
 
-	queryDeleteProductDescription := fmt.Sprintf("DELETE FROM %s WHERE product_id=$1", postgres.ProductsInfoTable)
-	_, err = tx.Exec(queryDeleteProductDescription, productId)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
 	return tx.Commit()
 }
 
-func (s *storage) GetProductById(id int) (Info, error) {
-	var product Info
+func (s *storage) GetProductById(id int) (Product, error) {
+	var product Product
 
 	queryGetProduct, args, err := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
@@ -249,15 +231,9 @@ func (s *storage) GetProductById(id int) (Info, error) {
 		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id").
 		Where(sq.Eq{"products.id": id}).ToSql()
 
-	err = s.db.Get(&product.Product, queryGetProduct, args...)
+	err = s.db.Get(&product, queryGetProduct, args...)
 	if err != nil {
-		return Info{}, err
-	}
-
-	queryGetProductInfo := fmt.Sprintf("SELECT * FROM %s WHERE product_id=$1", postgres.ProductsInfoTable)
-	err = s.db.Select(&product.Description, queryGetProductInfo, id)
-	if err != nil {
-		return Info{}, err
+		return Product{}, err
 	}
 
 	return product, err
@@ -267,7 +243,7 @@ func (s *storage) GetFavourites(userId int) ([]Product, error) {
 	var products []Product
 
 	queryGetFavourites := fmt.Sprintf(
-		"SELECT products.id, products.article, products.product_title, products.img_url, products.price, products.units_in_package, products.packages_in_box, products.amount_in_stock, products.created_at FROM %s, %s WHERE user_id=$1 AND %s.product_id=%s.id",
+		"SELECT products.id, products.article, products.product_title, products.img_url, products.price, products.packaging, products.amount_in_stock, products.created_at FROM %s, %s WHERE user_id=$1 AND %s.product_id=%s.id",
 		postgres.FavouritesTable,
 		postgres.ProductsTable,
 		postgres.FavouritesTable,

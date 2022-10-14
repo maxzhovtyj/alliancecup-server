@@ -30,8 +30,11 @@ type SearchParams struct {
 	CategoryId     int    `json:"categoryId" binding:"required"`
 	PriceRange     string `json:"priceRange"`
 	CreatedAt      string `json:"createdAt"`
-	Characteristic string `json:"characteristic"`
-	Search         string `json:"search"`
+	Characteristic struct {
+		Name  string `json:"name"`
+		Value string `json:"value"`
+	} `json:"characteristic"`
+	Search string `json:"search"`
 }
 
 type DeliveryType struct {

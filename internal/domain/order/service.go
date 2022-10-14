@@ -39,13 +39,13 @@ func (o *service) OrderSumCount(products []Product) (float64, error) {
 			return 0, err
 		}
 		inputPrice := item.PriceForQuantity / float64(item.Quantity)
-		if p.Product.Price != inputPrice {
+		if p.Price != inputPrice {
 			return 0, fmt.Errorf("invalid product price")
 		}
-		if p.Product.Price*float64(item.Quantity) != item.PriceForQuantity {
+		if p.Price*float64(item.Quantity) != item.PriceForQuantity {
 			return 0, fmt.Errorf("price for quantity mismatch")
 		}
-		sum += p.Product.Price * float64(item.Quantity)
+		sum += p.Price * float64(item.Quantity)
 	}
 	return sum, nil
 }

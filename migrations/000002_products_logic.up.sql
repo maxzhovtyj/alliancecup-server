@@ -28,12 +28,13 @@ CREATE TABLE products
     product_title   TEXT                                                 NOT NULL,
     img_url         TEXT,
     type_id         INT REFERENCES products_types (id) ON DELETE CASCADE NOT NULL,
-    amount_in_stock DECIMAL(12, 2),
+    amount_in_stock DECIMAL(12, 2) DEFAULT 0,
     price           DECIMAL(12, 2)                                       NOT NULL,
+    characteristics JSONB,
     packaging       JSONB,
     created_at      TIMESTAMPTZ DEFAULT (now() AT TIME ZONE 'utc-3'),
     CONSTRAINT valid_price CHECK ( price > 0 ),
-    CONSTRAINT valid_amount_in_stock CHECK ( amount_in_stock > 0 )
+    CONSTRAINT valid_amount_in_stock CHECK ( amount_in_stock >= 0 )
 );
 
 CREATE TABLE carts_products
@@ -44,12 +45,4 @@ CREATE TABLE carts_products
     price_for_quantity DECIMAL(12, 2)                                 NOT NULL,
     PRIMARY KEY (cart_id, product_id),
     CONSTRAINT valid_quantity CHECK ( quantity > 0 )
-);
-
-CREATE TABLE products_info
-(
-    product_id  INT REFERENCES products (id) ON DELETE CASCADE NOT NULL,
-    info_title  TEXT                                           NOT NULL,
-    description TEXT                                           NOT NULL,
-    PRIMARY KEY (product_id, info_title)
 );

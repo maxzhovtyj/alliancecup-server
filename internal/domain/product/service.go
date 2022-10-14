@@ -7,10 +7,10 @@ import (
 type Service interface {
 	Search(searchInput string) ([]Product, error)
 	GetWithParams(params server.SearchParams) ([]Product, error)
-	GetProductById(id int) (Info, error)
-	AddProduct(product Product, info []Description) (int, error)
+	GetProductById(id int) (Product, error)
+	AddProduct(product Product) (int, error)
 	GetFavourites(userId int) ([]Product, error)
-	Update(product Info) (int, error)
+	Update(product Product) (int, error)
 	Delete(productId int) error
 }
 
@@ -35,15 +35,15 @@ func (s *service) GetWithParams(params server.SearchParams) ([]Product, error) {
 	return s.repo.GetWithParams(params)
 }
 
-func (s *service) AddProduct(product Product, info []Description) (int, error) {
-	return s.repo.AddProduct(product, info)
+func (s *service) AddProduct(product Product) (int, error) {
+	return s.repo.AddProduct(product)
 }
 
 func (s *service) GetFavourites(userId int) ([]Product, error) {
 	return s.repo.GetFavourites(userId)
 }
 
-func (s *service) Update(product Info) (int, error) {
+func (s *service) Update(product Product) (int, error) {
 	return s.repo.Update(product)
 }
 
@@ -51,6 +51,6 @@ func (s *service) Delete(productId int) error {
 	return s.repo.Delete(productId)
 }
 
-func (s *service) GetProductById(id int) (Info, error) {
+func (s *service) GetProductById(id int) (Product, error) {
 	return s.repo.GetProductById(id)
 }
