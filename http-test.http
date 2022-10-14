@@ -18,5 +18,5 @@ Accept: application/json
 
 ###
 
-GET http://localhost:8000/api/products
+GET http://localhost:8000/api/products?characteristic=Колір:Фіолетовий|Розмір:430мл|Тип:Крафт
 Accept: application/json

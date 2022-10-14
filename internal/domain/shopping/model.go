@@ -26,15 +26,17 @@ type CartProductFullInfo struct {
 	PriceForQuantity float64   `json:"price_for_quantity" binding:"required" db:"price_for_quantity"`
 }
 
+type CharacteristicParam struct {
+	Name  string
+	Value string
+}
+
 type SearchParams struct {
-	CategoryId     int    `json:"categoryId" binding:"required"`
-	PriceRange     string `json:"priceRange"`
-	CreatedAt      string `json:"createdAt"`
-	Characteristic struct {
-		Name  string `json:"name"`
-		Value string `json:"value"`
-	} `json:"characteristic"`
-	Search string `json:"search"`
+	CategoryId     int
+	PriceRange     string
+	CreatedAt      string
+	Characteristic []CharacteristicParam
+	Search         string
 }
 
 type DeliveryType struct {

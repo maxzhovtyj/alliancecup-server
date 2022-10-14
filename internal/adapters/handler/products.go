@@ -3,9 +3,10 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
-	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type ProductIdInput struct {
@@ -31,30 +32,42 @@ type ProductIdInput struct {
 // @Failure      500  {object}  Error
 // @Router       /api/products [post]
 func (h *Handler) getProducts(ctx *gin.Context) {
+	// http://localhost:8000/api/products?characteristic=Колір:Білий+Розмір:110мл
+
+	var params shopping.SearchParams
+
 	category := ctx.Query("category")
-	var categoryId int
 	var err error
 	if category != "" {
-		categoryId, err = strconv.Atoi(category)
+		params.CategoryId, err = strconv.Atoi(category)
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
 
-	price := ctx.Query("priceRange") // TODO price validation
-	createdAt := ctx.Query("createdAt")
-	//characteristic := ctx.Query("characteristic")
-	search := ctx.Query("search")
+	params.PriceRange = ctx.Query("priceRange") // TODO price validation
+	params.CreatedAt = ctx.Query("createdAt")
+	params.Search = ctx.Query("search")
+	characteristic := ctx.Query("characteristic")
+
+	arr := strings.Split(characteristic, "|")
+	for _, e := range arr {
+		var paramChar shopping.CharacteristicParam
+
+		eArr := strings.Split(e, ":")
+		paramChar.Name = eArr[0]
+		paramChar.Value = eArr[1]
+
+		params.Characteristic = append(params.Characteristic, paramChar)
+	}
 
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	products, err := h.services.Product.GetWithParams(server.SearchParams{
-		CategoryId: categoryId,
-		PriceRange: price,
-		CreatedAt:  createdAt,
-		//Characteristic: characteristic,
-		Search: search,
-	})
+	products, err := h.services.Product.GetWithParams(params)
 
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())

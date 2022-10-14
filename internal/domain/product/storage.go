@@ -55,8 +55,10 @@ func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 		LeftJoin(postgres.CategoriesTable + " ON products.category_id=categories.id").
 		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id")
 
-	if params.Characteristic.Value != "" {
-		query = query.Where("characteristics ->> ? = ?", params.Characteristic.Name, params.Characteristic.Value)
+	if len(params.Characteristic) != 0 {
+		for _, chr := range params.Characteristic {
+			query = query.Where("characteristics ->> ? = ?", chr.Name, chr.Value)
+		}
 	}
 
 	if params.PriceRange != "" {
@@ -89,6 +91,7 @@ func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 		return nil, err
 	}
 
+	fmt.Println(querySql, args)
 	var products []Product
 	err = s.db.Select(&products, querySql, args...)
 
