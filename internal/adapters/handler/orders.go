@@ -40,7 +40,7 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 		return
 	}
 
-	if input.Order.OrderSumPrice < 400 {
+	if input.Order.SumPrice < 400 {
 		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to create order, minimal order price is 400hrn").Error())
 		return
 	}
@@ -242,8 +242,8 @@ func (h *Handler) getOrderInvoice(ctx *gin.Context) {
 
 	pwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	fileName := fmt.Sprintf("invoice-%d.pdf", id)

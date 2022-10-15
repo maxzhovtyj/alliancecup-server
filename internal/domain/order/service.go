@@ -55,8 +55,8 @@ func (o *service) New(order CreateDTO) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if sum != order.Order.OrderSumPrice {
-		return 0, fmt.Errorf("sum price mismatch, %f (computed) !== %f (given)", sum, order.Order.OrderSumPrice)
+	if sum != order.Order.SumPrice {
+		return 0, fmt.Errorf("sum price mismatch, %f (computed) !== %f (given)", sum, order.Order.SumPrice)
 	}
 
 	id, err := o.repo.New(order)
@@ -113,8 +113,7 @@ func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 
 	pwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return gofpdf.Fpdf{}, err
 	}
 
 	doc, err := goinvoice.NewWithCyrillic(pwd)
@@ -168,7 +167,6 @@ func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 
 	pdf, err := doc.BuildPdf()
 	if err != nil {
-		fmt.Println(err.Error())
 		return gofpdf.Fpdf{}, err
 	}
 

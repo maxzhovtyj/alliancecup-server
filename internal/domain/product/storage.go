@@ -90,7 +90,6 @@ func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 		return nil, err
 	}
 
-	fmt.Println(querySql, args)
 	var products []Product
 	err = s.db.Select(&products, querySql, args...)
 
