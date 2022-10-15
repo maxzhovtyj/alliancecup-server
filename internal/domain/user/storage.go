@@ -17,6 +17,7 @@ type AuthorizationStorage interface {
 	UpdateRefreshToken(userId int, newRefreshToken string) error
 	GetUserPasswordHash(userId int) (string, error)
 	UpdatePassword(userId int, newPassword string) error
+	UserExists(email string) (int, int, error)
 }
 
 type AuthPostgres struct {
@@ -163,4 +164,18 @@ func (a *AuthPostgres) UpdatePassword(userId int, newPassword string) error {
 	}
 
 	return nil
+}
+
+func (a *AuthPostgres) UserExists(email string) (int, int, error) {
+	var userId int
+	var userRoleId int
+
+	queryGetUserId := fmt.Sprintf("SELECT id, role_id FROM %s WHERE email = $1", postgres.UsersTable)
+
+	row := a.db.QueryRow(queryGetUserId, email)
+	if err := row.Scan(&userId, userRoleId); err != nil {
+		return 0, 0, err
+	}
+
+	return userId, userRoleId, nil
 }

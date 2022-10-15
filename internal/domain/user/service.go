@@ -30,6 +30,7 @@ type AuthorizationService interface {
 	CreateNewSession(session *models.Session) (*models.Session, error)
 	Logout(id int) error
 	ChangePassword(userId int, oldPassword, newPassword string) error
+	UserForgotPassword(email string) error
 }
 
 type tokenClaims struct {
@@ -231,6 +232,28 @@ func (s *AuthService) ChangePassword(userId int, oldPassword, newPassword string
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (s *AuthService) UserForgotPassword(email string) error {
+	// check whether user with such email exists
+	userId, userRoleId, err := s.repo.UserExists(email)
+	if err != nil {
+		return fmt.Errorf("failed to get user with email %s due to %v", email, err)
+	}
+
+	// generate a token for changing a password
+	_ = jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+		userId,
+		userRoleId,
+	})
+
+	// TODO send a letter to an email
 
 	return nil
 }

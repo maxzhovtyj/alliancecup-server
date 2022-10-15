@@ -105,6 +105,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.POST(reviewUrl, h.addReview)
 		api.GET(reviewsUrl, h.getReviews)
 
+		api.POST("forgot-password", h.forgotPassword)
+
 		api.GET(invoiceUrl, h.getOrderInvoice)
 
 		admin := api.Group(adminUrl, h.userHasPermission)

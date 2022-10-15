@@ -319,3 +319,20 @@ func (h *Handler) changePassword(ctx *gin.Context) {
 		"message": "password changed",
 	})
 }
+
+func (h *Handler) forgotPassword(ctx *gin.Context) {
+	var input string
+
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.services.Authorization.UserForgotPassword(input)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "email was successfully send")
+}

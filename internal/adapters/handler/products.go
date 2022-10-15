@@ -26,7 +26,7 @@ type ProductIdInput struct {
 // @Param 		 price query string false "Price"
 // @Param 		 characteristic query string false "characteristic"
 // @Param		 created_at query string false "Created At"
-// @Success      200  {array}   product.Product
+// @Success      200  {object}  product.Product
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -51,15 +51,17 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 	params.Search = ctx.Query("search")
 	characteristic := ctx.Query("characteristic")
 
-	arr := strings.Split(characteristic, "|")
-	for _, e := range arr {
-		var paramChar shopping.CharacteristicParam
+	if characteristic != "" {
+		arr := strings.Split(characteristic, "|")
+		for _, e := range arr {
+			var paramChar shopping.CharacteristicParam
 
-		eArr := strings.Split(e, ":")
-		paramChar.Name = eArr[0]
-		paramChar.Value = eArr[1]
+			eArr := strings.Split(e, ":")
+			paramChar.Name = eArr[0]
+			paramChar.Value = eArr[1]
 
-		params.Characteristic = append(params.Characteristic, paramChar)
+			params.Characteristic = append(params.Characteristic, paramChar)
+		}
 	}
 
 	if err != nil {
@@ -118,7 +120,7 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 // @ID 			 gets full product info
 // @Produce      json
 // @Param 		 id query int true "Product id"
-// @Success      200  {object}  product.Info
+// @Success      200  {object}  product.Product
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error

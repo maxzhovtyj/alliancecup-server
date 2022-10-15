@@ -32,7 +32,6 @@ func NewProductsPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
 	}
 }
 
-//TODO select jsonb packaging field instead of units_in_package and packages_in_box
 //TODO product discount
 
 var productsColumnsSelect = []string{
