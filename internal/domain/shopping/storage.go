@@ -70,14 +70,13 @@ func (s *storage) GetProductsInCart(userId int) ([]CartProductFullInfo, error) {
 		"products.img_url",
 		"products.amount_in_stock",
 		"products.price",
-		"products.units_in_package",
-		"products.packages_in_box",
+		"products.packaging",
 		"products.created_at",
 		"carts_products.quantity",
 		"carts_products.price_for_quantity",
 	).
 		From(postgres.CartsProductsTable).
-		LeftJoin(postgres.ProductsTable + " ON carts_products.product_id=products.id").
+		LeftJoin(postgres.ProductsTable + " ON carts_products.product_id = products.id").
 		Where(sq.Eq{"carts_products.cart_id": cartId}).ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build sql query to get products from cart due to: %v", err)
