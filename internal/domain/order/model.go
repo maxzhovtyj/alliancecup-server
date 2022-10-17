@@ -46,7 +46,7 @@ type ProductFullInfo struct {
 	OrderId          int            `json:"order_id" db:"order_id"`
 	Article          string         `json:"article" db:"article"`
 	ProductTitle     string         `json:"product_title" db:"product_title"`
-	ImgUrl           string         `json:"img_url" db:"img_url"`
+	ImgUrl           *string        `json:"img_url" db:"img_url"`
 	AmountInStock    float64        `json:"amount_in_stock" db:"amount_in_stock"`
 	Price            float64        `json:"price" db:"price"`
 	Packaging        types.JSONText `json:"packaging" db:"packaging"`

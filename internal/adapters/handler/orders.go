@@ -99,6 +99,7 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"order": orders,
 	})

@@ -38,8 +38,8 @@ var orderInfoColumnsInsert = []string{
 	"user_middle_name",
 	"user_phone_number",
 	"user_email",
-	"order_comment",
-	"order_sum_price",
+	"comment",
+	"sum_price",
 	"delivery_type_id",
 	"payment_type_id",
 }
@@ -155,31 +155,31 @@ func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 	orders := make([]SelectDTO, ordersLimit)
 
 	query := s.qb.Select(
-		"order.id",
-		"order.user_id",
-		"order.user_lastname",
-		"order.user_firstname",
-		"order.user_middle_name",
-		"order.user_phone_number",
-		"order.user_email",
-		"order.status",
-		"order.comment",
-		"order.sum_price",
+		"orders.id",
+		"orders.user_id",
+		"orders.user_lastname",
+		"orders.user_firstname",
+		"orders.user_middle_name",
+		"orders.user_phone_number",
+		"orders.user_email",
+		"orders.status",
+		"orders.comment",
+		"orders.sum_price",
 		"delivery_types.delivery_type_title",
 		"payment_types.payment_type_title",
-		"order.created_at",
-		"order.closed_at",
+		"orders.created_at",
+		"orders.closed_at",
 	).
 		From(postgres.OrdersTable).
-		LeftJoin(postgres.DeliveryTypesTable + " ON order.delivery_type_id=delivery_types.id").
-		LeftJoin(postgres.PaymentTypesTable + " ON order.payment_type_id=payment_types.id").
+		LeftJoin(postgres.DeliveryTypesTable + " ON orders.delivery_type_id = delivery_types.id").
+		LeftJoin(postgres.PaymentTypesTable + " ON orders.payment_type_id = payment_types.id").
 		Where(sq.Eq{"user_id": userId})
 
 	if createdAt != "" {
-		query = query.Where(sq.Lt{"created_at": createdAt})
+		query = query.Where(sq.Lt{"orders.created_at": createdAt})
 	}
 
-	ordered := query.OrderBy("order.created_at DESC").Limit(12)
+	ordered := query.OrderBy("orders.created_at DESC").Limit(12)
 
 	querySql, args, err := ordered.ToSql()
 	if err != nil {
@@ -210,7 +210,7 @@ func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 				"price_for_quantity",
 			).
 			From(postgres.OrdersProductsTable).
-			LeftJoin(postgres.ProductsTable + " ON orders_products.product_id=products.id").
+			LeftJoin(postgres.ProductsTable + " ON orders_products.product_id = products.id").
 			Where(sq.Eq{"orders_products.order_id": orders[i].Info.Id}).
 			ToSql()
 		if err != nil {
