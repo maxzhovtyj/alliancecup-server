@@ -16,24 +16,21 @@ type ProductIdInput struct {
 // getProducts godoc
 // @Summary      GetProducts
 // @Tags         api
-// @Product  get products from certain category with params
+// @Product  	 get products from certain category with params
 // @ID 			 gets products
 // @Produce      json
-// @Param 		 category query string true "Category"
+// @Param 		 category query string false "Category"
 // @Param 	   	 size query int false "Size"
-// @Param 		 type query string false "Type"
 // @Param 		 search query string false "Search"
 // @Param 		 price query string false "Price"
-// @Param 		 characteristic query string false "characteristic"
+// @Param 		 characteristic query string false "Characteristic"
 // @Param		 created_at query string false "Created At"
-// @Success      200  {object}  product.Product
+// @Success      200  {array}  product.Product
 // @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/products [post]
 func (h *Handler) getProducts(ctx *gin.Context) {
-	// http://localhost:8000/api/products?characteristic=Колір:Білий+Розмір:110мл
-
+	// Example http://localhost:8000/api/products?characteristic=Колір:Білий+Розмір:110мл
 	var params shopping.SearchParams
 
 	category := ctx.Query("category")
@@ -83,11 +80,11 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Summary      AddProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  Adds a new product
+// @Product  	 Adds a new product
 // @ID 			 adds product
 // @Accept 	     json
 // @Produce      json
-// @Param        input body product.Info true "product info"
+// @Param        input body product.Product true "product info"
 // @Success      201  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -127,7 +124,6 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 // @Router       /api/product [get]
 func (h *Handler) getProductById(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Query("id"))
-
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, "id was not found in request path")
 		return
@@ -146,11 +142,11 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Summary      UpdateProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  Updates product
+// @Product  	 Updates product
 // @ID 			 updates product
 // @Accept 	     json
 // @Produce      json
-// @Param        input body product.Info true "product info"
+// @Param        input body product.Product true "product info"
 // @Success      200  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error

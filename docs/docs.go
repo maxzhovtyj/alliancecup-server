@@ -59,12 +59,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/handler.Error"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -111,12 +105,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handler.Error"
                         }
@@ -276,7 +264,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "integer"
+                            "type": "object"
                         }
                     },
                     "400": {
@@ -396,17 +384,11 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handler.ItemProcessedResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handler.Error"
                         }
@@ -445,7 +427,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/product.Info"
+                            "$ref": "#/definitions/product.Product"
                         }
                     }
                 ],
@@ -500,7 +482,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/product.Info"
+                            "$ref": "#/definitions/product.Product"
                         }
                     }
                 ],
@@ -585,6 +567,407 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/super/inventories": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin/super"
+                ],
+                "summary": "Get inventories",
+                "operationId": "gets inventories",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Last inventory created at for pagination",
+                        "name": "createdAt",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/inventory.CurrentProductDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/super/inventory": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin/super"
+                ],
+                "summary": "Get products to inventory them",
+                "operationId": "gets products to inventory",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/inventory.CurrentProductDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin/super"
+                ],
+                "summary": "Do products inventory",
+                "operationId": "do products inventory",
+                "parameters": [
+                    {
+                        "description": "products info to inventory",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/inventory.InsertProductDTO"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/super/inventory-products": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin/super"
+                ],
+                "summary": "Get inventory products",
+                "operationId": "gets inventory products",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Inventory id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/inventory.SelectProductDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/supply": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get supplies",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "Get Supplies",
+                "operationId": "get supplies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Last item createdAt for pagination",
+                        "name": "createdAt",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/supply.InfoDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Creates new supply",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "Create new supply",
+                "operationId": "creates new supply",
+                "parameters": [
+                    {
+                        "description": "Supply info",
+                        "name": "supply",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supply.Supply"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes supply",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "Delete supply by id",
+                "operationId": "deletes supply",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Supply id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/supply-products": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get supply products",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api/admin"
+                ],
+                "summary": "Get Supply Products",
+                "operationId": "get supply products",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Supply id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last item createdAt for pagination",
+                        "name": "createdAt",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/supply.ProductDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/categories": {
             "get": {
                 "description": "get all categories",
@@ -604,18 +987,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handler.allCategoriesResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
                         }
                     },
                     "500": {
@@ -815,7 +1186,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "type": "object"
                         }
                     },
                     "400": {
@@ -1073,9 +1444,12 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "get order",
                         "schema": {
-                            "$ref": "#/definitions/order.FullInfo"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/order.SelectDTO"
+                            }
                         }
                     },
                     "400": {
@@ -1084,8 +1458,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/handler.Error"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/handler.Error"
                         }
@@ -1130,17 +1504,14 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/order.FullInfo"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/order.SelectDTO"
+                            }
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/handler.Error"
                         }
@@ -1200,8 +1571,49 @@ const docTemplate = `{
                             "$ref": "#/definitions/handler.Error"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invoice": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get pdf file with order invoice",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Get pdf invoice by order id",
+                "operationId": "pdf order invoice",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "order id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "attachment"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/handler.Error"
                         }
@@ -1236,7 +1648,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/order.Order"
+                            "$ref": "#/definitions/order.CreateDTO"
                         }
                     }
                 ],
@@ -1249,12 +1661,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handler.Error"
                         }
@@ -1333,7 +1739,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/product.Info"
+                            "$ref": "#/definitions/product.Product"
                         }
                     },
                     "400": {
@@ -1372,19 +1778,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Category",
                         "name": "category",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "integer",
                         "description": "Size",
                         "name": "size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Type",
-                        "name": "type",
                         "in": "query"
                     },
                     {
@@ -1401,7 +1800,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "characteristic",
+                        "description": "Characteristic",
                         "name": "characteristic",
                         "in": "query"
                     },
@@ -1424,12 +1823,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handler.Error"
                         }
@@ -1861,7 +2254,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "message": {
                     "type": "string"
@@ -1876,7 +2269,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "orderId": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "toStatus": {
                     "type": "string"
@@ -1938,7 +2331,155 @@ const docTemplate = `{
                 }
             }
         },
-        "order.FullInfo": {
+        "inventory.CurrentProductDTO": {
+            "type": "object",
+            "properties": {
+                "currentAmount": {
+                    "type": "number"
+                },
+                "currentSpend": {
+                    "type": "number"
+                },
+                "currentSupply": {
+                    "type": "number"
+                },
+                "currentWriteOff": {
+                    "type": "number"
+                },
+                "initialAmount": {
+                    "type": "number"
+                },
+                "lastInventory": {
+                    "type": "string"
+                },
+                "lastInventoryId": {
+                    "type": "integer"
+                },
+                "productId": {
+                    "type": "integer"
+                },
+                "productPrice": {
+                    "type": "number"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "writeOffPrice": {
+                    "type": "number"
+                }
+            }
+        },
+        "inventory.InsertProductDTO": {
+            "type": "object",
+            "required": [
+                "plannedAmount",
+                "productId",
+                "productPrice",
+                "realAmount"
+            ],
+            "properties": {
+                "initialAmount": {
+                    "description": "amount from the last inventory",
+                    "type": "number"
+                },
+                "lastInventoryId": {
+                    "type": "integer"
+                },
+                "plannedAmount": {
+                    "description": "current amount in stock",
+                    "type": "number"
+                },
+                "productId": {
+                    "type": "integer"
+                },
+                "productPrice": {
+                    "type": "number"
+                },
+                "realAmount": {
+                    "description": "inventory input",
+                    "type": "number"
+                },
+                "spends": {
+                    "description": "spending (customers orders) from the last inventory",
+                    "type": "number"
+                },
+                "supply": {
+                    "description": "from the last inventory",
+                    "type": "number"
+                },
+                "writeOff": {
+                    "description": "something that wasn't sold",
+                    "type": "number"
+                }
+            }
+        },
+        "inventory.SelectProductDTO": {
+            "type": "object",
+            "required": [
+                "plannedAmount",
+                "productId",
+                "productPrice",
+                "productTitle",
+                "realAmount",
+                "spends",
+                "supply",
+                "writeOff",
+                "writeOffPrice"
+            ],
+            "properties": {
+                "difference": {
+                    "type": "number"
+                },
+                "differencePrice": {
+                    "type": "number"
+                },
+                "initialAmount": {
+                    "description": "amount from the last inventory",
+                    "type": "number"
+                },
+                "lastInventoryId": {
+                    "type": "integer"
+                },
+                "plannedAmount": {
+                    "description": "current amount in stock",
+                    "type": "number"
+                },
+                "productId": {
+                    "type": "integer"
+                },
+                "productPrice": {
+                    "type": "number"
+                },
+                "productTitle": {
+                    "type": "string"
+                },
+                "realAmount": {
+                    "description": "inventory input",
+                    "type": "number"
+                },
+                "realAmountPrice": {
+                    "description": "inventory input price",
+                    "type": "number"
+                },
+                "spends": {
+                    "description": "spending (customers orders) from the last inventory",
+                    "type": "number"
+                },
+                "supply": {
+                    "description": "from the last inventory",
+                    "type": "number"
+                },
+                "writeOff": {
+                    "description": "something that wasn't sold",
+                    "type": "number"
+                },
+                "writeOffPrice": {
+                    "description": "something that wasn't sold price",
+                    "type": "number"
+                }
+            }
+        },
+        "order.CreateDTO": {
             "type": "object",
             "properties": {
                 "delivery": {
@@ -1947,13 +2488,13 @@ const docTemplate = `{
                         "$ref": "#/definitions/order.OrdersDelivery"
                     }
                 },
-                "info": {
+                "order": {
                     "$ref": "#/definitions/order.Order"
                 },
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/order.ProductFullInfo"
+                        "$ref": "#/definitions/order.Product"
                     }
                 }
             }
@@ -1962,8 +2503,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "delivery_type_title",
-                "order_sum_price",
                 "payment_type_title",
+                "sum_price",
                 "user_email",
                 "user_firstname",
                 "user_lastname",
@@ -1974,6 +2515,9 @@ const docTemplate = `{
                 "closed_at": {
                     "type": "string"
                 },
+                "comment": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -1981,25 +2525,25 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
-                },
-                "order_comment": {
-                    "type": "string"
-                },
-                "order_status": {
-                    "type": "string"
-                },
-                "order_sum_price": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "payment_type_title": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "sum_price": {
+                    "type": "number"
                 },
                 "user_email": {
                     "type": "string"
                 },
                 "user_firstname": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 },
                 "user_lastname": {
                     "type": "string"
@@ -2023,6 +2567,20 @@ const docTemplate = `{
                 }
             }
         },
+        "order.Product": {
+            "type": "object",
+            "properties": {
+                "price_for_quantity": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "order.ProductFullInfo": {
             "type": "object",
             "properties": {
@@ -2042,10 +2600,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "order_id": {
-                    "type": "string"
-                },
-                "packages_in_box": {
                     "type": "integer"
+                },
+                "packaging": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "price": {
                     "type": "number"
@@ -2058,40 +2619,26 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "integer"
-                },
-                "units_in_package": {
-                    "type": "integer"
                 }
             }
         },
-        "product.Description": {
+        "order.SelectDTO": {
             "type": "object",
             "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Білий"
-                },
-                "info_title": {
-                    "type": "string",
-                    "example": "Колір"
-                },
-                "product_id": {
-                    "type": "integer",
-                    "example": 1
-                }
-            }
-        },
-        "product.Info": {
-            "type": "object",
-            "properties": {
-                "description": {
+                "delivery": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/product.Description"
+                        "$ref": "#/definitions/order.OrdersDelivery"
                     }
                 },
                 "info": {
-                    "$ref": "#/definitions/product.Product"
+                    "$ref": "#/definitions/order.Order"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.ProductFullInfo"
+                    }
                 }
             }
         },
@@ -2100,11 +2647,9 @@ const docTemplate = `{
             "required": [
                 "article",
                 "category_title",
-                "packages_in_box",
                 "price",
                 "product_title",
-                "type_title",
-                "units_in_package"
+                "type_title"
             ],
             "properties": {
                 "amount_in_stock": {
@@ -2118,6 +2663,12 @@ const docTemplate = `{
                 "category_title": {
                     "type": "string",
                     "example": "Одноразові стакани"
+                },
+                "characteristics": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "created_at": {
                     "type": "string"
@@ -2133,9 +2684,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://google-images.com/some-img123"
                 },
-                "packages_in_box": {
-                    "type": "integer",
-                    "example": 50
+                "packaging": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "price": {
                     "type": "number",
@@ -2148,10 +2701,6 @@ const docTemplate = `{
                 "type_title": {
                     "type": "string",
                     "example": "Стакан"
-                },
-                "units_in_package": {
-                    "type": "integer",
-                    "example": 30
                 }
             }
         },
@@ -2242,9 +2791,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://google-images.com/some-img123"
                 },
-                "packages_in_box": {
-                    "type": "integer",
-                    "example": 50
+                "packaging": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "price": {
                     "type": "number",
@@ -2262,10 +2813,6 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "integer"
-                },
-                "units_in_package": {
-                    "type": "integer",
-                    "example": 30
                 }
             }
         },
@@ -2305,6 +2852,107 @@ const docTemplate = `{
                 },
                 "payment_type_title": {
                     "type": "string"
+                }
+            }
+        },
+        "supply.InfoDTO": {
+            "type": "object",
+            "required": [
+                "supplier"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "sum": {
+                    "type": "number"
+                },
+                "supplier": {
+                    "type": "string"
+                },
+                "supplyTime": {
+                    "type": "string"
+                }
+            }
+        },
+        "supply.PaymentDTO": {
+            "type": "object",
+            "required": [
+                "paymentSum",
+                "paymentType"
+            ],
+            "properties": {
+                "paymentSum": {
+                    "type": "number"
+                },
+                "paymentTime": {
+                    "type": "string"
+                },
+                "paymentType": {
+                    "type": "string"
+                }
+            }
+        },
+        "supply.ProductDTO": {
+            "type": "object",
+            "required": [
+                "amount",
+                "priceForUnit",
+                "productId",
+                "sumWithoutTax",
+                "tax",
+                "totalSum"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "packaging": {
+                    "type": "string"
+                },
+                "priceForUnit": {
+                    "type": "number"
+                },
+                "productId": {
+                    "type": "integer"
+                },
+                "productTitle": {
+                    "type": "string"
+                },
+                "sumWithoutTax": {
+                    "type": "number"
+                },
+                "tax": {
+                    "type": "number"
+                },
+                "totalSum": {
+                    "type": "number"
+                }
+            }
+        },
+        "supply.Supply": {
+            "type": "object",
+            "properties": {
+                "info": {
+                    "$ref": "#/definitions/supply.InfoDTO"
+                },
+                "payment": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/supply.PaymentDTO"
+                    }
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/supply.ProductDTO"
+                    }
                 }
             }
         },

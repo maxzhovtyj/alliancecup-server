@@ -86,17 +86,17 @@ func (h *Handler) signUp(ctx *gin.Context) {
 
 // createModerator godoc
 // @Summary      CreateModerator
-// @Security ApiKeyAuth
+// @Security 	 ApiKeyAuth
 // @Tags         api/admin
 // @Description  registers a new moderator
-// @ID create account for moderator
+// @ID 			 create account for moderator
 // @Accept       json
 // @Produce      json
 // @Param        input body user.User true "account info"
-// @Success      200  {integer} integer 2
-// @Failure      400  {object} Error
-// @Failure      404  {object} Error
-// @Failure      500  {object} Error
+// @Success      200  {object}  object
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
 // @Router       /api/admin/moderator [post]
 func (h *Handler) createModerator(ctx *gin.Context) {
 	var input user.User
@@ -284,10 +284,10 @@ func (h *Handler) refresh(ctx *gin.Context) {
 // @ID change user password
 // @Accept json
 // @Produce json
-// @Param input body handler.ChangePasswordInput true  "Order to change password"
-// @Success 200  {object} string
+// @Param input body handler.ChangePasswordInput true "Order to change password"
+// @Success 200  {object} object
 // @Failure 400  {object} Error
-// @Failure 401 {object} Error
+// @Failure 401  {object} Error
 // @Failure 404  {object} Error
 // @Failure 500  {object} Error
 // @Router /api/client/change-password [put]
@@ -320,6 +320,7 @@ func (h *Handler) changePassword(ctx *gin.Context) {
 	})
 }
 
+// TODO
 func (h *Handler) forgotPassword(ctx *gin.Context) {
 	var input string
 

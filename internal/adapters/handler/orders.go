@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	order "github.com/zh0vtyj/allincecup-server/internal/domain/order"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"net/http"
 	"os"
 	"strconv"
@@ -26,10 +26,9 @@ type ProcessedOrderStatus struct {
 // @ID creates an order
 // @Accept       json
 // @Produce      json
-// @Param        input body order.Order true "order info"
+// @Param        input body order.CreateDTO true "order info"
 // @Success      200  {object}  handler.OrderResponse
 // @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/order [post]
 func (h *Handler) newOrder(ctx *gin.Context) {
@@ -76,15 +75,15 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        created_at query string false "last order created_at for pagination"
-// @Success      200  {object}  server.SelectDTO
-// @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
+// @Success      200  {array}  	order.SelectDTO
+// @Failure      401  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/client/user-order [get]
 func (h *Handler) userOrders(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusUnauthorized, "user id not found")
+		return
 	}
 
 	createdAt := ctx.Query("created_at")
@@ -100,9 +99,7 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"order": orders,
-	})
+	ctx.JSON(http.StatusOK, orders)
 }
 
 // getOrderById godoc
@@ -113,9 +110,9 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @ID gets order by id
 // @Produce      json
 // @Param        id query string true "order id"
-// @Success      200  {object}  order.SelectDTO
+// @Success      200  {array}  order.SelectDTO "get order"
 // @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
+// @Failure      401  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/client/order [get]
 func (h *Handler) getOrderById(ctx *gin.Context) {
@@ -131,25 +128,23 @@ func (h *Handler) getOrderById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"data": orderInfo,
-	})
+	ctx.JSON(http.StatusOK, orderInfo)
 }
 
 // adminGetOrders godoc
-// @Security 	 ApiKeyAuth
-// @Summary      Get Orders
-// @Tags         api/admin
-// @Description  get order by status
+// @Security ApiKeyAuth
+// @Summary Get Orders
+// @Tags api/admin
+// @Description get order by status
 // @ID get order
-// @Produce      json
+// @Produce json
 // @Param created_at query string false "Last item created at for pagination"
 // @Param order_status query string true "Sort by order status"
-// @Success      200  {array}   order.Order
-// @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
-// @Failure      500  {object}  Error
-// @Router       /api/admin/orders [get]
+// @Success 200 {array} order.Order
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /api/admin/orders [get]
 func (h *Handler) adminGetOrders(ctx *gin.Context) {
 	createdAt := ctx.Query("created_at")
 	orderStatus := ctx.Query("order_status")
@@ -201,9 +196,8 @@ func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
 // @Accept 	  	 json
 // @Produce      json
 // @Param 		 input body handler.ProcessedOrderStatus true "order status"
-// @Success      200  {object}  string
+// @Success      200  {object}  ItemProcessedResponse
 // @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/admin/processed-order [put]
 func (h *Handler) processedOrder(ctx *gin.Context) {
@@ -228,12 +222,24 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]any{
-		"orderId": orderInput.OrderId,
-		"message": "order status successfully updated",
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      orderInput.OrderId,
+		Message: "order processed",
 	})
 }
 
+// getOrderInvoice godoc
+// @Summary      Get pdf invoice by order id
+// @Security 	 ApiKeyAuth
+// @Tags         api
+// @Description  Get pdf file with order invoice
+// @ID pdf order invoice
+// @Produce      json
+// @Param 		 id query int true "order id"
+// @Success      200  {attachment} File
+// @Failure      400  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/invoice [put]
 func (h *Handler) getOrderInvoice(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {

@@ -132,7 +132,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.GET(supplyProductsUrl, h.getSupplyProducts)
 			admin.DELETE(supplyUrl, h.deleteSupply)
 
-			// TODO middleware only super admin
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)

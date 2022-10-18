@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	server "github.com/zh0vtyj/allincecup-server/internal/domain/category"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
 	"net/http"
 	"strconv"
 )
@@ -14,7 +14,7 @@ const (
 )
 
 type allCategoriesResponse struct {
-	Data []server.Category `json:"data"`
+	Data []category.Category `json:"data"`
 }
 
 type DeleteCategoryInput struct {
@@ -30,8 +30,6 @@ type DeleteCategoryInput struct {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  allCategoriesResponse
-// @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/categories [get]
 func (h *Handler) getCategories(ctx *gin.Context) {
@@ -55,7 +53,6 @@ func (h *Handler) getCategories(ctx *gin.Context) {
 // @Param parentName query string true "parent name"
 // @Success 200 {array} category.Filtration
 // @Failure 400 {object} Error
-// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /api/filtration [get]
 func (h *Handler) getFiltration(ctx *gin.Context) {
@@ -96,11 +93,10 @@ func (h *Handler) getFiltration(ctx *gin.Context) {
 // @Param input body category.Category true "category info"
 // @Success 201 {object} handler.ItemProcessedResponse
 // @Failure 400 {object} Error
-// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router  /api/admin/category [post]
 func (h *Handler) addCategory(ctx *gin.Context) {
-	var input server.Category
+	var input category.Category
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
@@ -130,11 +126,10 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 // @Param        input body category.Category true "category info"
 // @Success      200  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/admin/category [put]
 func (h *Handler) updateCategory(ctx *gin.Context) {
-	var input server.Category
+	var input category.Category
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
