@@ -8,3 +8,9 @@ type User struct {
 	Name        string `json:"name" binding:"required"`
 	PhoneNumber string `json:"phone_number" binding:"required"`
 }
+
+type InfoDTO struct {
+	Email       string `json:"email" db:"email"`
+	Name        string `json:"name" db:"name"`
+	PhoneNumber string `json:"phoneNumber" db:"phone_number"`
+}

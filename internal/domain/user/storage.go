@@ -18,6 +18,7 @@ type AuthorizationStorage interface {
 	GetUserPasswordHash(userId int) (string, error)
 	UpdatePassword(userId int, newPassword string) error
 	UserExists(email string) (int, int, error)
+	SelectUserInfo(id int) (InfoDTO, error)
 }
 
 type AuthPostgres struct {
@@ -178,4 +179,15 @@ func (a *AuthPostgres) UserExists(email string) (int, int, error) {
 	}
 
 	return userId, userRoleId, nil
+}
+
+func (a *AuthPostgres) SelectUserInfo(id int) (user InfoDTO, err error) {
+	querySelectUserInfo := fmt.Sprintf("SELECT email, name, phone_number FROM %s WHERE id = $1", postgres.UsersTable)
+
+	err = a.db.Get(&user, querySelectUserInfo, id)
+	if err != nil {
+		return InfoDTO{}, fmt.Errorf("failed to select user info due to %v", err)
+	}
+
+	return user, err
 }

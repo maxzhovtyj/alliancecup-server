@@ -31,6 +31,7 @@ type AuthorizationService interface {
 	Logout(id int) error
 	ChangePassword(userId int, oldPassword, newPassword string) error
 	UserForgotPassword(email string) error
+	UserInfo(id int) (InfoDTO, error)
 }
 
 type tokenClaims struct {
@@ -256,4 +257,8 @@ func (s *AuthService) UserForgotPassword(email string) error {
 	// TODO send a letter to an email
 
 	return nil
+}
+
+func (s *AuthService) UserInfo(id int) (InfoDTO, error) {
+	return s.repo.SelectUserInfo(id)
 }

@@ -337,3 +337,20 @@ func (h *Handler) forgotPassword(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, "email was successfully send")
 }
+
+// TODO
+func (h *Handler) personalInfo(ctx *gin.Context) {
+	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userInfo, err := h.services.Authorization.UserInfo(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, userInfo)
+}
