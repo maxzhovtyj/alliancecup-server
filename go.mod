@@ -12,7 +12,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/lib/pq v1.2.0
-	github.com/maxzhovtyj/go-invoice v0.0.0-20221006084917-1a4974ac4320
+	github.com/maxzhovtyj/go-invoice v0.0.0-20221018192723-907dac942c73
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.12.0
 	github.com/swaggo/files v0.0.0-20220728132757-551d4a08d97a
