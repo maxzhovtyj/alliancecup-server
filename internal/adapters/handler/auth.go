@@ -68,10 +68,6 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		newErrorResponse(ctx, http.StatusBadRequest, "invalid phone_number")
 		return
 	}
-	if input.Name == "" {
-		newErrorResponse(ctx, http.StatusBadRequest, "invalid name")
-		return
-	}
 
 	id, roleId, err := h.services.Authorization.CreateUser(input)
 	if err != nil {

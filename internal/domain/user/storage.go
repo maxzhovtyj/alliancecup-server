@@ -37,19 +37,28 @@ func (a *AuthPostgres) CreateUser(user User, role string) (int, int, error) {
 		return 0, 0, err
 	}
 
-	var clientRoleId int
-	query := fmt.Sprintf("SELECT id FROM %s WHERE role_title=$1", postgres.RolesTable)
-	row := tx.QueryRow(query, role)
-	if err = row.Scan(&clientRoleId); err != nil {
-		_ = tx.Rollback()
-		return 0, 0, err
-	}
-
 	var id int // variable for user's id
 	var userRoleId int
 
-	query = fmt.Sprintf("INSERT INTO %s (role_id, name, email, password_hash, phone_number) values ($1, $2, $3, $4, $5) RETURNING id, role_id", postgres.UsersTable)
-	row = tx.QueryRow(query, clientRoleId, user.Name, user.Email, user.Password, user.PhoneNumber)
+	query := fmt.Sprintf(
+		`
+		INSERT INTO %s 
+		(role_id, email, lastname, firstname, middle_name, password_hash, phone_number) 
+		values ((SELECT id FROM roles WHERE role_title = $1), $2, $3, $4, $5, $6, $7) 
+		RETURNING id, role_id
+		`,
+		postgres.UsersTable,
+	)
+	row := tx.QueryRow(
+		query,
+		role,
+		user.Email,
+		user.Lastname,
+		user.Firstname,
+		user.MiddleName,
+		user.Password,
+		user.PhoneNumber,
+	)
 	if err = row.Scan(&id, &userRoleId); err != nil {
 		_ = tx.Rollback() // db rollback in error case
 		return 0, 0, err
@@ -183,7 +192,14 @@ func (a *AuthPostgres) UserExists(email string) (int, int, error) {
 }
 
 func (a *AuthPostgres) SelectUserInfo(id int) (user InfoDTO, err error) {
-	querySelectUserInfo := fmt.Sprintf("SELECT email, name, phone_number FROM %s WHERE id = $1", postgres.UsersTable)
+	querySelectUserInfo := fmt.Sprintf(
+		`
+		SELECT email, lastname, firstname, middle_name, phone_number 
+		FROM %s 
+		WHERE id = $1
+		`,
+		postgres.UsersTable,
+	)
 
 	err = a.db.Get(&user, querySelectUserInfo, id)
 	if err != nil {
@@ -197,15 +213,23 @@ func (a *AuthPostgres) UpdatePersonalInfo(user InfoDTO, id int) error {
 	queryUpdateUser := fmt.Sprintf(
 		`
 		UPDATE %s
-		SET email = $1,
-			name = $2,
-			phone_number = $3
-		WHERE user_id = $4
+		SET lastname = $1,
+			firstname = $2,
+			middle_name = $3,
+			phone_number = $4
+		WHERE id = $5
 		`,
 		postgres.UsersTable,
 	)
 
-	_, err := a.db.Exec(queryUpdateUser, user.Email, user.Name, user.PhoneNumber, id)
+	_, err := a.db.Exec(
+		queryUpdateUser,
+		user.Lastname,
+		user.Firstname,
+		user.MiddleName,
+		user.PhoneNumber,
+		id,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to update user info due to %v", err)
 	}
