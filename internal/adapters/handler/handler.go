@@ -147,6 +147,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		client := api.Group(clientUrl, h.userAuthorized)
 		{
 			client.GET("personal-info", h.personalInfo)
+			client.PUT("personal-info", h.updatePersonalInfo)
+
 			client.PUT(changePasswordUrl, h.changePassword)
 			client.DELETE(logoutUrl, h.logout)
 

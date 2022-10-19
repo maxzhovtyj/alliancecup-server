@@ -288,7 +288,6 @@ func (h *Handler) refresh(ctx *gin.Context) {
 // @Success 200  {object} object
 // @Failure 400  {object} Error
 // @Failure 401  {object} Error
-// @Failure 404  {object} Error
 // @Failure 500  {object} Error
 // @Router /api/client/change-password [put]
 func (h *Handler) changePassword(ctx *gin.Context) {
@@ -353,4 +352,27 @@ func (h *Handler) personalInfo(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, userInfo)
+}
+
+// TODO
+func (h *Handler) updatePersonalInfo(ctx *gin.Context) {
+	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var userInput user.InfoDTO
+	if err = ctx.BindJSON(&userInput); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = h.services.Authorization.ChangePersonalInfo(userInput, id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "user info updated")
 }

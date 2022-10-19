@@ -19,6 +19,7 @@ type AuthorizationStorage interface {
 	UpdatePassword(userId int, newPassword string) error
 	UserExists(email string) (int, int, error)
 	SelectUserInfo(id int) (InfoDTO, error)
+	UpdatePersonalInfo(user InfoDTO, id int) error
 }
 
 type AuthPostgres struct {
@@ -190,4 +191,24 @@ func (a *AuthPostgres) SelectUserInfo(id int) (user InfoDTO, err error) {
 	}
 
 	return user, err
+}
+
+func (a *AuthPostgres) UpdatePersonalInfo(user InfoDTO, id int) error {
+	queryUpdateUser := fmt.Sprintf(
+		`
+		UPDATE %s
+		SET email = $1,
+			name = $2,
+			phone_number = $3
+		WHERE user_id = $4
+		`,
+		postgres.UsersTable,
+	)
+
+	_, err := a.db.Exec(queryUpdateUser, user.Email, user.Name, user.PhoneNumber, id)
+	if err != nil {
+		return fmt.Errorf("failed to update user info due to %v", err)
+	}
+
+	return nil
 }

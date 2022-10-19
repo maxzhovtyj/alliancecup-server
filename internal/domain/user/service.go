@@ -32,6 +32,7 @@ type AuthorizationService interface {
 	ChangePassword(userId int, oldPassword, newPassword string) error
 	UserForgotPassword(email string) error
 	UserInfo(id int) (InfoDTO, error)
+	ChangePersonalInfo(user InfoDTO, id int) error
 }
 
 type tokenClaims struct {
@@ -261,4 +262,8 @@ func (s *AuthService) UserForgotPassword(email string) error {
 
 func (s *AuthService) UserInfo(id int) (InfoDTO, error) {
 	return s.repo.SelectUserInfo(id)
+}
+
+func (s *AuthService) ChangePersonalInfo(user InfoDTO, id int) error {
+	return s.repo.UpdatePersonalInfo(user, id)
 }
