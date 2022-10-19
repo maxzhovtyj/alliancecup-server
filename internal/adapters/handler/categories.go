@@ -13,10 +13,6 @@ const (
 	filtrationListIdName = "filtration_list_id"
 )
 
-type allCategoriesResponse struct {
-	Data []category.Category `json:"data"`
-}
-
 type DeleteCategoryInput struct {
 	Id            int    `json:"id"`
 	CategoryTitle string `json:"category_title"`
@@ -29,7 +25,7 @@ type DeleteCategoryInput struct {
 // @ID get categories
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  allCategoriesResponse
+// @Success      200  {array}  category.Category
 // @Failure      500  {object}  Error
 // @Router       /api/categories [get]
 func (h *Handler) getCategories(ctx *gin.Context) {
@@ -39,7 +35,7 @@ func (h *Handler) getCategories(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, allCategoriesResponse{Data: categories})
+	ctx.JSON(http.StatusOK, categories)
 }
 
 // getFiltration godoc

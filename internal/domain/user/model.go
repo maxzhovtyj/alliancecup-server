@@ -2,15 +2,19 @@ package user
 
 type User struct {
 	Id          int    `json:"-" db:"id"`
-	RoleId      int    `json:"role_id" db:"role_id"`
+	RoleId      int    `json:"roleId" db:"role_id"`
 	Email       string `json:"email" binding:"required"`
 	Password    string `json:"password" binding:"required"`
-	Name        string `json:"name" binding:"required"`
-	PhoneNumber string `json:"phone_number" binding:"required"`
+	Lastname    string `json:"lastname" binding:"required"`
+	Firstname   string `json:"firstname" binding:"required"`
+	MiddleName  string `json:"middleName" binding:"required"`
+	PhoneNumber string `json:"phoneNumber" binding:"required"`
 }
 
 type InfoDTO struct {
 	Email       string `json:"email" db:"email"`
-	Name        string `json:"name" db:"name"`
+	Lastname    string `json:"lastname" db:"lastname"`
+	Firstname   string `json:"firstname" db:"firstname"`
+	MiddleName  string `json:"middleName" db:"middle_name"`
 	PhoneNumber string `json:"phoneNumber" db:"phone_number"`
 }

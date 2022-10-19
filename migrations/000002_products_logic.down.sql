@@ -1,5 +1,3 @@
-DROP TABLE products_info;
-
 DROP TABLE carts_products;
 
 DROP TABLE products;
