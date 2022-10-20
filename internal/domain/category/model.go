@@ -2,9 +2,9 @@ package category
 
 type Category struct {
 	Id                  int     `json:"id" db:"id"`
-	CategoryTitle       string  `json:"category_title" binding:"required" db:"category_title"`
-	ImgUrl              *string `json:"img_url" db:"img_url"`
-	CategoryDescription *string `json:"category_description" db:"category_description"`
+	CategoryTitle       string  `json:"categoryTitle" db:"category_title" binding:"required"`
+	ImgUrl              *string `json:"imgUrl" db:"img_url"`
+	CategoryDescription *string `json:"categoryDescription" db:"category_description"`
 }
 
 type Filtration struct {

@@ -116,23 +116,17 @@ func (s *storage) AddProduct(product Product) (int, error) {
 	queryInsertProduct := fmt.Sprintf(
 		`
 		INSERT INTO %s 
-			(article, category_id, product_title, img_url, type_id, amount_in_stock, price, characteristics, packaging) 
+			(article, category_id, product_title, img_url, amount_in_stock, price, characteristics, packaging) 
 		VALUES (
 			$1, 
 			(SELECT id FROM %s WHERE category_title = $2),
-			$3,
-			$4,
-			(SELECT id FROM %s WHERE type_title = $5),
-			$6, 
-			$7, 
-			$8, 
-			$9
+			$3, $4,
+			$5, $6, $7, $8
 		) 
 		RETURNING id
 		`,
 		postgres.ProductsTable,
 		postgres.CategoriesTable,
-		postgres.ProductTypesTable,
 	)
 	insertRow := tx.QueryRow(
 		queryInsertProduct,

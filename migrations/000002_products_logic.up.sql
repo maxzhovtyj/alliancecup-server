@@ -11,15 +11,6 @@ CREATE TABLE categories
     img_url        TEXT
 );
 
-CREATE TABLE products_types
-(
-    id         SERIAL PRIMARY KEY,
-    type_title TEXT NOT NULL UNIQUE
-);
-
-INSERT INTO products_types (type_title)
-values ('Стакан');
-
 CREATE TABLE products
 (
     id              SERIAL PRIMARY KEY,
@@ -27,7 +18,6 @@ CREATE TABLE products
     category_id     INT REFERENCES categories (id) ON DELETE CASCADE     NOT NULL,
     product_title   TEXT                                                 NOT NULL,
     img_url         TEXT,
-    type_id         INT REFERENCES products_types (id) ON DELETE CASCADE NOT NULL,
     amount_in_stock DECIMAL(12, 2) DEFAULT 0,
     price           DECIMAL(12, 2)                                       NOT NULL,
     characteristics JSONB,

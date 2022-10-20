@@ -26,7 +26,16 @@ func NewCategoryPostgres(db *sqlx.DB) *storage {
 func (c *storage) GetAll() ([]Category, error) {
 	var categories []Category
 
-	queryGetCategories := fmt.Sprintf("SELECT * FROM %s", postgres.CategoriesTable)
+	queryGetCategories := fmt.Sprintf(
+		`
+		SELECT id,
+			   category_title,
+			   img_url,
+			   category_description 
+		FROM %s
+		`,
+		postgres.CategoriesTable,
+	)
 	err := c.db.Select(&categories, queryGetCategories)
 
 	return categories, err
