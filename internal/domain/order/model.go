@@ -7,19 +7,19 @@ import (
 
 type Order struct {
 	Id                int        `json:"id" db:"id"`
-	UserId            *int       `json:"user_id" db:"user_id"`
-	UserLastName      string     `json:"user_lastname" db:"user_lastname" binding:"required"`
-	UserFirstName     string     `json:"user_firstname" db:"user_firstname" binding:"required"`
-	UserMiddleName    string     `json:"user_middle_name" db:"user_middle_name" binding:"required"`
-	UserPhoneNumber   string     `json:"user_phone_number" db:"user_phone_number" binding:"required"`
-	UserEmail         string     `json:"user_email" db:"user_email" binding:"required"`
+	UserId            *int       `json:"userId" db:"user_id"`
+	UserLastName      string     `json:"userLastname" db:"user_lastname" binding:"required"`
+	UserFirstName     string     `json:"userFirstname" db:"user_firstname" binding:"required"`
+	UserMiddleName    string     `json:"userMiddleName" db:"user_middle_name" binding:"required"`
+	UserPhoneNumber   string     `json:"userPhoneNumber" db:"user_phone_number" binding:"required"`
+	UserEmail         string     `json:"userEmail" db:"user_email" binding:"required"`
 	Status            string     `json:"status" db:"status"`
 	Comment           string     `json:"comment" db:"comment"`
-	SumPrice          float64    `json:"sum_price" db:"sum_price" binding:"required"`
-	DeliveryTypeTitle string     `json:"delivery_type_title" db:"delivery_type_title" binding:"required"`
-	PaymentTypeTitle  string     `json:"payment_type_title" db:"payment_type_title" binding:"required"`
-	CreatedAt         time.Time  `json:"created_at" db:"created_at"`
-	ClosedAt          *time.Time `json:"closed_at" db:"closed_at"`
+	SumPrice          float64    `json:"sumPrice" db:"sum_price" binding:"required"`
+	DeliveryTypeTitle string     `json:"deliveryTypeTitle" db:"delivery_type_title" binding:"required"`
+	PaymentTypeTitle  string     `json:"paymentTypeTitle" db:"payment_type_title" binding:"required"`
+	CreatedAt         time.Time  `json:"createdAt" db:"created_at"`
+	ClosedAt          *time.Time `json:"closedAt" db:"closed_at"`
 }
 
 type Product struct {

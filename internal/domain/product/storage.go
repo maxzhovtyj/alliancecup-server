@@ -40,7 +40,6 @@ var productsColumnsSelect = []string{
 	"categories.category_title",
 	"products.product_title",
 	"products.img_url",
-	"products_types.type_title",
 	"products.amount_in_stock",
 	"products.price",
 	"products.characteristics",
@@ -51,8 +50,7 @@ var productsColumnsSelect = []string{
 func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 	query := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
-		LeftJoin(postgres.CategoriesTable + " ON products.category_id=categories.id").
-		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id")
+		LeftJoin(postgres.CategoriesTable + " ON products.category_id=categories.id")
 
 	if len(params.Characteristic) != 0 {
 		for _, chr := range params.Characteristic {
@@ -100,8 +98,7 @@ func (s *storage) Search(searchInput string) ([]Product, error) {
 	var products []Product
 	querySearch, args, err := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
-		LeftJoin(postgres.CategoriesTable + " ON categories.id=products.category_id").
-		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id").
+		LeftJoin(postgres.CategoriesTable + " ON categories.id = products.category_id").
 		Where(sq.Like{"products.product_title": "%" + searchInput + "%"}).
 		ToSql()
 
@@ -134,7 +131,6 @@ func (s *storage) AddProduct(product Product) (int, error) {
 		product.CategoryTitle,
 		product.ProductTitle,
 		product.ImgUrl,
-		product.TypeTitle,
 		product.AmountInStock,
 		product.Price,
 		product.Characteristics,
@@ -152,44 +148,29 @@ func (s *storage) AddProduct(product Product) (int, error) {
 func (s *storage) Update(product Product) (int, error) {
 	tx, _ := s.db.Begin()
 
-	var newCategoryId int
-	queryGetCategoryId := fmt.Sprintf("SELECT id FROM %s WHERE category_title=$1 LIMIT 1", postgres.CategoriesTable)
-	if err := s.db.Get(&newCategoryId, queryGetCategoryId, product.CategoryTitle); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-
-	var newTypeId int
-	queryGetTypeId := fmt.Sprintf("SELECT id FROM %s WHERE type_title=$1 LIMIT 1", postgres.ProductTypesTable)
-	if err := s.db.Get(&newTypeId, queryGetTypeId, product.TypeTitle); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-
 	queryUpdateProduct := fmt.Sprintf(
 		`
 		UPDATE %s 
 		SET article = $1,
-			category_id = $2,
+			category_id = (SELECT id FROM %s WHERE category_title = $2),
 			product_title = $3,
 			img_url = $4,
-			type_id = $5,
-			amount_in_stock = $6,
-			price = $7,
-			characteristics = $8,
-			packaging = $9 
-		WHERE id = $10
+			amount_in_stock = $5,
+			price = $6,
+			characteristics = $7,
+			packaging = $8
+		WHERE id = $9
 		`,
+		postgres.CategoriesTable,
 		postgres.ProductsTable,
 	)
 
 	_, err := tx.Exec(
 		queryUpdateProduct,
 		product.Article,
-		newCategoryId,
+		product.CategoryTitle,
 		product.ProductTitle,
 		product.ImgUrl,
-		newTypeId,
 		product.AmountInStock,
 		product.Price,
 		product.Characteristics,
@@ -222,8 +203,7 @@ func (s *storage) GetProductById(id int) (Product, error) {
 
 	queryGetProduct, args, err := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
-		LeftJoin(postgres.CategoriesTable + " ON categories.id=products.category_id").
-		LeftJoin(postgres.ProductTypesTable + " ON products_types.id=products.type_id").
+		LeftJoin(postgres.CategoriesTable + " ON categories.id = products.category_id").
 		Where(sq.Eq{"products.id": id}).ToSql()
 
 	err = s.db.Get(&product, queryGetProduct, args...)
