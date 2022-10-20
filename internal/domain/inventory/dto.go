@@ -4,15 +4,15 @@ import "time"
 
 type InsertProductDTO struct {
 	InventoryId     int      `json:"-" db:"inventory_id"`
-	ProductId       int      `json:"productId" binding:"required" db:"product_id"`
-	ProductPrice    float64  `json:"productPrice" binding:"required" db:"product_price"`
+	ProductId       int      `json:"productId" db:"product_id" binding:"required"`
+	ProductPrice    float64  `json:"productPrice" db:"product_price" binding:"required"`
 	LastInventoryId *int     `json:"lastInventoryId" db:"last_inventory_id"`
-	InitialAmount   *float64 `json:"initialAmount" db:"initial_amount"`                    // amount from the last inventory
-	Supply          float64  `json:"supply" db:"supply"`                                   // from the last inventory
-	Spend           float64  `json:"spends" db:"spend"`                                    // spending (customers orders) from the last inventory
-	WriteOff        float64  `json:"writeOff" db:"write_off"`                              // something that wasn't sold
-	PlannedAmount   float64  `json:"plannedAmount" binding:"required" db:"planned_amount"` // current amount in stock
-	RealAmount      float64  `json:"realAmount" binding:"required" db:"real_amount"`       // inventory input
+	InitialAmount   *float64 `json:"initialAmount" db:"initial_amount"`        // amount from the last inventory
+	Supply          float64  `json:"currentSupply,omitempty" db:"supply"`      // from the last inventory
+	Spend           float64  `json:"currentSpend,omitempty" db:"spend"`        // spending (customers orders) from the last inventory
+	WriteOff        float64  `json:"currentWriteOff,omitempty" db:"write_off"` // something that wasn't sold
+	PlannedAmount   float64  `json:"currentAmount" db:"planned_amount"`        // current amount in stock
+	RealAmount      float64  `json:"realAmount" db:"real_amount"`              // inventory input
 }
 
 type SelectProductDTO struct {

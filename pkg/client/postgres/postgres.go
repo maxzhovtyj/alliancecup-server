@@ -15,7 +15,6 @@ const (
 	CategoriesTable           = "categories"
 	CategoriesFiltrationTable = "categories_filtration"
 	ProductsTable             = "products"
-	ProductTypesTable         = "products_types"
 	FavouritesTable           = "favourites"
 	DeliveryTypesTable        = "delivery_types"
 	PaymentTypesTable         = "payment_types"
