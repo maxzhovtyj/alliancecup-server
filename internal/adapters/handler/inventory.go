@@ -5,7 +5,6 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 // getProductsToInventory godoc
@@ -76,14 +75,6 @@ func (h *Handler) doInventory(ctx *gin.Context) {
 // @Router       /api/admin/super/inventories [get]
 func (h *Handler) getInventories(ctx *gin.Context) {
 	createdAt := ctx.Query("createdAt")
-
-	if createdAt != "" {
-		_, err := time.Parse("2022-10-14T13:53:56.383658Z", createdAt)
-		if err != nil {
-			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-			return
-		}
-	}
 
 	inventories, err := h.services.Inventory.GetAll(createdAt)
 	if err != nil {
