@@ -7,23 +7,23 @@ import (
 
 type CartProduct struct {
 	CartId           int     `json:"-" db:"cart_id"`
-	ProductId        int     `json:"product_id" binding:"required" db:"product_id"`
+	ProductId        int     `json:"productId" binding:"required" db:"product_id"`
 	Quantity         int     `json:"quantity" binding:"required" db:"quantity"`
-	PriceForQuantity float64 `json:"price_for_quantity" binding:"required" db:"price_for_quantity"`
+	PriceForQuantity float64 `json:"priceForQuantity" binding:"required" db:"price_for_quantity"`
 }
 
 type CartProductFullInfo struct {
 	CartId           int            `json:"-" db:"cart_id"`
-	ProductId        int            `json:"product_id" binding:"required" db:"product_id"`
+	ProductId        int            `json:"productId" db:"product_id" binding:"required"`
 	Article          string         `json:"article" db:"article" example:"000123"`
-	ProductTitle     string         `json:"product_title" db:"product_title" example:"Стакан одноразовий Крафт 110мл"`
-	ImgUrl           *string        `json:"img_url" db:"img_url" example:"https://google-images.com/some-img123"`
-	AmountInStock    float64        `json:"amount_in_stock" db:"amount_in_stock" example:"120"`
+	ProductTitle     string         `json:"productTitle" db:"product_title" example:"Стакан одноразовий Крафт 110мл"`
+	ImgUrl           *string        `json:"imgUrl" db:"img_url" example:"https://google-images.com/some-img123"`
+	AmountInStock    float64        `json:"amountInStock" db:"amount_in_stock" example:"120"`
 	Price            float64        `json:"price" db:"price" example:"3.75"`
 	Packaging        types.JSONText `json:"packaging" db:"packaging"`
-	CreatedAt        time.Time      `json:"created_at" db:"created_at"`
-	Quantity         int            `json:"quantity" binding:"required" db:"quantity"`
-	PriceForQuantity float64        `json:"price_for_quantity" binding:"required" db:"price_for_quantity"`
+	CreatedAt        time.Time      `json:"createdAt" db:"created_at"`
+	Quantity         int            `json:"quantity" db:"quantity" binding:"required"`
+	PriceForQuantity float64        `json:"priceForQuantity" db:"price_for_quantity" binding:"required"`
 }
 
 type CharacteristicParam struct {

@@ -24,15 +24,15 @@ type Order struct {
 
 type Product struct {
 	OrderId          int     `json:"-" db:"order_id"`
-	ProductId        int     `json:"product_id" db:"product_id"`
+	ProductId        int     `json:"productId" db:"product_id"`
 	Quantity         int     `json:"quantity" db:"quantity"`
-	PriceForQuantity float64 `json:"price_for_quantity" db:"price_for_quantity"`
+	PriceForQuantity float64 `json:"priceForQuantity" db:"price_for_quantity"`
 }
 
 type OrdersDelivery struct {
 	OrderId             int    `json:"-" db:"order_id"`
-	DeliveryTitle       string `json:"delivery_title" db:"delivery_title"`
-	DeliveryDescription string `json:"delivery_description" db:"delivery_description"`
+	DeliveryTitle       string `json:"deliveryTitle" db:"delivery_title"`
+	DeliveryDescription string `json:"deliveryDescription" db:"delivery_description"`
 }
 
 type CreateDTO struct {
@@ -43,16 +43,16 @@ type CreateDTO struct {
 
 type ProductFullInfo struct {
 	Id               int            `json:"id" db:"id"`
-	OrderId          int            `json:"order_id" db:"order_id"`
+	OrderId          int            `json:"orderId" db:"order_id"`
 	Article          string         `json:"article" db:"article"`
-	ProductTitle     string         `json:"product_title" db:"product_title"`
-	ImgUrl           *string        `json:"img_url" db:"img_url"`
-	AmountInStock    float64        `json:"amount_in_stock" db:"amount_in_stock"`
+	ProductTitle     string         `json:"productTitle" db:"product_title"`
+	ImgUrl           *string        `json:"imgUrl" db:"img_url"`
+	AmountInStock    float64        `json:"amountInStock" db:"amount_in_stock"`
 	Price            float64        `json:"price" db:"price"`
 	Packaging        types.JSONText `json:"packaging" db:"packaging"`
-	CreatedAt        time.Time      `json:"created_at" db:"created_at"`
+	CreatedAt        time.Time      `json:"createdAt" db:"created_at"`
 	Quantity         int            `json:"quantity" db:"quantity"`
-	PriceForQuantity float64        `json:"price_for_quantity" db:"price_for_quantity"`
+	PriceForQuantity float64        `json:"priceForQuantity" db:"price_for_quantity"`
 }
 
 type SelectDTO struct {
