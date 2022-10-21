@@ -91,23 +91,24 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
-	var input product.Product
-
+	var input product.CreateProductDTO
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.Product.AddProduct(input)
+	_, err := ctx.FormFile("stakan.png")
 	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, ItemProcessedResponse{
-		Id:      id,
-		Message: "product added",
-	})
+	//id, err := h.services.Product.AddProduct(input)
+	//if err != nil {
+	//	newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+	//	return
+	//}
+
+	ctx.JSON(http.StatusCreated, input)
 }
 
 // getProductById godoc
