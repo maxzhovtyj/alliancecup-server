@@ -14,3 +14,8 @@ db:
 redis:
     host: "localhost"
     port: "6379"
+
+minio:
+    endpoint: "localhost:9000"
+    access_key: "minio99"
+    secret_key: "minio123"

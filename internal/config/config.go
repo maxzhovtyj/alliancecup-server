@@ -9,15 +9,18 @@ import (
 )
 
 const (
-	appPort    = "port"
-	dbPort     = "db.port"
-	dbUsername = "db.username"
-	dbHost     = "db.host"
-	dbName     = "db.name"
-	dbSSLMode  = "db.sslMode"
-	dbPassword = "DB_PASSWORD"
-	redisHost  = "redis.host"
-	redisPort  = "redis.port"
+	appPort        = "port"
+	dbPort         = "db.port"
+	dbUsername     = "db.username"
+	dbHost         = "db.host"
+	dbName         = "db.name"
+	dbSSLMode      = "db.sslMode"
+	dbPassword     = "DB_PASSWORD"
+	redisHost      = "redis.host"
+	redisPort      = "redis.port"
+	minioEndpoint  = "minio.endpoint"
+	minioAccessKey = "minio.access_key"
+	minioSecretKey = "minio.secret_key"
 )
 
 type Redis struct {
@@ -34,10 +37,17 @@ type Storage struct {
 	SSLMode  string `yaml:"sslMode"`
 }
 
+type MinIO struct {
+	Endpoint  string `yaml:"endpoint"`
+	AccessKey string `yaml:"access_key"`
+	SecretKey string `yaml:"secret_key"`
+}
+
 type Config struct {
 	AppPort string `yaml:"port"`
 	Storage
 	Redis
+	MinIO
 }
 
 var instance *Config
@@ -71,10 +81,16 @@ func GetConfig() *Config {
 			DBName:   viper.GetString(dbName),
 			SSLMode:  viper.GetString(dbSSLMode),
 		}
+		minioInstance := MinIO{
+			Endpoint:  viper.GetString(minioEndpoint),
+			AccessKey: viper.GetString(minioAccessKey),
+			SecretKey: viper.GetString(minioSecretKey),
+		}
 		instance = &Config{
 			AppPort: viper.GetString(appPort),
 			Storage: storageInstance,
 			Redis:   redisInstance,
+			MinIO:   minioInstance,
 		}
 	})
 
