@@ -7,7 +7,7 @@ import (
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 )
 
-type AuthorizationStorage interface {
+type Storage interface {
 	CreateUser(user User, role string) (int, int, error)
 	GetUser(email string, password string) (User, error)
 	NewSession(session models.Session) (*models.Session, error)
@@ -22,17 +22,17 @@ type AuthorizationStorage interface {
 	UpdatePersonalInfo(user InfoDTO, id int) error
 }
 
-type AuthPostgres struct {
+type storage struct {
 	db *sqlx.DB
 }
 
-func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
-	return &AuthPostgres{db: db}
+func NewAuthPostgres(db *sqlx.DB) *storage {
+	return &storage{db: db}
 }
 
-func (a *AuthPostgres) CreateUser(user User, role string) (int, int, error) {
+func (s *storage) CreateUser(user User, role string) (int, int, error) {
 	// Transaction begin
-	tx, err := a.db.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return 0, 0, err
 	}
@@ -76,17 +76,17 @@ func (a *AuthPostgres) CreateUser(user User, role string) (int, int, error) {
 	return id, userRoleId, tx.Commit()
 }
 
-func (a *AuthPostgres) GetUser(email, password string) (User, error) {
+func (s *storage) GetUser(email, password string) (User, error) {
 	var user User
 	query := fmt.Sprintf("SELECT id, role_id FROM %s WHERE email=$1 AND password_hash=$2", postgres.UsersTable)
-	err := a.db.Get(&user, query, email, password)
+	err := s.db.Get(&user, query, email, password)
 
 	return user, err
 }
 
-func (a *AuthPostgres) NewSession(session models.Session) (*models.Session, error) {
+func (s *storage) NewSession(session models.Session) (*models.Session, error) {
 	queryDeleteOldSession := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", postgres.SessionsTable)
-	_, err := a.db.Exec(queryDeleteOldSession, session.UserId)
+	_, err := s.db.Exec(queryDeleteOldSession, session.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (a *AuthPostgres) NewSession(session models.Session) (*models.Session, erro
 		"INSERT INTO %s (user_id, role_id, refresh_token, client_ip, user_agent, expires_at) values ($1, $2, $3, $4, $5, $6) RETURNING *",
 		postgres.SessionsTable,
 	)
-	row := a.db.QueryRow(query, session.UserId, session.RoleId, session.RefreshToken, session.ClientIp, session.UserAgent, session.ExpiresAt)
+	row := s.db.QueryRow(query, session.UserId, session.RoleId, session.RefreshToken, session.ClientIp, session.UserAgent, session.ExpiresAt)
 
 	if err = row.Scan(
 		&newSession.Id,
@@ -115,10 +115,10 @@ func (a *AuthPostgres) NewSession(session models.Session) (*models.Session, erro
 	return &newSession, nil
 }
 
-func (a *AuthPostgres) DeleteSessionByRefresh(refresh string) error {
+func (s *storage) DeleteSessionByRefresh(refresh string) error {
 	var id int
 	query := fmt.Sprintf("DELETE from %s WHERE refresh_token=$1 RETURNING id", postgres.SessionsTable)
-	row := a.db.QueryRow(query, refresh)
+	row := s.db.QueryRow(query, refresh)
 
 	err := row.Scan(&id)
 	if err != nil {
@@ -127,10 +127,10 @@ func (a *AuthPostgres) DeleteSessionByRefresh(refresh string) error {
 	return nil
 }
 
-func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*models.Session, error) {
+func (s *storage) GetSessionByRefresh(refresh string) (*models.Session, error) {
 	var session models.Session
 	queryGetSession := fmt.Sprintf("SELECT * from %s WHERE refresh_token=$1 LIMIT 1", postgres.SessionsTable)
-	err := a.db.Get(&session, queryGetSession, refresh)
+	err := s.db.Get(&session, queryGetSession, refresh)
 
 	if err != nil {
 		return nil, fmt.Errorf("session wasn't found by refresh=%s, due to: %v", refresh, err)
@@ -139,26 +139,26 @@ func (a *AuthPostgres) GetSessionByRefresh(refresh string) (*models.Session, err
 	return &session, nil
 }
 
-func (a *AuthPostgres) DeleteSessionByUserId(id int) error {
+func (s *storage) DeleteSessionByUserId(id int) error {
 	queryDeleteSession := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", postgres.SessionsTable)
-	_, err := a.db.Exec(queryDeleteSession, id)
+	_, err := s.db.Exec(queryDeleteSession, id)
 	return err
 }
 
-func (a *AuthPostgres) UpdateRefreshToken(userId int, newRefreshToken string) error {
+func (s *storage) UpdateRefreshToken(userId int, newRefreshToken string) error {
 	queryUpdateRefreshToken := fmt.Sprintf("UPDATE %s SET refresh_token=$1 WHERE user_id=$2", postgres.SessionsTable)
-	_, err := a.db.Exec(queryUpdateRefreshToken, newRefreshToken, userId)
+	_, err := s.db.Exec(queryUpdateRefreshToken, newRefreshToken, userId)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *AuthPostgres) GetUserPasswordHash(userId int) (string, error) {
+func (s *storage) GetUserPasswordHash(userId int) (string, error) {
 	var hash string
 	queryGetHash := fmt.Sprintf("SELECT password_hash FROM %s WHERE id=$1", postgres.UsersTable)
 
-	err := a.db.Get(&hash, queryGetHash, userId)
+	err := s.db.Get(&hash, queryGetHash, userId)
 	if err != nil {
 		return "", fmt.Errorf("failed to get password hash due to: %v", err)
 	}
@@ -166,10 +166,10 @@ func (a *AuthPostgres) GetUserPasswordHash(userId int) (string, error) {
 	return hash, nil
 }
 
-func (a *AuthPostgres) UpdatePassword(userId int, newPassword string) error {
+func (s *storage) UpdatePassword(userId int, newPassword string) error {
 	queryUpdatePassword := fmt.Sprintf("UPDATE %s SET password_hash=$1 WHERE id=$2", postgres.UsersTable)
 
-	_, err := a.db.Exec(queryUpdatePassword, newPassword, userId)
+	_, err := s.db.Exec(queryUpdatePassword, newPassword, userId)
 	if err != nil {
 		return fmt.Errorf("failed to update password in db due to: %v", err)
 	}
@@ -177,13 +177,13 @@ func (a *AuthPostgres) UpdatePassword(userId int, newPassword string) error {
 	return nil
 }
 
-func (a *AuthPostgres) UserExists(email string) (int, int, error) {
+func (s *storage) UserExists(email string) (int, int, error) {
 	var userId int
 	var userRoleId int
 
 	queryGetUserId := fmt.Sprintf("SELECT id, role_id FROM %s WHERE email = $1", postgres.UsersTable)
 
-	row := a.db.QueryRow(queryGetUserId, email)
+	row := s.db.QueryRow(queryGetUserId, email)
 	if err := row.Scan(&userId, userRoleId); err != nil {
 		return 0, 0, err
 	}
@@ -191,7 +191,7 @@ func (a *AuthPostgres) UserExists(email string) (int, int, error) {
 	return userId, userRoleId, nil
 }
 
-func (a *AuthPostgres) SelectUserInfo(id int) (user InfoDTO, err error) {
+func (s *storage) SelectUserInfo(id int) (user InfoDTO, err error) {
 	querySelectUserInfo := fmt.Sprintf(
 		`
 		SELECT email, lastname, firstname, middle_name, phone_number 
@@ -201,7 +201,7 @@ func (a *AuthPostgres) SelectUserInfo(id int) (user InfoDTO, err error) {
 		postgres.UsersTable,
 	)
 
-	err = a.db.Get(&user, querySelectUserInfo, id)
+	err = s.db.Get(&user, querySelectUserInfo, id)
 	if err != nil {
 		return InfoDTO{}, fmt.Errorf("failed to select user info due to %v", err)
 	}
@@ -209,7 +209,7 @@ func (a *AuthPostgres) SelectUserInfo(id int) (user InfoDTO, err error) {
 	return user, err
 }
 
-func (a *AuthPostgres) UpdatePersonalInfo(user InfoDTO, id int) error {
+func (s *storage) UpdatePersonalInfo(user InfoDTO, id int) error {
 	queryUpdateUser := fmt.Sprintf(
 		`
 		UPDATE %s
@@ -222,7 +222,7 @@ func (a *AuthPostgres) UpdatePersonalInfo(user InfoDTO, id int) error {
 		postgres.UsersTable,
 	)
 
-	_, err := a.db.Exec(
+	_, err := s.db.Exec(
 		queryUpdateUser,
 		user.Lastname,
 		user.Firstname,
