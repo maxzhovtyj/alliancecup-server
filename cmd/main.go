@@ -35,7 +35,7 @@ func main() {
 	}
 
 	logger.Info("minio client initializing...")
-	_, err = minioPkg.NewClient(cfg.MinIO)
+	minioClient, err := minioPkg.NewClient(cfg.MinIO)
 	if err != nil {
 		logger.Fatalf("error occured while initializing minio client: %v", err)
 	}
@@ -44,7 +44,7 @@ func main() {
 	repos := repository.NewRepository(storage, logger)
 
 	logger.Info("service initializing...")
-	services := service.NewService(repos, logger)
+	services := service.NewService(repos, logger, minioClient)
 
 	logger.Info("handler initializing...")
 	handlers := handler.NewHandler(services, logger)

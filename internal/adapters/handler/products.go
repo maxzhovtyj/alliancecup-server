@@ -2,6 +2,8 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"net/http"
@@ -77,7 +79,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 }
 
 // addProduct godoc
-// @Summary      AddProduct
+// @Summary      Create
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
 // @Product  	 Adds a new product
@@ -91,24 +93,67 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
-	var input product.CreateProductDTO
-	if err := ctx.BindJSON(&input); err != nil {
+	ctx.Writer.Header().Set("Content-Type", "form/json")
+	err := ctx.Request.ParseMultipartForm(32 << 20)
+	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	_, err := ctx.FormFile("stakan.png")
+	amountInStock, err := strconv.ParseFloat(ctx.Request.Form.Get("amountInStock"), 64)
 	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	//id, err := h.services.Product.AddProduct(input)
-	//if err != nil {
-	//	newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-	//	return
-	//}
+	price, err := strconv.ParseFloat(ctx.Request.Form.Get("price"), 64)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
 
-	ctx.JSON(http.StatusCreated, input)
+	characteristics := types.JSONText(ctx.Request.Form.Get("characteristic"))
+	packaging := types.JSONText(ctx.Request.Form.Get("packaging"))
+	description := ctx.Request.Form.Get("description")
+
+	files, ok := ctx.Request.MultipartForm.File["file"]
+	if !ok || len(files) == 0 {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	fileInfo := files[0]
+	fileReader, err := fileInfo.Open()
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	imgDTO := models.FileDTO{
+		Name:   fileInfo.Filename,
+		Size:   fileInfo.Size,
+		Reader: fileReader,
+	}
+
+	input := product.CreateProductDTO{
+		Img:             imgDTO,
+		Article:         ctx.Request.Form.Get("article"),
+		CategoryTitle:   ctx.Request.Form.Get("categoryTitle"),
+		ProductTitle:    ctx.Request.Form.Get("productTitle"),
+		AmountInStock:   amountInStock,
+		Price:           price,
+		Characteristics: &characteristics,
+		Packaging:       &packaging,
+		Description:     &description,
+	}
+
+	_, err = h.services.Product.AddProduct(input)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, "product successfully created")
 }
 
 // getProductById godoc

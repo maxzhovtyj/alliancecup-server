@@ -473,7 +473,7 @@ const docTemplate = `{
                 "tags": [
                     "api/admin"
                 ],
-                "summary": "AddProduct",
+                "summary": "Create",
                 "operationId": "adds product",
                 "parameters": [
                     {

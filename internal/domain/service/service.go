@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/minio/minio-go/v7"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
@@ -25,10 +26,10 @@ type Service struct {
 	logger        *logging.Logger
 }
 
-func NewService(repos *repository.Repository, logger *logging.Logger) *Service {
+func NewService(repos *repository.Repository, logger *logging.Logger, fileStorage *minio.Client) *Service {
 	return &Service{
 		Authorization: user.NewAuthService(repos.Authorization),
-		Product:       product.NewProductsService(repos.Product),
+		Product:       product.NewProductsService(repos.Product, fileStorage),
 		Category:      category.NewCategoryService(repos.Category),
 		Order:         order.NewOrdersService(repos.Order, repos.Product),
 		Shopping:      shopping.NewShoppingService(repos.Shopping),
