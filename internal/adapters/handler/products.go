@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
@@ -100,54 +101,80 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 		return
 	}
 
-	amountInStock, err := strconv.ParseFloat(ctx.Request.Form.Get("amountInStock"), 64)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+	var dto product.CreateDTO
+
+	dto.Article = ctx.Request.Form.Get("article")
+	if dto.Article == "" {
+		newErrorResponse(ctx, http.StatusBadRequest, "article is empty")
 		return
 	}
 
-	price, err := strconv.ParseFloat(ctx.Request.Form.Get("price"), 64)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+	dto.CategoryTitle = ctx.Request.Form.Get("categoryTitle")
+	if dto.CategoryTitle == "" {
+		newErrorResponse(ctx, http.StatusBadRequest, "category title is empty")
 		return
 	}
 
-	characteristics := types.JSONText(ctx.Request.Form.Get("characteristic"))
-	packaging := types.JSONText(ctx.Request.Form.Get("packaging"))
+	dto.ProductTitle = ctx.Request.Form.Get("productTitle")
+	if dto.ProductTitle == "" {
+		newErrorResponse(ctx, http.StatusBadRequest, "product title is empty")
+		return
+	}
+
+	amountInStock := ctx.Request.Form.Get("amountInStock")
+	if amountInStock != "" {
+		dto.AmountInStock, err = strconv.ParseFloat(amountInStock, 64)
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+	}
+
+	dto.Price, err = strconv.ParseFloat(ctx.Request.Form.Get("price"), 64)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("invalid price: %f", dto.Price))
+		return
+	}
+
+	characteristics := ctx.Request.Form.Get("characteristic")
+	if characteristics != "" {
+		char := types.JSONText(characteristics)
+		dto.Characteristics = &char
+	}
+
+	packaging := ctx.Request.Form.Get("packaging")
+	if packaging != "" {
+		p := types.JSONText(packaging)
+		dto.Packaging = &p
+	}
+
 	description := ctx.Request.Form.Get("description")
+	if description != "" {
+		dto.Description = &description
+	}
 
 	files, ok := ctx.Request.MultipartForm.File["file"]
-	if !ok || len(files) == 0 {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
+	if len(files) != 0 {
+		if !ok {
+			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
+			return
+		}
+
+		fileInfo := files[0]
+		fileReader, err := fileInfo.Open()
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		dto.Img = &models.FileDTO{
+			Name:   fileInfo.Filename,
+			Size:   fileInfo.Size,
+			Reader: fileReader,
+		}
 	}
 
-	fileInfo := files[0]
-	fileReader, err := fileInfo.Open()
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	imgDTO := models.FileDTO{
-		Name:   fileInfo.Filename,
-		Size:   fileInfo.Size,
-		Reader: fileReader,
-	}
-
-	input := product.CreateProductDTO{
-		Img:             imgDTO,
-		Article:         ctx.Request.Form.Get("article"),
-		CategoryTitle:   ctx.Request.Form.Get("categoryTitle"),
-		ProductTitle:    ctx.Request.Form.Get("productTitle"),
-		AmountInStock:   amountInStock,
-		Price:           price,
-		Characteristics: &characteristics,
-		Packaging:       &packaging,
-		Description:     &description,
-	}
-
-	id, err := h.services.Product.Add(input)
+	id, err := h.services.Product.Add(dto)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

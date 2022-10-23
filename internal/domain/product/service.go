@@ -13,7 +13,7 @@ type Service interface {
 	Search(searchInput string) ([]Product, error)
 	GetWithParams(params server.SearchParams) ([]Product, error)
 	GetProductById(id int) (Product, error)
-	Add(product CreateProductDTO) (int, error)
+	Add(product CreateDTO) (int, error)
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
 	Delete(productId int) error
@@ -44,32 +44,11 @@ func (s *service) GetWithParams(params server.SearchParams) ([]Product, error) {
 	return s.repo.GetWithParams(params)
 }
 
-func (s *service) Add(dto CreateProductDTO) (int, error) {
-	imgUUID := uuid.New()
-
-	exists, errBucketExists := s.fileStorage.BucketExists(context.Background(), "images")
-	if errBucketExists != nil || !exists {
-		err := s.fileStorage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
-		if err != nil {
-			return 0, fmt.Errorf("failed to create new bucket. err: %w", err)
-		}
-	}
-
-	_, err := s.fileStorage.PutObject(
-		context.Background(),
-		minioPkg.ImagesBucket,
-		imgUUID.String(),
-		dto.Img.Reader,
-		dto.Img.Size,
-		minio.PutObjectOptions{
-			UserMetadata: map[string]string{
-				"Name": dto.ProductTitle,
-			},
-			ContentType: "application/octet-stream",
-		},
-	)
-	if err != nil {
-		return 0, err
+func (s *service) Add(dto CreateDTO) (int, error) {
+	var imgUUIDPtr *uuid.UUID
+	if dto.Img != nil {
+		imgUUID := uuid.New()
+		imgUUIDPtr = &imgUUID
 	}
 
 	product := Product{
@@ -77,14 +56,46 @@ func (s *service) Add(dto CreateProductDTO) (int, error) {
 		CategoryTitle:   dto.CategoryTitle,
 		ProductTitle:    dto.ProductTitle,
 		AmountInStock:   dto.AmountInStock,
-		ImgUUID:         &imgUUID,
+		ImgUUID:         imgUUIDPtr,
 		Price:           dto.Price,
 		Characteristics: dto.Characteristics,
 		Packaging:       dto.Packaging,
 		Description:     dto.Description,
 	}
 
-	return s.repo.Create(product)
+	id, err := s.repo.Create(product)
+	if err != nil {
+		return 0, err
+	}
+
+	if imgUUIDPtr != nil {
+		exists, errBucketExists := s.fileStorage.BucketExists(context.Background(), minioPkg.ImagesBucket)
+		if errBucketExists != nil || !exists {
+			err = s.fileStorage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
+			if err != nil {
+				return 0, fmt.Errorf("failed to create new bucket. err: %w", err)
+			}
+		}
+
+		_, err = s.fileStorage.PutObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			imgUUIDPtr.String(),
+			dto.Img.Reader,
+			dto.Img.Size,
+			minio.PutObjectOptions{
+				UserMetadata: map[string]string{
+					"Name": dto.ProductTitle,
+				},
+				ContentType: "application/octet-stream",
+			},
+		)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return id, err
 }
 
 func (s *service) GetFavourites(userId int) ([]Product, error) {

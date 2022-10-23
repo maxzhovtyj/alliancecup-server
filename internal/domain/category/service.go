@@ -46,10 +46,10 @@ func (s *service) Create(dto CreateDTO) (int, error) {
 	}
 
 	category := Category{
-		CategoryTitle:       dto.CategoryTitle,
-		ImgUrl:              dto.ImgUrl,
-		ImgUUID:             imgUUIDPtr,
-		CategoryDescription: dto.CategoryDescription,
+		CategoryTitle: dto.CategoryTitle,
+		ImgUrl:        dto.ImgUrl,
+		ImgUUID:       imgUUIDPtr,
+		Description:   dto.CategoryDescription,
 	}
 
 	id, err := s.repo.Create(category)
