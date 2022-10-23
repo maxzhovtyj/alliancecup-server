@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
 	"net/http"
 	"strconv"
 )
@@ -92,14 +93,59 @@ func (h *Handler) getFiltration(ctx *gin.Context) {
 // @Failure 500 {object} Error
 // @Router  /api/admin/category [post]
 func (h *Handler) addCategory(ctx *gin.Context) {
-	var input category.Category
-
-	if err := ctx.BindJSON(&input); err != nil {
+	ctx.Writer.Header().Set("Content-Type", "form/json")
+	err := ctx.Request.ParseMultipartForm(32 << 20)
+	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.Category.Create(input)
+	categoryTitle := ctx.Request.Form.Get("categoryTitle")
+	if categoryTitle == "" {
+		newErrorResponse(ctx, http.StatusBadRequest, "category title is empty")
+		return
+	}
+
+	var descriptionPtr *string
+	description := ctx.Request.Form.Get("description")
+	if description != "" {
+		descriptionPtr = &description
+	}
+
+	var imgUrlPtr *string
+	imgUrl := ctx.Request.Form.Get("imgUrl")
+	if imgUrl != "" {
+		imgUrlPtr = &imgUrl
+	}
+
+	var imgDTO *models.FileDTO
+	files, ok := ctx.Request.MultipartForm.File["file"]
+	if len(files) != 0 {
+		if !ok {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		fileInfo := files[0]
+		fileReader, err := fileInfo.Open()
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		imgDTO.Name = fileInfo.Filename
+		imgDTO.Size = fileInfo.Size
+		imgDTO.Reader = fileReader
+	}
+
+	dto := category.CreateDTO{
+		CategoryTitle:       categoryTitle,
+		ImgUrl:              imgUrlPtr,
+		Img:                 imgDTO,
+		CategoryDescription: descriptionPtr,
+	}
+
+	id, err := h.services.Category.Create(dto)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -107,7 +153,7 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, ItemProcessedResponse{
 		Id:      id,
-		Message: "category added",
+		Message: "category successfully created",
 	})
 }
 

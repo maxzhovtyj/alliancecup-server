@@ -14,7 +14,7 @@ type Storage interface {
 	Search(searchInput string) ([]Product, error)
 	GetWithParams(params server.SearchParams) ([]Product, error)
 	GetProductById(id int) (Product, error)
-	AddProduct(product Product) (int, error)
+	Create(product Product) (int, error)
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
 	Delete(productId int) error
@@ -40,6 +40,7 @@ var productsColumnsSelect = []string{
 	"categories.category_title",
 	"products.product_title",
 	"products.img_url",
+	"products.img_uuid",
 	"products.amount_in_stock",
 	"products.price",
 	"products.characteristics",
@@ -50,7 +51,7 @@ var productsColumnsSelect = []string{
 func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 	query := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
-		LeftJoin(postgres.CategoriesTable + " ON products.category_id=categories.id")
+		LeftJoin(postgres.CategoriesTable + " ON products.category_id = categories.id")
 
 	if len(params.Characteristic) != 0 {
 		for _, chr := range params.Characteristic {
@@ -106,19 +107,19 @@ func (s *storage) Search(searchInput string) ([]Product, error) {
 	return products, err
 }
 
-func (s *storage) AddProduct(product Product) (int, error) {
+func (s *storage) Create(product Product) (int, error) {
 	tx, err := s.db.Begin()
 
 	var productId int
 	queryInsertProduct := fmt.Sprintf(
 		`
 		INSERT INTO %s 
-			(article, category_id, product_title, img_url, amount_in_stock, price, characteristics, packaging) 
+			(article, category_id, product_title, img_url, img_uuid, amount_in_stock, price, characteristics, packaging) 
 		VALUES (
 			$1, 
 			(SELECT id FROM %s WHERE category_title = $2),
 			$3, $4,
-			$5, $6, $7, $8
+			$5, $6, $7, $8, $9
 		) 
 		RETURNING id
 		`,
@@ -131,6 +132,7 @@ func (s *storage) AddProduct(product Product) (int, error) {
 		product.CategoryTitle,
 		product.ProductTitle,
 		product.ImgUrl,
+		product.ImgUUID,
 		product.AmountInStock,
 		product.Price,
 		product.Characteristics,
@@ -146,6 +148,7 @@ func (s *storage) AddProduct(product Product) (int, error) {
 }
 
 func (s *storage) Update(product Product) (int, error) {
+	//TODO update product
 	tx, _ := s.db.Begin()
 
 	queryUpdateProduct := fmt.Sprintf(

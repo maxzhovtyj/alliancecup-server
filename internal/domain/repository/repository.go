@@ -15,7 +15,7 @@ import (
 )
 
 type Repository struct {
-	Authorization user.AuthorizationStorage
+	Authorization user.Storage
 	Category      category.Storage
 	Product       product.Storage
 	Order         order.Storage

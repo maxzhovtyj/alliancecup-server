@@ -42,10 +42,10 @@ type tokenClaims struct {
 }
 
 type AuthService struct {
-	repo AuthorizationStorage
+	repo Storage
 }
 
-func NewAuthService(repo AuthorizationStorage) AuthorizationService {
+func NewAuthService(repo Storage) AuthorizationService {
 	return &AuthService{repo: repo}
 }
 

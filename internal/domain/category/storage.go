@@ -31,7 +31,7 @@ func (c *storage) GetAll() ([]Category, error) {
 		SELECT id,
 			   category_title,
 			   img_url,
-			   category_description 
+			   description 
 		FROM %s
 		`,
 		postgres.CategoriesTable,
@@ -45,7 +45,21 @@ func (c *storage) GetFiltration(fkName string, id int) ([]Filtration, error) {
 	var filtration []Filtration
 
 	//fkName can be either category_id or filtration_list_id
-	queryGetFiltration := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1", postgres.CategoriesFiltrationTable, fkName)
+	queryGetFiltration := fmt.Sprintf(
+		`
+		SELECT id,
+			   category_id,
+			   img_url,
+			   info_description,
+			   filtration_title,
+			   filtration_description,
+			   filtration_list_id 
+		FROM %s 
+		WHERE %s=$1
+		`,
+		postgres.CategoriesFiltrationTable,
+		fkName,
+	)
 	err := c.db.Select(&filtration, queryGetFiltration, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get category filtration from db due to: %v", err)
@@ -57,7 +71,16 @@ func (c *storage) GetFiltration(fkName string, id int) ([]Filtration, error) {
 func (c *storage) Update(category Category) (int, error) {
 	var id int
 
-	queryUpdate := fmt.Sprintf("UPDATE %s SET category_title=$1, img_url=$2 WHERE id=$3 RETURNING id", postgres.CategoriesTable)
+	queryUpdate := fmt.Sprintf(
+		`
+		UPDATE %s 
+		SET category_title=$1,
+			img_url=$2 
+		WHERE id=$3 
+		RETURNING id
+		`,
+		postgres.CategoriesTable,
+	)
 	row := c.db.QueryRow(queryUpdate, category.CategoryTitle, category.ImgUrl, category.Id)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
@@ -68,8 +91,23 @@ func (c *storage) Update(category Category) (int, error) {
 
 func (c *storage) Create(category Category) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (category_title, img_url) values ($1, $2) RETURNING id", postgres.CategoriesTable)
-	row := c.db.QueryRow(query, category.CategoryTitle, category.ImgUrl)
+	query := fmt.Sprintf(
+		`
+		INSERT INTO %s 
+			(category_title, img_url, img_uuid, description) 
+		values 
+			($1, $2, $3, $4) 
+		RETURNING id
+		`,
+		postgres.CategoriesTable,
+	)
+	row := c.db.QueryRow(
+		query,
+		category.CategoryTitle,
+		category.ImgUrl,
+		category.ImgUUID,
+		category.Description,
+	)
 
 	if err := row.Scan(&id); err != nil {
 		return 0, err
@@ -88,7 +126,13 @@ func (c *storage) AddFiltration(filtration Filtration) (int, error) {
 	var filtrationId int
 
 	queryAddFiltration := fmt.Sprintf(
-		"INSERT INTO %s (info_description, filtration_title, filtration_description, img_url, category_id, filtration_list_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		`
+		INSERT INTO %s
+			(info_description, filtration_title, filtration_description, img_url, category_id, filtration_list_id) 
+		VALUES 
+			($1, $2, $3, $4, $5, $6) 
+		RETURNING id
+		`,
 		postgres.CategoriesFiltrationTable,
 	)
 	row := c.db.QueryRow(

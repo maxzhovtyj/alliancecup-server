@@ -7,6 +7,7 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/config"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/repository"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
+	"github.com/zh0vtyj/allincecup-server/pkg/client/minio"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 	"github.com/zh0vtyj/allincecup-server/pkg/logging"
 )
@@ -30,14 +31,20 @@ func main() {
 	logger.Info("storage initializing...")
 	storage, err := postgres.NewPostgresDB(cfg.Storage)
 	if err != nil {
-		logger.Fatalf("error occured while initializing db: %s", err.Error())
+		logger.Fatalf("error occured while initializing db: %v", err)
+	}
+
+	logger.Info("minio client initializing...")
+	minioClient, err := minioPkg.NewClient(cfg.MinIO)
+	if err != nil {
+		logger.Fatalf("error occured while initializing minio client: %v", err)
 	}
 
 	logger.Info("repository initializing...")
 	repos := repository.NewRepository(storage, logger)
 
 	logger.Info("service initializing...")
-	services := service.NewService(repos, logger)
+	services := service.NewService(repos, logger, minioClient)
 
 	logger.Info("handler initializing...")
 	handlers := handler.NewHandler(services, logger)
