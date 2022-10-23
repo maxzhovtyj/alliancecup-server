@@ -6,6 +6,10 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/config"
 )
 
+const (
+	ImagesBucket = "images"
+)
+
 func NewClient(cfg config.MinIO) (*minio.Client, error) {
 	client, err := minio.New(
 		cfg.Endpoint,

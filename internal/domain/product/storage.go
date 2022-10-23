@@ -40,6 +40,7 @@ var productsColumnsSelect = []string{
 	"categories.category_title",
 	"products.product_title",
 	"products.img_url",
+	"products.img_uuid",
 	"products.amount_in_stock",
 	"products.price",
 	"products.characteristics",
@@ -50,7 +51,7 @@ var productsColumnsSelect = []string{
 func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 	query := s.qb.Select(productsColumnsSelect...).
 		From(postgres.ProductsTable).
-		LeftJoin(postgres.CategoriesTable + " ON products.category_id=categories.id")
+		LeftJoin(postgres.CategoriesTable + " ON products.category_id = categories.id")
 
 	if len(params.Characteristic) != 0 {
 		for _, chr := range params.Characteristic {
@@ -147,6 +148,7 @@ func (s *storage) Create(product Product) (int, error) {
 }
 
 func (s *storage) Update(product Product) (int, error) {
+	//TODO update product
 	tx, _ := s.db.Begin()
 
 	queryUpdateProduct := fmt.Sprintf(

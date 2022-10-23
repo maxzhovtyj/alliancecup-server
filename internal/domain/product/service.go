@@ -6,13 +6,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
+	minioPkg "github.com/zh0vtyj/allincecup-server/pkg/client/minio"
 )
 
 type Service interface {
 	Search(searchInput string) ([]Product, error)
 	GetWithParams(params server.SearchParams) ([]Product, error)
 	GetProductById(id int) (Product, error)
-	AddProduct(product CreateProductDTO) (int, error)
+	Add(product CreateProductDTO) (int, error)
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
 	Delete(productId int) error
@@ -43,7 +44,7 @@ func (s *service) GetWithParams(params server.SearchParams) ([]Product, error) {
 	return s.repo.GetWithParams(params)
 }
 
-func (s *service) AddProduct(dto CreateProductDTO) (int, error) {
+func (s *service) Add(dto CreateProductDTO) (int, error) {
 	imgUUID := uuid.New()
 
 	exists, errBucketExists := s.fileStorage.BucketExists(context.Background(), "images")
@@ -56,7 +57,7 @@ func (s *service) AddProduct(dto CreateProductDTO) (int, error) {
 
 	_, err := s.fileStorage.PutObject(
 		context.Background(),
-		"images",
+		minioPkg.ImagesBucket,
 		imgUUID.String(),
 		dto.Img.Reader,
 		dto.Img.Size,
@@ -76,7 +77,7 @@ func (s *service) AddProduct(dto CreateProductDTO) (int, error) {
 		CategoryTitle:   dto.CategoryTitle,
 		ProductTitle:    dto.ProductTitle,
 		AmountInStock:   dto.AmountInStock,
-		ImgUUID:         imgUUID,
+		ImgUUID:         &imgUUID,
 		Price:           dto.Price,
 		Characteristics: dto.Characteristics,
 		Packaging:       dto.Packaging,

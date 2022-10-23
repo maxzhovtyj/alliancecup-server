@@ -68,8 +68,17 @@ func (c *storage) Update(category Category) (int, error) {
 
 func (c *storage) Create(category Category) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (category_title, img_url) values ($1, $2) RETURNING id", postgres.CategoriesTable)
-	row := c.db.QueryRow(query, category.CategoryTitle, category.ImgUrl)
+	query := fmt.Sprintf(
+		`
+		INSERT INTO %s 
+			(category_title, img_url, img_uuid) 
+		values 
+			($1, $2, $3) 
+		RETURNING id
+		`,
+		postgres.CategoriesTable,
+	)
+	row := c.db.QueryRow(query, category.CategoryTitle, category.ImgUrl, category.ImgUUID)
 
 	if err := row.Scan(&id); err != nil {
 		return 0, err

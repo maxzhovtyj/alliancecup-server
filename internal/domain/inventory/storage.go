@@ -45,8 +45,6 @@ var ProductsToInventory = []string{
 }
 
 func (s *storage) GetProducts() ([]CurrentProductDTO, error) {
-	// TODO select amount_in_stock from the last inventory
-	// TODO select if there are no inventories yet
 	var products []CurrentProductDTO
 	querySelectProducts, args, err := s.qb.
 		Select(ProductsToInventory...).

@@ -8,7 +8,8 @@ CREATE TABLE categories
 (
     id             SERIAL PRIMARY KEY,
     category_title TEXT NOT NULL UNIQUE,
-    img_url        TEXT
+    img_url        TEXT,
+    img_uuid       UUID
 );
 
 CREATE TABLE products
@@ -18,7 +19,7 @@ CREATE TABLE products
     category_id     INT REFERENCES categories (id) ON DELETE CASCADE NOT NULL,
     product_title   TEXT                                             NOT NULL,
     img_url         TEXT,
-    img_UUID        UUID,
+    img_uuid        UUID,
     amount_in_stock DECIMAL(12, 2) DEFAULT 0,
     price           DECIMAL(12, 2)                                   NOT NULL,
     characteristics JSONB,

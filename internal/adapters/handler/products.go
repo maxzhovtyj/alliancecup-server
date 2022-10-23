@@ -147,13 +147,16 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 		Description:     &description,
 	}
 
-	_, err = h.services.Product.AddProduct(input)
+	id, err := h.services.Product.Add(input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, "product successfully created")
+	ctx.JSON(http.StatusCreated, ItemProcessedResponse{
+		Id:      id,
+		Message: "product successfully created",
+	})
 }
 
 // getProductById godoc

@@ -30,7 +30,7 @@ func NewService(repos *repository.Repository, logger *logging.Logger, fileStorag
 	return &Service{
 		Authorization: user.NewAuthService(repos.Authorization),
 		Product:       product.NewProductsService(repos.Product, fileStorage),
-		Category:      category.NewCategoryService(repos.Category),
+		Category:      category.NewCategoryService(repos.Category, fileStorage),
 		Order:         order.NewOrdersService(repos.Order, repos.Product),
 		Shopping:      shopping.NewShoppingService(repos.Shopping),
 		Supply:        supply.NewSupplyService(repos.Supply),
