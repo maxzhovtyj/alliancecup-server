@@ -9,7 +9,8 @@ CREATE TABLE categories
     id             SERIAL PRIMARY KEY,
     category_title TEXT NOT NULL UNIQUE,
     img_url        TEXT,
-    img_uuid       UUID
+    img_uuid       UUID,
+    description    TEXT
 );
 
 CREATE TABLE products

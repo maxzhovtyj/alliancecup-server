@@ -100,33 +100,49 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 		return
 	}
 
+	categoryTitle := ctx.Request.Form.Get("categoryTitle")
+	if categoryTitle == "" {
+		newErrorResponse(ctx, http.StatusBadRequest, "category title is empty")
+		return
+	}
+
+	var descriptionPtr *string
 	description := ctx.Request.Form.Get("description")
+	if description != "" {
+		descriptionPtr = &description
+	}
+
+	var imgUrlPtr *string
 	imgUrl := ctx.Request.Form.Get("imgUrl")
+	if imgUrl != "" {
+		imgUrlPtr = &imgUrl
+	}
 
+	var imgDTO *models.FileDTO
 	files, ok := ctx.Request.MultipartForm.File["file"]
-	if !ok || len(files) == 0 {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
+	if len(files) != 0 {
+		if !ok {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
 
-	fileInfo := files[0]
-	fileReader, err := fileInfo.Open()
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
+		fileInfo := files[0]
+		fileReader, err := fileInfo.Open()
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
 
-	imgDTO := models.FileDTO{
-		Name:   fileInfo.Filename,
-		Size:   fileInfo.Size,
-		Reader: fileReader,
+		imgDTO.Name = fileInfo.Filename
+		imgDTO.Size = fileInfo.Size
+		imgDTO.Reader = fileReader
 	}
 
 	dto := category.CreateDTO{
-		CategoryTitle:       ctx.Request.Form.Get("categoryTitle"),
-		ImgUrl:              &imgUrl,
+		CategoryTitle:       categoryTitle,
+		ImgUrl:              imgUrlPtr,
 		Img:                 imgDTO,
-		CategoryDescription: &description,
+		CategoryDescription: descriptionPtr,
 	}
 
 	id, err := h.services.Category.Create(dto)

@@ -38,43 +38,50 @@ func (s *service) Update(category Category) (int, error) {
 }
 
 func (s *service) Create(dto CreateDTO) (int, error) {
-	imgUUID := uuid.New()
+	var imgUUIDPtr *uuid.UUID
 
-	exists, errBucketExists := s.fileStorage.BucketExists(context.Background(), "images")
-	if errBucketExists != nil || !exists {
-		err := s.fileStorage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
-		if err != nil {
-			return 0, fmt.Errorf("failed to create new bucket. err: %w", err)
-		}
-	}
-
-	_, err := s.fileStorage.PutObject(
-		context.Background(),
-		minioPkg.ImagesBucket,
-		imgUUID.String(),
-		dto.Img.Reader,
-		dto.Img.Size,
-		minio.PutObjectOptions{
-			UserMetadata: map[string]string{
-				"Name": dto.CategoryTitle,
-			},
-			ContentType: "application/octet-stream",
-		},
-	)
-	if err != nil {
-		return 0, err
+	if dto.Img != nil {
+		imgUUID := uuid.New()
+		imgUUIDPtr = &imgUUID
 	}
 
 	category := Category{
 		CategoryTitle:       dto.CategoryTitle,
 		ImgUrl:              dto.ImgUrl,
-		ImgUUID:             &imgUUID,
+		ImgUUID:             imgUUIDPtr,
 		CategoryDescription: dto.CategoryDescription,
 	}
 
 	id, err := s.repo.Create(category)
 	if err != nil {
 		return 0, err
+	}
+
+	if imgUUIDPtr != nil {
+		exists, errBucketExists := s.fileStorage.BucketExists(context.Background(), minioPkg.ImagesBucket)
+		if errBucketExists != nil || !exists {
+			err := s.fileStorage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
+			if err != nil {
+				return 0, fmt.Errorf("failed to create new bucket. err: %w", err)
+			}
+		}
+
+		_, err = s.fileStorage.PutObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			imgUUIDPtr.String(),
+			dto.Img.Reader,
+			dto.Img.Size,
+			minio.PutObjectOptions{
+				UserMetadata: map[string]string{
+					"Name": dto.CategoryTitle,
+				},
+				ContentType: "application/octet-stream",
+			},
+		)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	return id, err

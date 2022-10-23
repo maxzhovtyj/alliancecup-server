@@ -12,10 +12,11 @@ type Category struct {
 	ImgUUID             *uuid.UUID `json:"imgUUID" db:"img_uuid"`
 	CategoryDescription *string    `json:"categoryDescription" db:"category_description"`
 }
+
 type CreateDTO struct {
 	CategoryTitle       string
 	ImgUrl              *string
-	Img                 models.FileDTO
+	Img                 *models.FileDTO
 	CategoryDescription *string
 }
 
