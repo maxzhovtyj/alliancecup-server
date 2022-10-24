@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/go-redis/redis/v9"
 	"github.com/minio/minio-go/v7"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
@@ -26,7 +27,12 @@ type Service struct {
 	logger        *logging.Logger
 }
 
-func NewService(repos *repository.Repository, logger *logging.Logger, fileStorage *minio.Client) *Service {
+func NewService(
+	repos *repository.Repository,
+	logger *logging.Logger,
+	cache *redis.Client,
+	fileStorage *minio.Client,
+) *Service {
 	return &Service{
 		Authorization: user.NewAuthService(repos.Authorization),
 		Product:       product.NewProductsService(repos.Product, fileStorage),

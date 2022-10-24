@@ -12,6 +12,9 @@ connectDB:
 # new docker container for postgres db
 # docker run --name=alliancecup-db -e POSTGRES_PASSWORD=******** -p 5436:5432 -d postgres
 
+# new docker container for redis db
+# docker run -d --name redis -p 6379:6379 -p 8001:8001 redis
+
 # new docker container for minio
 # docker run -p 9000:9000 -d -p 9001:9001 -e "MINIO_ROOT_USER=minio99" -e "MINIO_ROOT_PASSWORD=minio123" quay.io/minio/minio server /data --console-address ":9001"
 
