@@ -135,6 +135,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
+				superAdmin.POST("save-inventory", h.saveInventory)
 				superAdmin.POST(inventoryUrl, h.doInventory)
 				superAdmin.GET(inventoriesUrl, h.getInventories)
 				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)

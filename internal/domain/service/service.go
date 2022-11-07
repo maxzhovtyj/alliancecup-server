@@ -41,7 +41,7 @@ func NewService(
 		Shopping:      shopping.NewShoppingService(repos.Shopping),
 		Supply:        supply.NewSupplyService(repos.Supply),
 		Review:        review.NewReviewService(repos.Review),
-		Inventory:     inventory.NewInventoryService(repos.Inventory, logger),
+		Inventory:     inventory.NewInventoryService(repos.Inventory, cache, logger),
 		logger:        logger,
 	}
 }

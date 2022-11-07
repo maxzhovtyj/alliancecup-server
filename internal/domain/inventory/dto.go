@@ -34,17 +34,18 @@ type SelectProductDTO struct {
 }
 
 type CurrentProductDTO struct {
-	ProductId       int        `json:"productId" db:"id"`
-	Title           string     `json:"title" db:"product_title"`
-	ProductPrice    float64    `json:"productPrice" db:"product_price"`
-	InitialAmount   *float64   `json:"initialAmount" db:"initial_amount"`
-	CurrentSupply   float64    `json:"currentSupply" db:"current_supply"`
-	CurrentSpend    float64    `json:"currentSpend" db:"current_spend"`
-	CurrentWriteOff float64    `json:"currentWriteOff" db:"current_write_off"`
-	WriteOffPrice   float64    `json:"writeOffPrice" db:"write_off_price"`
-	CurrentAmount   float64    `json:"currentAmount" db:"amount_in_stock"`
-	LastInventoryId *int       `json:"lastInventoryId" db:"last_inventory_id"`
-	LastInventory   *time.Time `json:"lastInventory" db:"last_inventory"`
+	ProductId       int        `json:"productId" db:"id" redis:"productId"`
+	Title           string     `json:"title" db:"product_title" redis:"title"`
+	ProductPrice    float64    `json:"productPrice" db:"product_price" redis:"productPrice"`
+	InitialAmount   *float64   `json:"initialAmount" db:"initial_amount" redis:"initialAmount"`
+	CurrentSupply   float64    `json:"currentSupply" db:"current_supply" redis:"currentSupply"`
+	CurrentSpend    float64    `json:"currentSpend" db:"current_spend" redis:"currentSpend"`
+	CurrentWriteOff float64    `json:"currentWriteOff" db:"current_write_off" redis:"currentWriteOff"`
+	WriteOffPrice   float64    `json:"writeOffPrice" db:"write_off_price" redis:"writeOffPrice"`
+	CurrentAmount   float64    `json:"currentAmount" db:"amount_in_stock" redis:"currentAmount"`
+	RealAmount      float64    `json:"realAmount" db:"-" redis:"realAmount"`
+	LastInventoryId *int       `json:"lastInventoryId" db:"last_inventory_id" redis:"lastInventoryId"`
+	LastInventory   *time.Time `json:"lastInventory" db:"last_inventory" redis:"lastInventory"`
 }
 
 type DTO struct {
