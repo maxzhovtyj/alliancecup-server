@@ -252,7 +252,7 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 // @Summary      DeleteProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  Deletes product
+// @Product  	 Deletes product
 // @ID 			 delete product
 // @Accept 	     json
 // @Produce      json

@@ -108,3 +108,12 @@ func getUserRoleId(ctx *gin.Context) (int, error) {
 
 	return idInt, nil
 }
+
+func (h *Handler) createUserInCache(ctx *gin.Context) error {
+	err := h.services.ClientCache.NewUser()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -29,6 +29,22 @@ func (h *Handler) getProductsToInventory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, products)
 }
 
+func (h *Handler) saveInventory(ctx *gin.Context) {
+	var products []inventory.CurrentProductDTO
+	if err := ctx.BindJSON(&products); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.services.Inventory.Save(products)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "inventory successfully saved")
+}
+
 // doInventory godoc
 // @Summary      Do products inventory
 // @Security 	 ApiKeyAuth
