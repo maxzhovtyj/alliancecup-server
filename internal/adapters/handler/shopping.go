@@ -71,13 +71,14 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/client/cart [get]
 func (h *Handler) getFromCartById(ctx *gin.Context) {
+	cartId, _ := ctx.Get("userCart")
+
 	userId, err := getUserId(ctx)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusUnauthorized, "no user's id")
-		return
+		userId = 0
 	}
 
-	products, sum, err := h.services.Shopping.GetProductsInCart(userId)
+	products, sum, err := h.services.Shopping.GetCart(cartId.(string), userId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

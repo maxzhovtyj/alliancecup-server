@@ -1,23 +1,41 @@
 package shopping
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"github.com/go-redis/redis/v9"
+	"github.com/google/uuid"
+	"time"
 )
 
 type Service interface {
+	NewCart() (uuid.UUID, error)
 	AddToCart(userId int, info CartProduct) (float64, error)
-	GetProductsInCart(userId int) ([]CartProductFullInfo, float64, error)
+	GetCart(cartId string, userId int) ([]CartProductFullInfo, float64, error)
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	DeleteFromFavourites(userId, productId int) error
 }
 
 type service struct {
-	repo Storage
+	repo  Storage
+	cache *redis.Client
 }
 
 func NewShoppingService(repo Storage) Service {
 	return &service{repo: repo}
+}
+
+func (s *service) NewCart() (uuid.UUID, error) {
+	cartUUID := uuid.New()
+
+	set := s.cache.Set(context.Background(), cartUUID.String(), "", 72*time.Hour)
+	if set.Err() != nil {
+		return [16]byte{}, fmt.Errorf("failed to create card in cache")
+	}
+
+	return cartUUID, nil
 }
 
 func (s *service) AddToCart(userId int, info CartProduct) (float64, error) {
@@ -33,18 +51,30 @@ func (s *service) AddToCart(userId int, info CartProduct) (float64, error) {
 	return s.repo.AddToCart(userId, info)
 }
 
-func (s *service) GetProductsInCart(userId int) ([]CartProductFullInfo, float64, error) {
-	products, err := s.repo.GetProductsInCart(userId)
+func (s *service) GetCart(cartId string, userId int) (cart []CartProductFullInfo, sum float64, err error) {
+	var cartUUID uuid.UUID
+	if cartId != "" {
+		cartUUID, err = uuid.Parse(cartId)
+		if err != nil {
+			return nil, 0, fmt.Errorf("invalid cart id provided, %v", err)
+		}
+
+		getCart := s.cache.Get(context.Background(), cartUUID.String())
+		if getCart.Err() == redis.Nil {
+			return nil, 0, err
+		}
+	}
+
+	cart, err = s.repo.GetProductsInCart(userId)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	var sum float64
-	for _, e := range products {
+	for _, e := range cart {
 		sum += e.PriceForQuantity
 	}
 
-	return products, sum, err
+	return cart, sum, err
 }
 
 func (s *service) DeleteFromCart(productId int) error {

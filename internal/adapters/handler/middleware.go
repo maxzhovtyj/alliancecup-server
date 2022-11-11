@@ -109,11 +109,21 @@ func getUserRoleId(ctx *gin.Context) (int, error) {
 	return idInt, nil
 }
 
-func (h *Handler) createUserInCache(ctx *gin.Context) error {
-	err := h.services.ClientCache.NewUser()
-	if err != nil {
-		return err
-	}
+func (h *Handler) getShoppingInfo(ctx *gin.Context) {
+	cart := ctx.GetHeader("UserCart")
+	ctx.Set("userCart", cart)
 
-	return nil
+	favourites := ctx.GetHeader("UserFavourites")
+	ctx.Set("userFavourites", favourites)
+
+	if cart == "" {
+		cartUUID, err := h.services.Shopping.NewCart()
+		if err != nil {
+			newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		ctx.JSON(http.StatusCreated, cartUUID.String())
+		return
+	}
 }
