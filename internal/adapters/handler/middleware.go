@@ -116,14 +116,14 @@ func (h *Handler) getShoppingInfo(ctx *gin.Context) {
 	favourites := ctx.GetHeader("UserFavourites")
 	ctx.Set("userFavourites", favourites)
 
-	if cart == "" {
-		cartUUID, err := h.services.Shopping.NewCart()
-		if err != nil {
-			newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		ctx.JSON(http.StatusCreated, cartUUID.String())
-		return
-	}
+	//if cart == "" {
+	//	cartUUID, err := h.services.Shopping.NewCart()
+	//	if err != nil {
+	//		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+	//		return
+	//	}
+	//
+	//	ctx.JSON(http.StatusCreated, cartUUID.String())
+	//	return
+	//}
 }

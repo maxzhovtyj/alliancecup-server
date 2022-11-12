@@ -161,6 +161,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.GET(orderUrl, h.getOrderById)
 		}
 
+		api.POST("/new-cart", h.newCart)
 		shopping := api.Group(shoppingUrl, h.getShoppingInfo)
 		{
 			shopping.POST(cartUrl, h.addToCart)

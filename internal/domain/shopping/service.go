@@ -2,6 +2,7 @@ package shopping
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v9"
@@ -10,7 +11,7 @@ import (
 )
 
 type Service interface {
-	NewCart() (uuid.UUID, error)
+	NewCart(userId int) (uuid.UUID, error)
 	AddToCart(userId int, info CartProduct) (float64, error)
 	GetCart(cartId string, userId int) ([]CartProductFullInfo, float64, error)
 	DeleteFromCart(productId int) error
@@ -23,14 +24,30 @@ type service struct {
 	cache *redis.Client
 }
 
-func NewShoppingService(repo Storage) Service {
-	return &service{repo: repo}
+func NewShoppingService(repo Storage, cache *redis.Client) Service {
+	return &service{
+		repo:  repo,
+		cache: cache,
+	}
 }
 
-func (s *service) NewCart() (uuid.UUID, error) {
-	cartUUID := uuid.New()
+func (s *service) NewCart(userId int) (cartUUID uuid.UUID, err error) {
+	cartUUID = uuid.New()
 
-	set := s.cache.Set(context.Background(), cartUUID.String(), "", 72*time.Hour)
+	var productsBytes []byte
+	if userId != 0 {
+		products, err := s.repo.GetProductsInCart(userId)
+		if err != nil {
+			return [16]byte{}, err
+		}
+
+		productsBytes, err = json.Marshal(products)
+		if err != nil {
+			return [16]byte{}, err
+		}
+	}
+
+	set := s.cache.Set(context.Background(), cartUUID.String(), productsBytes, 72*time.Hour)
 	if set.Err() != nil {
 		return [16]byte{}, fmt.Errorf("failed to create card in cache")
 	}
@@ -52,6 +69,7 @@ func (s *service) AddToCart(userId int, info CartProduct) (float64, error) {
 }
 
 func (s *service) GetCart(cartId string, userId int) (cart []CartProductFullInfo, sum float64, err error) {
+	// todo
 	var cartUUID uuid.UUID
 	if cartId != "" {
 		cartUUID, err = uuid.Parse(cartId)
@@ -63,11 +81,19 @@ func (s *service) GetCart(cartId string, userId int) (cart []CartProductFullInfo
 		if getCart.Err() == redis.Nil {
 			return nil, 0, err
 		}
-	}
 
-	cart, err = s.repo.GetProductsInCart(userId)
-	if err != nil {
-		return nil, 0, err
+		var cartBytes []byte
+		cartBytes, err = getCart.Bytes()
+		if err != nil {
+			return nil, 0, err
+		}
+
+		if len(cartBytes) != 0 {
+			err = json.Unmarshal(cartBytes, &cart)
+			if err != nil {
+				return nil, 0, err
+			}
+		}
 	}
 
 	for _, e := range cart {

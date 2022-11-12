@@ -38,7 +38,7 @@ func NewService(
 		Product:       product.NewProductsService(repos.Product, fileStorage),
 		Category:      category.NewCategoryService(repos.Category, fileStorage),
 		Order:         order.NewOrdersService(repos.Order, repos.Product),
-		Shopping:      shopping.NewShoppingService(repos.Shopping),
+		Shopping:      shopping.NewShoppingService(repos.Shopping, cache),
 		Supply:        supply.NewSupplyService(repos.Supply),
 		Review:        review.NewReviewService(repos.Review),
 		Inventory:     inventory.NewInventoryService(repos.Inventory, cache, logger),
