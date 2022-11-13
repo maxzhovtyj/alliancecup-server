@@ -114,17 +114,15 @@ func getUserRoleId(ctx *gin.Context) (int, error) {
 func (h *Handler) getShoppingInfo(ctx *gin.Context) {
 	userCartId, err := ctx.Cookie(userCartCookie)
 	if err != nil {
-		// TODO
-		h.newCart(ctx)
-
-		newUserCartId, errCookie := ctx.Cookie(userCartCookie)
-		if errCookie != nil {
+		cartId, errNewCart := h.newCart(ctx)
+		if errNewCart != nil {
 			newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		ctx.Set(userCartCtx, newUserCartId)
+		ctx.Set(userCartCtx, cartId)
 	} else {
+		// TODO check whether such cart uuid exist in redis cache
 		ctx.Set(userCartCtx, userCartId)
 	}
 }
