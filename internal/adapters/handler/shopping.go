@@ -17,22 +17,6 @@ type AddToFavouritesInput struct {
 	ProductId int `json:"product_id"`
 }
 
-func (h *Handler) newCart(ctx *gin.Context) {
-	id, err := getUserId(ctx)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	cartUUID, err := h.services.Shopping.NewCart(id)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	ctx.JSON(http.StatusOK, cartUUID)
-}
-
 // addToCart godoc
 // @Summary      AddToCart
 // @Security 	 ApiKeyAuth
@@ -85,7 +69,7 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/client/cart [get]
 func (h *Handler) getFromCartById(ctx *gin.Context) {
-	cartId, _ := ctx.Get("userCart")
+	cartId, _ := ctx.Get(userCartCtx)
 
 	userId, err := getUserId(ctx)
 	if err != nil {

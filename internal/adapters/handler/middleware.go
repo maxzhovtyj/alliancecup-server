@@ -9,8 +9,10 @@ import (
 
 const (
 	authorizationHeader = "Authorization"
+	userCartCookie      = "UserCart"
 	userCtx             = "userId"
 	userRoleIdCtx       = "userRoleId"
+	userCartCtx         = "userCart"
 )
 
 func (h *Handler) userIdentity(ctx *gin.Context) {
@@ -110,20 +112,34 @@ func getUserRoleId(ctx *gin.Context) (int, error) {
 }
 
 func (h *Handler) getShoppingInfo(ctx *gin.Context) {
-	cart := ctx.GetHeader("UserCart")
-	ctx.Set("userCart", cart)
+	userCartId, err := ctx.Cookie(userCartCookie)
+	if err != nil {
+		// TODO
+		h.newCart(ctx)
 
-	favourites := ctx.GetHeader("UserFavourites")
-	ctx.Set("userFavourites", favourites)
+		newUserCartId, errCookie := ctx.Cookie(userCartCookie)
+		if errCookie != nil {
+			newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+			return
+		}
 
-	//if cart == "" {
-	//	cartUUID, err := h.services.Shopping.NewCart()
-	//	if err != nil {
-	//		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-	//		return
-	//	}
-	//
-	//	ctx.JSON(http.StatusCreated, cartUUID.String())
-	//	return
-	//}
+		ctx.Set(userCartCtx, newUserCartId)
+	} else {
+		ctx.Set(userCartCtx, userCartId)
+	}
+}
+
+func (h *Handler) newCart(ctx *gin.Context) (string, error) {
+	id, err := getUserId(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	cartUUID, err := h.services.Shopping.NewCart(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return "", err
+	}
+
+	return cartUUID.String(), err
 }
