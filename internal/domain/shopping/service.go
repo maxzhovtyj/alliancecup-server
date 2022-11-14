@@ -13,7 +13,7 @@ import (
 type Service interface {
 	NewCart(userId int) (uuid.UUID, error)
 	AddToCart(userId int, info CartProduct) (float64, error)
-	GetCart(cartId string, userId int) ([]CartProductFullInfo, float64, error)
+	GetCart(cartId string) ([]CartProductFullInfo, float64, error)
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	DeleteFromFavourites(userId, productId int) error
@@ -68,9 +68,9 @@ func (s *service) AddToCart(userId int, info CartProduct) (float64, error) {
 	return s.repo.AddToCart(userId, info)
 }
 
-func (s *service) GetCart(cartId string, userId int) (cart []CartProductFullInfo, sum float64, err error) {
-	// todo
+func (s *service) GetCart(cartId string) (cart []CartProductFullInfo, sum float64, err error) {
 	var cartUUID uuid.UUID
+
 	if cartId != "" {
 		cartUUID, err = uuid.Parse(cartId)
 		if err != nil {
@@ -78,8 +78,8 @@ func (s *service) GetCart(cartId string, userId int) (cart []CartProductFullInfo
 		}
 
 		getCart := s.cache.Get(context.Background(), cartUUID.String())
-		if getCart.Err() == redis.Nil {
-			return nil, 0, err
+		if err = getCart.Err(); err != nil {
+			return nil, 0, fmt.Errorf("failed to find cart id in cache, %v", err)
 		}
 
 		var cartBytes []byte

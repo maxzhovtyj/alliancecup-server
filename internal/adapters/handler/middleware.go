@@ -120,6 +120,7 @@ func (h *Handler) getShoppingInfo(ctx *gin.Context) {
 			return
 		}
 
+		ctx.SetCookie(userCartCookie, cartId, 60*60*72, "/", domain, false, true)
 		ctx.Set(userCartCtx, cartId)
 	} else {
 		// TODO check whether such cart uuid exist in redis cache

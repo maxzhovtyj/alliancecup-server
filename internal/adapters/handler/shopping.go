@@ -69,14 +69,13 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/client/cart [get]
 func (h *Handler) getFromCartById(ctx *gin.Context) {
-	cartId, _ := ctx.Get(userCartCtx)
-
-	userId, err := getUserId(ctx)
-	if err != nil {
-		userId = 0
+	cartId, exists := ctx.Get(userCartCtx)
+	if !exists {
+		newErrorResponse(ctx, http.StatusInternalServerError, fmt.Errorf("cart id wasn't found").Error())
+		return
 	}
 
-	products, sum, err := h.services.Shopping.GetCart(cartId.(string), userId)
+	products, sum, err := h.services.Shopping.GetCart(cartId.(string))
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
