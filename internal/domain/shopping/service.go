@@ -10,9 +10,11 @@ import (
 	"time"
 )
 
+const userCartCacheTTL = 72 * time.Hour
+
 type Service interface {
 	NewCart(userId int) (uuid.UUID, error)
-	AddToCart(userId int, info CartProduct) (float64, error)
+	AddToCart(info CartProduct, cartId string, userId int) error
 	GetCart(cartId string) ([]CartProductFullInfo, float64, error)
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
@@ -47,7 +49,7 @@ func (s *service) NewCart(userId int) (cartUUID uuid.UUID, err error) {
 		}
 	}
 
-	set := s.cache.Set(context.Background(), cartUUID.String(), productsBytes, 72*time.Hour)
+	set := s.cache.Set(context.Background(), cartUUID.String(), productsBytes, userCartCacheTTL)
 	if set.Err() != nil {
 		return [16]byte{}, fmt.Errorf("failed to create card in cache")
 	}
@@ -55,17 +57,65 @@ func (s *service) NewCart(userId int) (cartUUID uuid.UUID, err error) {
 	return cartUUID, nil
 }
 
-func (s *service) AddToCart(userId int, info CartProduct) (float64, error) {
+func validateNoDuplicateInCart(cart []CartProduct, product CartProduct) error {
+	for _, p := range cart {
+		if p.ProductId == product.ProductId {
+			return fmt.Errorf("duplicate, product already in cart")
+		}
+	}
+
+	return nil
+}
+
+func (s *service) AddToCart(info CartProduct, cartId string, userId int) error {
 	price, err := s.repo.PriceValidation(info.ProductId, info.Quantity)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	if price != info.PriceForQuantity {
-		return 0, errors.New("price mismatch")
+		return errors.New("price mismatch")
 	}
 
-	return s.repo.AddToCart(userId, info)
+	var cartProducts []CartProduct
+
+	cacheCart := s.cache.Get(context.Background(), cartId)
+	cacheCartBytes, err := cacheCart.Bytes()
+	if err != nil {
+		return err
+	}
+
+	if len(cacheCartBytes) != 0 {
+		err = json.Unmarshal(cacheCartBytes, &cartProducts)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = validateNoDuplicateInCart(cartProducts, info)
+	if err != nil {
+		return err
+	}
+
+	cartProducts = append(cartProducts, info)
+	cartProductsBytes, err := json.Marshal(cartProducts)
+	if err != nil {
+		return err
+	}
+
+	updateUserCart := s.cache.Set(context.Background(), cartId, cartProductsBytes, userCartCacheTTL)
+	if err = updateUserCart.Err(); err != nil {
+		return fmt.Errorf("failed to update user cart in cache, %v", updateUserCart.Err())
+	}
+
+	if userId != 0 {
+		err = s.repo.AddToCart(userId, info)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
 func (s *service) GetCart(cartId string) (cart []CartProductFullInfo, sum float64, err error) {

@@ -26,7 +26,7 @@ type AddToFavouritesInput struct {
 // @Accept       json
 // @Produce      json
 // @Param        input body shopping.CartProduct true "product info"
-// @Success      200  {object}  string 2
+// @Success      200  {string}  string
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -38,22 +38,25 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 		return
 	}
 
+	userCartId, err := getCartId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	var input shopping.CartProduct
 	if err = ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	price, err := h.services.Shopping.AddToCart(userId, input)
+	err = h.services.Shopping.AddToCart(input, userCartId, userId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, map[string]interface{}{
-		"price_for_quantity": price,
-		"message":            "product added",
-	})
+	ctx.JSON(http.StatusCreated, "product added")
 }
 
 // getFromCart godoc
@@ -69,14 +72,15 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/client/cart [get]
 func (h *Handler) getFromCartById(ctx *gin.Context) {
-	cartId, exists := ctx.Get(userCartCtx)
-	if !exists {
-		newErrorResponse(ctx, http.StatusInternalServerError, fmt.Errorf("cart id wasn't found").Error())
+	cartId, err := getCartId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	products, sum, err := h.services.Shopping.GetCart(cartId.(string))
+	products, sum, err := h.services.Shopping.GetCart(cartId)
 	if err != nil {
+		ctx.SetCookie(userCartCookie, "", -1, "/", domain, false, true)
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
