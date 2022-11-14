@@ -10,7 +10,7 @@ import (
 type Storage interface {
 	AddToCart(userId int, info CartProduct) error
 	PriceValidation(productId, quantity int) (float64, error)
-	GetProductsInCart(userId int) ([]CartProductFullInfo, error)
+	GetProductsInCart(userId int) ([]CartProduct, error)
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	DeleteFromFavourites(userId, productId int) error
@@ -55,14 +55,14 @@ func (s *storage) PriceValidation(productId, quantity int) (float64, error) {
 	return price * float64(quantity), nil
 }
 
-func (s *storage) GetProductsInCart(userId int) ([]CartProductFullInfo, error) {
+func (s *storage) GetProductsInCart(userId int) ([]CartProduct, error) {
 	var cartId int
 	queryGetCartId := fmt.Sprintf("SELECT id FROM %s WHERE user_id=$1", postgres.CartsTable)
 	if err := s.db.Get(&cartId, queryGetCartId, userId); err != nil {
 		return nil, err
 	}
 
-	var productsInCart []CartProductFullInfo
+	var productsInCart []CartProduct
 	queryCartProducts, args, err := s.qb.Select(
 		"carts_products.product_id",
 		"products.article",

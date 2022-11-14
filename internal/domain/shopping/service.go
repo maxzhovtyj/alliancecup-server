@@ -15,7 +15,7 @@ const userCartCacheTTL = 72 * time.Hour
 type Service interface {
 	NewCart(userId int) (uuid.UUID, error)
 	AddToCart(info CartProduct, cartId string, userId int) error
-	GetCart(cartId string) ([]CartProductFullInfo, float64, error)
+	GetCart(cartId string) ([]CartProduct, float64, error)
 	DeleteFromCart(productId int) error
 	AddToFavourites(userId, productId int) error
 	DeleteFromFavourites(userId, productId int) error
@@ -118,7 +118,7 @@ func (s *service) AddToCart(info CartProduct, cartId string, userId int) error {
 	return err
 }
 
-func (s *service) GetCart(cartId string) (cart []CartProductFullInfo, sum float64, err error) {
+func (s *service) GetCart(cartId string) (cart []CartProduct, sum float64, err error) {
 	var cartUUID uuid.UUID
 
 	if cartId != "" {

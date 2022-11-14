@@ -9,8 +9,8 @@ import (
 )
 
 type CartProductsResponse struct {
-	Products []shopping.CartProductFullInfo `json:"products"`
-	Sum      float64                        `json:"sum"`
+	Products []shopping.CartProduct `json:"products"`
+	Sum      float64                `json:"sum"`
 }
 
 type AddToFavouritesInput struct {
