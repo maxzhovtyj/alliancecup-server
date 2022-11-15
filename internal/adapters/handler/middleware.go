@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -9,8 +10,11 @@ import (
 
 const (
 	authorizationHeader = "Authorization"
+	userCartCookie      = "UserCart"
 	userCtx             = "userId"
 	userRoleIdCtx       = "userRoleId"
+	userCartCtx         = "userCart"
+	userCartCookieTTL   = 60 * 60 * 72
 )
 
 func (h *Handler) userIdentity(ctx *gin.Context) {
@@ -109,11 +113,42 @@ func getUserRoleId(ctx *gin.Context) (int, error) {
 	return idInt, nil
 }
 
-func (h *Handler) createUserInCache(ctx *gin.Context) error {
-	err := h.services.ClientCache.NewUser()
+func (h *Handler) getShoppingInfo(ctx *gin.Context) {
+	userCartId, err := ctx.Cookie(userCartCookie)
+	if err != nil || userCartId == "" {
+		cartId, errNewCart := h.newCart(ctx)
+		if errNewCart != nil {
+			newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		ctx.SetCookie(userCartCookie, cartId, userCartCookieTTL, "/", domain, false, true)
+		ctx.Set(userCartCtx, cartId)
+	} else {
+		ctx.Set(userCartCtx, userCartId)
+	}
+}
+
+func (h *Handler) newCart(ctx *gin.Context) (string, error) {
+	id, err := getUserId(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	cartUUID, err := h.services.Shopping.NewCart(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return "", err
+	}
+
+	return cartUUID.String(), err
+}
+
+func getCartId(ctx *gin.Context) (string, error) {
+	id, exists := ctx.Get(userCartCtx)
+	if !exists {
+		return "", fmt.Errorf("failed to find user cart id")
+	}
+
+	return id.(string), nil
 }

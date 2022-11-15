@@ -9,8 +9,8 @@ import (
 )
 
 type CartProductsResponse struct {
-	Products []shopping.CartProductFullInfo `json:"products"`
-	Sum      float64                        `json:"sum"`
+	Products []shopping.CartProduct `json:"products"`
+	Sum      float64                `json:"sum"`
 }
 
 type AddToFavouritesInput struct {
@@ -26,36 +26,37 @@ type AddToFavouritesInput struct {
 // @Accept       json
 // @Produce      json
 // @Param        input body shopping.CartProduct true "product info"
-// @Success      200  {object}  string 2
+// @Success      200  {string}  string
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /api/client/cart [post]
 func (h *Handler) addToCart(ctx *gin.Context) {
 	userId, err := getUserId(ctx)
-
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
 		return
 	}
 
-	var input shopping.CartProduct
+	userCartId, err := getCartId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
 
+	var input shopping.CartProduct
 	if err = ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	price, err := h.services.Shopping.AddToCart(userId, input)
+	err = h.services.Shopping.AddToCart(input, userCartId, userId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, map[string]interface{}{
-		"price_for_quantity": price,
-		"message":            "product added",
-	})
+	ctx.JSON(http.StatusCreated, "product added")
 }
 
 // getFromCart godoc
@@ -71,14 +72,15 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/client/cart [get]
 func (h *Handler) getFromCartById(ctx *gin.Context) {
-	userId, err := getUserId(ctx)
+	cartId, err := getCartId(ctx)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusUnauthorized, "no user's id")
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	products, sum, err := h.services.Shopping.GetProductsInCart(userId)
+	products, sum, err := h.services.Shopping.GetCart(cartId)
 	if err != nil {
+		ctx.SetCookie(userCartCookie, "", -1, "/", domain, false, true)
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -104,13 +106,24 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/client/cart [delete]
 func (h *Handler) deleteFromCart(ctx *gin.Context) {
+	cartId, err := getCartId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to find cart id, %v", err).Error())
+		return
+	}
+
+	userId, err := getUserId(ctx)
+	if err != nil {
+		userId = 0
+	}
+
 	productId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to parse product id to int: %v", err).Error())
 		return
 	}
 
-	err = h.services.Shopping.DeleteFromCart(productId)
+	err = h.services.Shopping.DeleteFromCart(productId, userId, cartId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

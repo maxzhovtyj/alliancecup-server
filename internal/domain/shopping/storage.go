@@ -8,10 +8,10 @@ import (
 )
 
 type Storage interface {
-	AddToCart(userId int, info CartProduct) (float64, error)
+	AddToCart(userId int, info CartProduct) error
 	PriceValidation(productId, quantity int) (float64, error)
-	GetProductsInCart(userId int) ([]CartProductFullInfo, error)
-	DeleteFromCart(productId int) error
+	GetProductsInCart(userId int) ([]CartProduct, error)
+	DeleteFromCart(productId, userId int) error
 	AddToFavourites(userId, productId int) error
 	DeleteFromFavourites(userId, productId int) error
 }
@@ -28,21 +28,23 @@ func NewShoppingPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
 	}
 }
 
-func (s *storage) AddToCart(userId int, info CartProduct) (float64, error) {
-	var userCartId int
-	queryGetCartId := fmt.Sprintf("SELECT id FROM %s WHERE user_id=$1 LIMIT 1", postgres.CartsTable)
-	err := s.db.Get(&userCartId, queryGetCartId, userId)
+func (s *storage) AddToCart(userId int, info CartProduct) error {
+	queryAddToCart := fmt.Sprintf(
+		`
+		INSERT INTO %s 
+			(cart_id, product_id, quantity, price_for_quantity) 
+		values 
+			((SELECT id FROM %s WHERE user_id=$1 LIMIT 1), $2, $3, $4)
+		`,
+		postgres.CartsProductsTable,
+		postgres.CartsTable,
+	)
+	_, err := s.db.Exec(queryAddToCart, userId, info.ProductId, info.Quantity, info.PriceForQuantity)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	queryAddToCart := fmt.Sprintf("INSERT INTO %s (cart_id, product_id, quantity, price_for_quantity) values ($1, $2, $3, $4)", postgres.CartsProductsTable)
-	_, err = s.db.Exec(queryAddToCart, userCartId, info.ProductId, info.Quantity, info.PriceForQuantity)
-	if err != nil {
-		return 0, err
-	}
-
-	return info.PriceForQuantity, err
+	return err
 }
 
 func (s *storage) PriceValidation(productId, quantity int) (float64, error) {
@@ -55,14 +57,14 @@ func (s *storage) PriceValidation(productId, quantity int) (float64, error) {
 	return price * float64(quantity), nil
 }
 
-func (s *storage) GetProductsInCart(userId int) ([]CartProductFullInfo, error) {
+func (s *storage) GetProductsInCart(userId int) ([]CartProduct, error) {
 	var cartId int
 	queryGetCartId := fmt.Sprintf("SELECT id FROM %s WHERE user_id=$1", postgres.CartsTable)
 	if err := s.db.Get(&cartId, queryGetCartId, userId); err != nil {
 		return nil, err
 	}
 
-	var productsInCart []CartProductFullInfo
+	var productsInCart []CartProduct
 	queryCartProducts, args, err := s.qb.Select(
 		"carts_products.product_id",
 		"products.article",
@@ -89,9 +91,13 @@ func (s *storage) GetProductsInCart(userId int) ([]CartProductFullInfo, error) {
 	return productsInCart, nil
 }
 
-func (s *storage) DeleteFromCart(productId int) error {
-	queryDelete := fmt.Sprintf("DELETE FROM %s WHERE product_id=$1", postgres.CartsProductsTable)
-	_, err := s.db.Exec(queryDelete, productId)
+func (s *storage) DeleteFromCart(productId, userId int) error {
+	queryDelete := fmt.Sprintf(
+		`DELETE FROM %s WHERE cart_id = (SELECT id FROM %s WHERE user_id = $1) AND product_id = $2`,
+		postgres.CartsProductsTable,
+		postgres.CartsTable,
+	)
+	_, err := s.db.Exec(queryDelete, userId, productId)
 	return err
 }
 

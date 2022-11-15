@@ -4,7 +4,6 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/minio/minio-go/v7"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/clientCache"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
@@ -25,7 +24,6 @@ type Service struct {
 	Supply        supply.Service
 	Review        review.Service
 	Inventory     inventory.Service
-	ClientCache   clientCache.Service
 	logger        *logging.Logger
 }
 
@@ -36,12 +34,11 @@ func NewService(
 	fileStorage *minio.Client,
 ) *Service {
 	return &Service{
-		ClientCache:   clientCache.NewService(cache, logger),
 		Authorization: user.NewAuthService(repos.Authorization),
 		Product:       product.NewProductsService(repos.Product, fileStorage),
 		Category:      category.NewCategoryService(repos.Category, fileStorage),
 		Order:         order.NewOrdersService(repos.Order, repos.Product),
-		Shopping:      shopping.NewShoppingService(repos.Shopping),
+		Shopping:      shopping.NewShoppingService(repos.Shopping, cache),
 		Supply:        supply.NewSupplyService(repos.Supply),
 		Review:        review.NewReviewService(repos.Review),
 		Inventory:     inventory.NewInventoryService(repos.Inventory, cache, logger),

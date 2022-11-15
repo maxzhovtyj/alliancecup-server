@@ -50,6 +50,8 @@ const (
 	inventoriesUrl       = "/inventories"
 	inventoryProductsUrl = "/inventory-products"
 	invoiceUrl           = "/invoice"
+	personalInfoUrl      = "personal-info"
+	shoppingUrl          = "/shopping"
 )
 
 type Handler struct {
@@ -66,7 +68,6 @@ func NewHandler(services *service.Service, logger *logging.Logger) *Handler {
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
-
 	c := cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:3000",
@@ -78,6 +79,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			"Authorization",
 			"Content-Type",
 			"User-Agent",
+			"UserCart",
+			"UserFavourites",
 		},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{},
@@ -147,23 +150,26 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		client := api.Group(clientUrl, h.userAuthorized)
 		{
-			client.GET("personal-info", h.personalInfo)
-			client.PUT("personal-info", h.updatePersonalInfo)
+			client.GET(personalInfoUrl, h.personalInfo)
+			client.PUT(personalInfoUrl, h.updatePersonalInfo)
 
 			client.PUT(changePasswordUrl, h.changePassword)
 			client.DELETE(logoutUrl, h.logout)
 
 			client.GET(userOrdersUrl, h.userOrders)
 
-			client.POST(cartUrl, h.addToCart)
-			client.GET(cartUrl, h.getFromCartById)
-			client.DELETE(cartUrl, h.deleteFromCart)
-
-			client.POST(favouritesUrl, h.addToFavourites)
-			client.GET(favouritesUrl, h.getFavourites)
-			client.DELETE(favouritesUrl, h.deleteFromFavourites)
-
 			client.GET(orderUrl, h.getOrderById)
+		}
+
+		shopping := api.Group(shoppingUrl, h.getShoppingInfo)
+		{
+			shopping.POST(cartUrl, h.addToCart)
+			shopping.GET(cartUrl, h.getFromCartById)
+			shopping.DELETE(cartUrl, h.deleteFromCart)
+
+			shopping.POST(favouritesUrl, h.addToFavourites)
+			shopping.GET(favouritesUrl, h.getFavourites)
+			shopping.DELETE(favouritesUrl, h.deleteFromFavourites)
 		}
 	}
 
