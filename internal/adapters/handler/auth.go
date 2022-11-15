@@ -202,7 +202,7 @@ func (h *Handler) signIn(c *gin.Context) {
 func (h *Handler) logout(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusUnauthorized, "user id not found: "+err.Error())
+		newErrorResponse(ctx, http.StatusUnauthorized, fmt.Errorf("user id not found: %v", err).Error())
 		return
 	}
 
@@ -217,6 +217,7 @@ func (h *Handler) logout(ctx *gin.Context) {
 
 	dm := os.Getenv(domain)
 	ctx.SetCookie(refreshTokenCookie, "", -1, "/", dm, false, true)
+	ctx.SetCookie(userCartCookie, "", -1, "/", dm, false, true)
 
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"message": "logged out, session deleted",

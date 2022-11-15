@@ -16,7 +16,7 @@ type Service interface {
 	NewCart(userId int) (uuid.UUID, error)
 	AddToCart(info CartProduct, cartId string, userId int) error
 	GetCart(cartId string) ([]CartProduct, float64, error)
-	DeleteFromCart(productId int) error
+	DeleteFromCart(productId, userId int, cartId string) error
 	AddToFavourites(userId, productId int) error
 	DeleteFromFavourites(userId, productId int) error
 }
@@ -153,8 +153,56 @@ func (s *service) GetCart(cartId string) (cart []CartProduct, sum float64, err e
 	return cart, sum, err
 }
 
-func (s *service) DeleteFromCart(productId int) error {
-	return s.repo.DeleteFromCart(productId)
+func remove(slice []CartProduct, s int) []CartProduct {
+	return append(slice[:s], slice[s+1:]...)
+}
+
+func (s *service) DeleteFromCart(productId, userId int, cartId string) error {
+	getCart := s.cache.Get(context.Background(), cartId)
+	if getCart.Err() != nil {
+		if getCart.Err() == redis.Nil {
+			return fmt.Errorf("failed to find cart with id = %s", cartId)
+		}
+		return getCart.Err()
+	}
+
+	cartBytes, err := getCart.Bytes()
+	if err != nil {
+		return err
+	}
+
+	var cartProducts []CartProduct
+	if len(cartBytes) != 0 {
+		err = json.Unmarshal(cartBytes, &cartProducts)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal byte to cart product model")
+		}
+	}
+
+	for i, p := range cartProducts {
+		if p.ProductId == productId {
+			cartProducts = remove(cartProducts, i)
+		}
+	}
+
+	cartProductsMarshal, err := json.Marshal(cartProducts)
+	if err != nil {
+		return err
+	}
+
+	setCart := s.cache.Set(context.Background(), cartId, cartProductsMarshal, userCartCacheTTL)
+	if setCart.Err() != nil {
+		return err
+	}
+
+	if userId != 0 {
+		err = s.repo.DeleteFromCart(productId, userId)
+		if err != nil {
+			return fmt.Errorf("failed to delete product in cart, %v", err)
+		}
+	}
+
+	return err
 }
 
 func (s *service) AddToFavourites(userId, productId int) error {

@@ -106,13 +106,24 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/client/cart [delete]
 func (h *Handler) deleteFromCart(ctx *gin.Context) {
+	cartId, err := getCartId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to find cart id, %v", err).Error())
+		return
+	}
+
+	userId, err := getUserId(ctx)
+	if err != nil {
+		userId = 0
+	}
+
 	productId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to parse product id to int: %v", err).Error())
 		return
 	}
 
-	err = h.services.Shopping.DeleteFromCart(productId)
+	err = h.services.Shopping.DeleteFromCart(productId, userId, cartId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
