@@ -1,5 +1,11 @@
 port: "8000"
 
+roles:
+    guest: "0000"
+    client: "0001"
+    moderator: "1002"
+    superAdmin: "2003"
+
 db:
     username: "postgres"
     # set host to db service name when running a docker compose

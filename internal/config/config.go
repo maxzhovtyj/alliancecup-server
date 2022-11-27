@@ -10,6 +10,10 @@ import (
 
 const (
 	appPort        = "port"
+	guestRole      = "roles.guest"
+	clientRole     = "roles.client"
+	moderatorRole  = "roles.moderator"
+	superAdminRole = "roles.superAdmin"
 	dbPort         = "db.port"
 	dbUsername     = "db.username"
 	dbHost         = "db.host"
@@ -43,8 +47,16 @@ type MinIO struct {
 	SecretKey string `yaml:"secret_key"`
 }
 
+type Roles struct {
+	Guest      string `yaml:"guest"`
+	Client     string `yaml:"client"`
+	Moderator  string `yaml:"moderator"`
+	SuperAdmin string `yaml:"superAdmin"`
+}
+
 type Config struct {
 	AppPort string `yaml:"port"`
+	Roles
 	Storage
 	Redis
 	MinIO
@@ -86,11 +98,20 @@ func GetConfig() *Config {
 			AccessKey: viper.GetString(minioAccessKey),
 			SecretKey: viper.GetString(minioSecretKey),
 		}
+
+		rolesInstance := Roles{
+			Guest:      viper.GetString(guestRole),
+			Client:     viper.GetString(clientRole),
+			Moderator:  viper.GetString(moderatorRole),
+			SuperAdmin: viper.GetString(superAdminRole),
+		}
+
 		instance = &Config{
 			AppPort: viper.GetString(appPort),
 			Storage: storageInstance,
 			Redis:   redisInstance,
 			MinIO:   minioInstance,
+			Roles:   rolesInstance,
 		}
 	})
 

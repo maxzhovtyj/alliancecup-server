@@ -1,7 +1,8 @@
 CREATE TABLE roles
 (
     id SERIAL PRIMARY KEY,
-    role_title TEXT NOT NULL UNIQUE
+    title TEXT NOT NULL UNIQUE,
+    code CHAR(4) NOT NULL UNIQUE
 );
 
 CREATE TABLE users
@@ -17,6 +18,6 @@ CREATE TABLE users
     created_at TIMESTAMPTZ DEFAULT (now() AT TIME ZONE 'utc-3')
 );
 
-INSERT INTO roles (role_title) VALUES ('CLIENT');
-INSERT INTO roles (role_title) VALUES ('MODERATOR');
-INSERT INTO roles (role_title) VALUES ('SUPER_ADMIN');
+INSERT INTO roles (title, code) VALUES ('CLIENT', '0001');
+INSERT INTO roles (title, code) VALUES ('MODERATOR', '1002');
+INSERT INTO roles (title, code) VALUES ('SUPERADMIN', '2003');

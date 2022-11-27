@@ -2,7 +2,7 @@ package user
 
 type User struct {
 	Id          int    `json:"-" db:"id"`
-	RoleId      int    `json:"roleId" db:"role_id"`
+	RoleCode    string `json:"roleCode" db:"role_code"`
 	Email       string `json:"email" binding:"required"`
 	Password    string `json:"password" binding:"required"`
 	Lastname    string `json:"lastname" binding:"required"`

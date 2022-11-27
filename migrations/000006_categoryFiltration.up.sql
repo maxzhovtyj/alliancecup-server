@@ -1,5 +1,3 @@
-ALTER TABLE categories ADD COLUMN category_description text;
-
 CREATE TABLE categories_filtration
 (
     id SERIAL PRIMARY KEY,

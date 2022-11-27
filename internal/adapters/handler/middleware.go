@@ -11,8 +11,8 @@ import (
 const (
 	authorizationHeader = "Authorization"
 	userCartCookie      = "UserCart"
-	userCtx             = "userId"
-	userRoleIdCtx       = "userRoleId"
+	userIdCtx           = "userId"
+	userRoleCodeCtx     = "userRoleCode"
 	userCartCtx         = "userCart"
 	userCartCookieTTL   = 60 * 60 * 72
 )
@@ -20,8 +20,8 @@ const (
 func (h *Handler) userIdentity(ctx *gin.Context) {
 	header := ctx.GetHeader(authorizationHeader)
 	if header == "" {
-		ctx.Set(userCtx, 0)
-		ctx.Set(userRoleIdCtx, 0)
+		ctx.Set(userIdCtx, 0)
+		ctx.Set(userRoleCodeCtx, h.cfg.Roles.Guest)
 		return
 	}
 
@@ -31,58 +31,58 @@ func (h *Handler) userIdentity(ctx *gin.Context) {
 		return
 	}
 
-	//parse token
-	userId, userRoleId, err := h.services.Authorization.ParseToken(headerParts[1])
+	// parse token
+	userId, userRoleCode, err := h.services.Authorization.ParseToken(headerParts[1])
 	if err != nil {
 		newErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	ctx.Set(userCtx, userId)
-	ctx.Set(userRoleIdCtx, userRoleId)
+	ctx.Set(userIdCtx, userId)
+	ctx.Set(userRoleCodeCtx, userRoleCode)
 }
 
-func (h *Handler) userHasPermission(ctx *gin.Context) {
-	userRoleIdInt, err := getUserRoleId(ctx)
+func (h *Handler) moderatorPermission(ctx *gin.Context) {
+	userRoleCode, err := getUserRole(ctx)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "user role not found or it's wrong type")
 		return
 	}
 
-	if userRoleIdInt == 0 || userRoleIdInt == 1 {
+	if userRoleCode != h.cfg.Roles.Moderator && userRoleCode != h.cfg.Roles.SuperAdmin {
 		newErrorResponse(ctx, http.StatusForbidden, "access forbidden")
 		return
 	}
 }
 
 func (h *Handler) userAuthorized(ctx *gin.Context) {
-	userRoleId, err := getUserRoleId(ctx)
+	userRoleId, err := getUserRole(ctx)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "no user role or it's wrong type: "+err.Error())
 		return
 	}
 
-	if userRoleId == 0 {
+	if userRoleId == h.cfg.Roles.Guest {
 		newErrorResponse(ctx, http.StatusUnauthorized, "user unauthorized")
 		return
 	}
 }
 
 func (h *Handler) superAdmin(ctx *gin.Context) {
-	userRoleId, err := getUserRoleId(ctx)
+	userRoleCode, err := getUserRole(ctx)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "no user role or it's wrong type: "+err.Error())
 		return
 	}
 
-	if userRoleId != 3 {
-		newErrorResponse(ctx, http.StatusUnauthorized, "user unauthorized")
+	if userRoleCode != h.cfg.Roles.SuperAdmin {
+		newErrorResponse(ctx, http.StatusForbidden, "access forbidden")
 		return
 	}
 }
 
 func getUserId(ctx *gin.Context) (int, error) {
-	id, ok := ctx.Get(userCtx)
+	id, ok := ctx.Get(userIdCtx)
 	if !ok {
 		newErrorResponse(ctx, http.StatusInternalServerError, "userId not found")
 		return 0, errors.New("user id not found")
@@ -97,20 +97,18 @@ func getUserId(ctx *gin.Context) (int, error) {
 	return idInt, nil
 }
 
-func getUserRoleId(ctx *gin.Context) (int, error) {
-	id, ok := ctx.Get(userRoleIdCtx)
+func getUserRole(ctx *gin.Context) (string, error) {
+	roleCode, ok := ctx.Get(userRoleCodeCtx)
 	if !ok {
-		newErrorResponse(ctx, http.StatusInternalServerError, "role id not found")
-		return 0, errors.New("role id not found")
+		return "", errors.New("role id not found")
 	}
 
-	idInt, ok := id.(int)
+	roleCodeStr, ok := roleCode.(string)
 	if !ok {
-		newErrorResponse(ctx, http.StatusInternalServerError, "user's role id is not of type int")
-		return 0, errors.New("user's role id is not of type int")
+		return "", errors.New("user's role id is not of type int")
 	}
 
-	return idInt, nil
+	return roleCodeStr, nil
 }
 
 func (h *Handler) getShoppingInfo(ctx *gin.Context) {

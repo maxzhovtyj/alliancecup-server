@@ -6,6 +6,7 @@ import (
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
 	_ "github.com/zh0vtyj/allincecup-server/docs"
+	"github.com/zh0vtyj/allincecup-server/internal/config"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
 	"github.com/zh0vtyj/allincecup-server/pkg/logging"
 	"net/http"
@@ -57,12 +58,14 @@ const (
 type Handler struct {
 	services *service.Service
 	logger   *logging.Logger
+	cfg      *config.Config
 }
 
-func NewHandler(services *service.Service, logger *logging.Logger) *Handler {
+func NewHandler(services *service.Service, logger *logging.Logger, cfg *config.Config) *Handler {
 	return &Handler{
 		services: services,
 		logger:   logger,
+		cfg:      cfg,
 	}
 }
 
@@ -112,10 +115,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		api.GET(invoiceUrl, h.getOrderInvoice)
 
-		admin := api.Group(adminUrl, h.userHasPermission)
+		admin := api.Group(adminUrl, h.moderatorPermission)
 		{
-			admin.POST(moderatorUrl, h.createModerator)
-
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
 			admin.DELETE(productUrl, h.deleteProduct)
@@ -137,6 +138,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
+				superAdmin.POST(moderatorUrl, h.createModerator)
+
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
 				superAdmin.POST("/save-inventory", h.saveInventory)
 				superAdmin.POST(inventoryUrl, h.doInventory)

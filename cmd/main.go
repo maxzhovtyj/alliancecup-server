@@ -55,7 +55,7 @@ func main() {
 	services := service.NewService(repos, logger, redisClient, minioClient)
 
 	logger.Info("handler initializing...")
-	handlers := handler.NewHandler(services, logger)
+	handlers := handler.NewHandler(services, logger, cfg)
 
 	logger.Info("running the server...")
 	srv := new(server.Server)
