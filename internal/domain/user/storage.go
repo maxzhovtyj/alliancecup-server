@@ -8,7 +8,7 @@ import (
 )
 
 type Storage interface {
-	CreateUser(user User, role string) (int, string, error)
+	CreateUser(user User, code string) (int, string, error)
 	GetUser(email string, password string) (User, error)
 	NewSession(session models.Session) (models.Session, error)
 	GetSessionByRefresh(refresh string) (models.Session, error)
@@ -30,29 +30,27 @@ func NewAuthPostgres(db *sqlx.DB) *storage {
 	return &storage{db: db}
 }
 
-func (s *storage) CreateUser(user User, role string) (int, string, error) {
-	// Transaction begin
+func (s *storage) CreateUser(user User, code string) (int, string, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return 0, "", err
 	}
 
 	var userId int
-	var userRoleCode string
 
 	query := fmt.Sprintf(
 		`
 		INSERT INTO %s 
 		(role_id, email, lastname, firstname, middle_name, password_hash, phone_number) 
-		values ((SELECT id FROM roles WHERE title = $1), $2, $3, $4, $5, $6, $7) 
-		RETURNING id, (SELECT code FROM roles WHERE id = role_id)
+		values ((SELECT id FROM roles WHERE code = $1), $2, $3, $4, $5, $6, $7) 
+		RETURNING id
 		`,
 		postgres.UsersTable,
 	)
 
 	row := tx.QueryRow(
 		query,
-		role,
+		code,
 		user.Email,
 		user.Lastname,
 		user.Firstname,
@@ -61,7 +59,7 @@ func (s *storage) CreateUser(user User, role string) (int, string, error) {
 		user.PhoneNumber,
 	)
 
-	if err = row.Scan(&userId, &userRoleCode); err != nil {
+	if err = row.Scan(&userId); err != nil {
 		_ = tx.Rollback() // db rollback in error case
 		return 0, "", err
 	}
@@ -75,7 +73,7 @@ func (s *storage) CreateUser(user User, role string) (int, string, error) {
 	}
 
 	// return id and transaction commit
-	return userId, userRoleCode, tx.Commit()
+	return userId, code, tx.Commit()
 }
 
 func (s *storage) GetUser(email, password string) (User, error) {

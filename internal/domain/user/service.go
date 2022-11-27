@@ -12,17 +12,14 @@ import (
 const (
 	salt = "dsadkasdi212312mdmacmxz00"
 	//tokenTTL          = 30 * time.Minute // RELEASE VERSION
-	tokenTTL          = 10 * time.Second
+	tokenTTL          = 120 * time.Minute
 	signingKey        = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
 	refreshTokenTTL   = 1440 * time.Hour
 	refreshSigningKey = "Sepasd213*99921@@#dsad+-=SXxassd@lLL;"
-	clientRole        = "CLIENT"
-	moderatorRole     = "MODERATOR"
 )
 
 type AuthorizationService interface {
-	CreateUser(user User) (int, string, error)
-	CreateModerator(user User) (int, string, error)
+	CreateUser(user User, role string) (int, string, error)
 	GenerateTokens(email string, password string) (string, string, error)
 	ParseToken(token string) (int, string, error)
 	ParseRefreshToken(refreshToken string) error
@@ -49,14 +46,9 @@ func NewAuthService(repo Storage) AuthorizationService {
 	return &AuthService{repo: repo}
 }
 
-func (s *AuthService) CreateUser(user User) (int, string, error) {
+func (s *AuthService) CreateUser(user User, role string) (int, string, error) {
 	user.Password = generatePasswordHash(user.Password)
-	return s.repo.CreateUser(user, clientRole)
-}
-
-func (s *AuthService) CreateModerator(user User) (int, string, error) {
-	user.Password = generatePasswordHash(user.Password)
-	return s.repo.CreateUser(user, moderatorRole)
+	return s.repo.CreateUser(user, role)
 }
 
 func (s *AuthService) GenerateTokens(email, password string) (string, string, error) {

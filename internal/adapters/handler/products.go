@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
@@ -129,11 +130,11 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 		}
 	}
 
-	//dto.Price, err = strconv.ParseUint(ctx.Request.Form.Get("price"), 10, 8)
-	//if err != nil {
-	//	newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("invalid price: %f", dto.Price))
-	//	return
-	//}
+	dto.Price, err = strconv.ParseFloat(ctx.Request.Form.Get("price"), 64)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("invalid price: %f", dto.Price))
+		return
+	}
 
 	characteristics := ctx.Request.Form.Get("characteristic")
 	if characteristics != "" {

@@ -68,7 +68,7 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		return
 	}
 
-	id, roleCode, err := h.services.Authorization.CreateUser(input)
+	id, roleCode, err := h.services.Authorization.CreateUser(input, h.cfg.Roles.Guest)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -119,7 +119,7 @@ func (h *Handler) createModerator(ctx *gin.Context) {
 		return
 	}
 
-	id, roleCode, err := h.services.Authorization.CreateModerator(input)
+	id, roleCode, err := h.services.Authorization.CreateUser(input, h.cfg.Roles.Moderator)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

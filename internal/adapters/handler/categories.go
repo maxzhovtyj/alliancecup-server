@@ -93,6 +93,7 @@ func (h *Handler) getFiltration(ctx *gin.Context) {
 // @Failure 500 {object} Error
 // @Router  /api/admin/category [post]
 func (h *Handler) addCategory(ctx *gin.Context) {
+	// TODO img file add doesn't work!!!
 	ctx.Writer.Header().Set("Content-Type", "form/json")
 	err := ctx.Request.ParseMultipartForm(32 << 20)
 	if err != nil {
@@ -118,11 +119,16 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 		imgUrlPtr = &imgUrl
 	}
 
-	var imgDTO *models.FileDTO
+	dto := category.CreateDTO{
+		CategoryTitle:       categoryTitle,
+		ImgUrl:              imgUrlPtr,
+		CategoryDescription: descriptionPtr,
+	}
+
 	files, ok := ctx.Request.MultipartForm.File["file"]
 	if len(files) != 0 {
 		if !ok {
-			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
 			return
 		}
 
@@ -133,16 +139,11 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 			return
 		}
 
-		imgDTO.Name = fileInfo.Filename
-		imgDTO.Size = fileInfo.Size
-		imgDTO.Reader = fileReader
-	}
-
-	dto := category.CreateDTO{
-		CategoryTitle:       categoryTitle,
-		ImgUrl:              imgUrlPtr,
-		Img:                 imgDTO,
-		CategoryDescription: descriptionPtr,
+		dto.Img = &models.FileDTO{
+			Name:   fileInfo.Filename,
+			Size:   fileInfo.Size,
+			Reader: fileReader,
+		}
 	}
 
 	id, err := h.services.Category.Create(dto)
