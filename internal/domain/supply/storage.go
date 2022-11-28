@@ -90,7 +90,7 @@ func (s *storage) New(supply Supply) error {
 
 	for _, p := range supply.Products {
 		queryInsertProduct := fmt.Sprintf(
-			"INSERT INTO %s (supply_id, product_id, packaging, amount, price_for_unit, sum_without_tax, tax, total_sum) values ($1, $2, $3, $4, $5, $6, $7, $8)",
+			"INSERT INTO %s (supply_id, product_id, packaging, amount, price_for_unit, tax) values ($1, $2, $3, $4, $5, $6)",
 			postgres.SupplyProductsTable,
 		)
 
@@ -101,9 +101,7 @@ func (s *storage) New(supply Supply) error {
 			p.Packaging,
 			p.Amount,
 			p.PriceForUnit,
-			p.SumWithoutTax,
 			p.Tax,
-			p.TotalSum,
 		)
 		if err != nil {
 			_ = tx.Rollback()
@@ -169,16 +167,16 @@ var selectProductsColumn = []string{
 	"supply_products.packaging",
 	"supply_products.amount",
 	"supply_products.price_for_unit",
-	"supply_products.sum_without_tax",
+	"supply_products.price_for_unit * supply_products.amount as sum_without_tax",
 	"supply_products.tax",
-	"supply_products.total_sum",
+	"supply_products.price_for_unit * supply_products.amount * (supply_products.tax / 100) as total_sum",
 }
 
 func (s *storage) Products(id int, createdAt string) ([]ProductDTO, error) {
 	var products []ProductDTO
 	query := s.qb.
 		Select(selectProductsColumn...).
-		Join(postgres.ProductsTable + " ON products.id = supply_products.product_id").
+		LeftJoin(postgres.ProductsTable + " ON products.id = supply_products.product_id").
 		From(postgres.SupplyProductsTable).
 		Where(sq.Eq{"supply_products.supply_id": id})
 
