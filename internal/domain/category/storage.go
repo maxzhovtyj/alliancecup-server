@@ -31,6 +31,7 @@ func (c *storage) GetAll() ([]Category, error) {
 		SELECT id,
 			   category_title,
 			   img_url,
+			   img_uuid,
 			   description 
 		FROM %s
 		`,

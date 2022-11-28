@@ -68,7 +68,7 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		return
 	}
 
-	id, roleCode, err := h.services.Authorization.CreateUser(input, h.cfg.Roles.Guest)
+	id, roleCode, err := h.services.Authorization.CreateUser(input, h.cfg.Roles.Client)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

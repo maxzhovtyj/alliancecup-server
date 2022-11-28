@@ -101,28 +101,22 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 		return
 	}
 
-	categoryTitle := ctx.Request.Form.Get("categoryTitle")
-	if categoryTitle == "" {
+	var dto category.CreateDTO
+
+	dto.CategoryTitle = ctx.Request.Form.Get("categoryTitle")
+	if dto.CategoryTitle == "" {
 		newErrorResponse(ctx, http.StatusBadRequest, "category title is empty")
 		return
 	}
 
-	var descriptionPtr *string
 	description := ctx.Request.Form.Get("description")
 	if description != "" {
-		descriptionPtr = &description
+		dto.CategoryDescription = &description
 	}
 
-	var imgUrlPtr *string
 	imgUrl := ctx.Request.Form.Get("imgUrl")
 	if imgUrl != "" {
-		imgUrlPtr = &imgUrl
-	}
-
-	dto := category.CreateDTO{
-		CategoryTitle:       categoryTitle,
-		ImgUrl:              imgUrlPtr,
-		CategoryDescription: descriptionPtr,
+		dto.ImgUrl = &imgUrl
 	}
 
 	files, ok := ctx.Request.MultipartForm.File["file"]
