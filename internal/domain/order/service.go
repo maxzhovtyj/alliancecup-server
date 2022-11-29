@@ -34,7 +34,7 @@ func NewOrdersService(repo Storage, productRepo product.Storage) Service {
 func (o *service) OrderSumCount(products []Product) (float64, error) {
 	var sum float64
 	for _, item := range products {
-		p, err := o.productRepo.GetProductById(item.ProductId)
+		p, err := o.productRepo.GetProductById(item.Id)
 		if err != nil {
 			return 0, err
 		}

@@ -90,8 +90,8 @@ func (s *storage) New(order CreateDTO) (int, error) {
 
 	for _, product := range order.Products {
 		queryInsertProducts, args, err := s.qb.Insert(postgres.OrdersProductsTable).
-			Columns("order_id", "product_id", "quantity", "price_for_quantity").
-			Values(orderId, product.ProductId, product.Quantity, product.PriceForQuantity).
+			Columns("order_id", "product_id", "quantity").
+			Values(orderId, product.Id, product.Quantity).
 			ToSql()
 		if err != nil {
 			return 0, err
