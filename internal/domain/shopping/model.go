@@ -6,18 +6,19 @@ import (
 )
 
 type CartProduct struct {
-	CartId           int            `json:"-" db:"cart_id"`
-	ProductId        int            `json:"productId" db:"product_id" binding:"required"`
-	Article          string         `json:"article" example:"000123"`
-	ProductTitle     string         `json:"productTitle" example:"Стакан одноразовий Крафт 110мл"`
-	ImgUrl           *string        `json:"imgUrl" example:"https://google-images.com/some-img123"`
-	ImgUUID          *string        `json:"imgUUID"`
-	AmountInStock    float64        `json:"amountInStock" example:"120"`
-	Price            float64        `json:"price" db:"price" example:"3.75"`
-	Packaging        types.JSONText `json:"packaging"`
-	CreatedAt        time.Time      `json:"createdAt"`
-	Quantity         int            `json:"quantity" db:"quantity" binding:"required"`
-	PriceForQuantity float64        `json:"priceForQuantity" db:"price_for_quantity" binding:"required"`
+	CartId           int             `json:"-" db:"cart_id"`
+	Id               int             `json:"id" db:"product_id" binding:"required"`
+	Article          string          `json:"article" db:"article" example:"000123"`
+	ProductTitle     string          `json:"productTitle" db:"product_title" example:"Стакан одноразовий Крафт 110мл"`
+	ImgUrl           *string         `json:"imgUrl" db:"img_url" example:"https://google-images.com/some-img123"`
+	ImgUUID          *string         `json:"imgUUID" db:"img_uuid"`
+	AmountInStock    float64         `json:"amountInStock" db:"amount_in_stock" example:"120"`
+	Price            float64         `json:"price" db:"price" example:"3.75"`
+	Packaging        *types.JSONText `json:"packaging" db:"packaging"`
+	Characteristics  *types.JSONText `json:"characteristics" db:"characteristics"`
+	CreatedAt        time.Time       `json:"createdAt" db:"created_at"`
+	Quantity         int             `json:"quantity" db:"quantity" binding:"required"`
+	PriceForQuantity float64         `json:"priceForQuantity" db:"price_for_quantity" binding:"required"`
 }
 
 type CharacteristicParam struct {

@@ -32,14 +32,14 @@ func (s *storage) AddToCart(userId int, info CartProduct) error {
 	queryAddToCart := fmt.Sprintf(
 		`
 		INSERT INTO %s 
-			(cart_id, product_id, quantity, price_for_quantity) 
+			(cart_id, product_id, quantity) 
 		values 
-			((SELECT id FROM %s WHERE user_id=$1 LIMIT 1), $2, $3, $4)
+			((SELECT id FROM %s WHERE user_id=$1 LIMIT 1), $2, $3)
 		`,
 		postgres.CartsProductsTable,
 		postgres.CartsTable,
 	)
-	_, err := s.db.Exec(queryAddToCart, userId, info.ProductId, info.Quantity, info.PriceForQuantity)
+	_, err := s.db.Exec(queryAddToCart, userId, info.Id, info.Quantity)
 	if err != nil {
 		return err
 	}
@@ -70,12 +70,14 @@ func (s *storage) GetProductsInCart(userId int) ([]CartProduct, error) {
 		"products.article",
 		"products.product_title",
 		"products.img_url",
+		"products.img_uuid",
 		"products.amount_in_stock",
 		"products.price",
 		"products.packaging",
+		"products.characteristics",
 		"products.created_at",
 		"carts_products.quantity",
-		"carts_products.price_for_quantity",
+		"products.price * carts_products.quantity as price_for_quantity",
 	).
 		From(postgres.CartsProductsTable).
 		LeftJoin(postgres.ProductsTable + " ON carts_products.product_id = products.id").

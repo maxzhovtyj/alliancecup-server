@@ -59,7 +59,7 @@ func (s *service) NewCart(userId int) (cartUUID uuid.UUID, err error) {
 
 func validateNoDuplicateInCart(cart []CartProduct, product CartProduct) error {
 	for _, p := range cart {
-		if p.ProductId == product.ProductId {
+		if p.Id == product.Id {
 			return fmt.Errorf("duplicate, product already in cart")
 		}
 	}
@@ -68,7 +68,7 @@ func validateNoDuplicateInCart(cart []CartProduct, product CartProduct) error {
 }
 
 func (s *service) AddToCart(info CartProduct, cartId string, userId int) error {
-	price, err := s.repo.PriceValidation(info.ProductId, info.Quantity)
+	price, err := s.repo.PriceValidation(info.Id, info.Quantity)
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func (s *service) DeleteFromCart(productId, userId int, cartId string) error {
 	}
 
 	for i, p := range cartProducts {
-		if p.ProductId == productId {
+		if p.Id == productId {
 			cartProducts = remove(cartProducts, i)
 		}
 	}
