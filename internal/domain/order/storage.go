@@ -39,7 +39,6 @@ var orderInfoColumnsInsert = []string{
 	"user_phone_number",
 	"user_email",
 	"comment",
-	"sum_price",
 	"delivery_type_id",
 	"payment_type_id",
 }
@@ -71,7 +70,6 @@ func (s *storage) New(order CreateDTO) (int, error) {
 		order.Order.UserPhoneNumber,
 		order.Order.UserEmail,
 		order.Order.Comment,
-		order.Order.SumPrice,
 		deliveryTypeId, // TODO refactor to sub-query
 		paymentTypeId,  // TODO refactor to sub-query
 	)
@@ -90,8 +88,8 @@ func (s *storage) New(order CreateDTO) (int, error) {
 
 	for _, product := range order.Products {
 		queryInsertProducts, args, err := s.qb.Insert(postgres.OrdersProductsTable).
-			Columns("order_id", "product_id", "quantity").
-			Values(orderId, product.Id, product.Quantity).
+			Columns("order_id", "product_id", "price", "quantity").
+			Values(orderId, product.Id, product.Price, product.Quantity).
 			ToSql()
 		if err != nil {
 			return 0, err
@@ -133,6 +131,7 @@ func (s *storage) New(order CreateDTO) (int, error) {
 	return orderId, tx.Commit()
 }
 
+// TODO !!!
 func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, error) {
 	var ordersAmount int
 	queryOrdersAmount, args, err := s.qb.Select("count(*)").
@@ -164,7 +163,7 @@ func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 		"orders.user_email",
 		"orders.status",
 		"orders.comment",
-		"orders.sum_price",
+		"(SELECT SUM(orders_products.price * orders_products.quantity) as sum_price FROM orders_products WHERE order_id = orders.id)",
 		"delivery_types.delivery_type_title",
 		"payment_types.payment_type_title",
 		"orders.created_at",
@@ -193,21 +192,21 @@ func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 		}
 	}
 
-	// TODO "message": "sql: Scan error on column index 1, name \"user_id\": converting NULL to int is unsupported"
+	// TODO invalid select
 	for i := 0; i < ordersLimit; i++ {
 		queryOrderProducts, args, err := s.qb.
 			Select(
-				"id",
-				"order_id",
-				"article",
-				"product_title",
-				"img_url",
-				"amount_in_stock",
-				"price",
-				"packaging",
-				"created_at",
-				"quantity",
-				"price_for_quantity",
+				"products.id",
+				"orders_products.order_id",
+				"products.article",
+				"products.product_title",
+				"products.img_url",
+				"products.amount_in_stock",
+				"orders_products.price",
+				"products.packaging",
+				"products.created_at",
+				"orders_products.quantity",
+				"orders_products.quantity * orders_products.price as price_for_quantity",
 			).
 			From(postgres.OrdersProductsTable).
 			LeftJoin(postgres.ProductsTable + " ON orders_products.product_id = products.id").
@@ -254,15 +253,15 @@ func (s *storage) GetOrderById(orderId int) (SelectDTO, error) {
 			"orders.user_email",
 			"orders.status",
 			"orders.comment",
-			"orders.sum_price",
+			"(SELECT SUM(price * quantity) as sum_price FROM orders_products WHERE order_id = orders.id)",
 			"delivery_types.delivery_type_title",
 			"payment_types.payment_type_title",
 			"orders.created_at",
 			"orders.closed_at",
 		).
 		From(postgres.OrdersTable).
-		LeftJoin(postgres.DeliveryTypesTable + " ON orders.delivery_type_id=delivery_types.id").
-		LeftJoin(postgres.PaymentTypesTable + " ON orders.payment_type_id=payment_types.id").
+		LeftJoin(postgres.DeliveryTypesTable + " ON orders.delivery_type_id = delivery_types.id").
+		LeftJoin(postgres.PaymentTypesTable + " ON orders.payment_type_id = payment_types.id").
 		Where(sq.Eq{"orders.id": orderId}).
 		ToSql()
 
@@ -274,7 +273,7 @@ func (s *storage) GetOrderById(orderId int) (SelectDTO, error) {
 	queryProductsSql, args, err := s.qb.
 		Select(
 			"orders_products.quantity",
-			"orders_products.price_for_quantity",
+			"orders_products.price * orders_products.quantity as price_for_quantity",
 			"products.id",
 			"products.article",
 			"products.product_title",
@@ -319,7 +318,7 @@ func (s *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]O
 		"orders.user_email",
 		"orders.status",
 		"orders.comment",
-		"orders.sum_price",
+		"(SELECT SUM(price * quantity) as sum_price FROM orders_products WHERE order_id = orders.id)",
 		"delivery_types.delivery_type_title",
 		"payment_types.payment_type_title",
 		"orders.created_at",

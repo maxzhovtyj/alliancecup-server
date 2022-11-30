@@ -8,7 +8,6 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
 	"net/http"
 	"net/mail"
-	"os"
 	"time"
 )
 
@@ -178,8 +177,15 @@ func (h *Handler) signIn(ctx *gin.Context) {
 		return
 	}
 
-	dm := os.Getenv(domain)
-	ctx.SetCookie(refreshTokenCookie, refreshToken, 60*60*24*60, "/", dm, false, true)
+	ctx.SetCookie(
+		refreshTokenCookie,
+		refreshToken,
+		60*60*24*60,
+		"/",
+		h.cfg.Domain,
+		false,
+		true,
+	)
 
 	ctx.JSON(http.StatusOK, SignInResponse{
 		AccessToken:  accessToken,
@@ -217,9 +223,8 @@ func (h *Handler) logout(ctx *gin.Context) {
 		return
 	}
 
-	dm := os.Getenv(domain)
-	ctx.SetCookie(refreshTokenCookie, "", -1, "/", dm, false, true)
-	ctx.SetCookie(userCartCookie, "", -1, "/", dm, false, true)
+	ctx.SetCookie(refreshTokenCookie, "", -1, "/", h.cfg.Domain, false, true)
+	ctx.SetCookie(userCartCookie, "", -1, "/", h.cfg.Domain, false, true)
 
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"message": "logged out, session deleted",
@@ -265,8 +270,15 @@ func (h *Handler) refresh(ctx *gin.Context) {
 		return
 	}
 
-	dm := os.Getenv(domain)
-	ctx.SetCookie(refreshTokenCookie, newRefreshToken, 60*60*24*60, "/", dm, false, true)
+	ctx.SetCookie(
+		refreshTokenCookie,
+		newRefreshToken,
+		60*60*24*60,
+		"/",
+		h.cfg.Domain,
+		false,
+		true,
+	)
 
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"accessToken":  accessToken,

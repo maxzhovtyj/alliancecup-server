@@ -1,4 +1,5 @@
 port: "8000"
+domain: "localhost"
 
 roles:
     guest: "0000"

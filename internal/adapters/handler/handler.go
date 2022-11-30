@@ -17,7 +17,6 @@ const (
 	StatusProcessed    = "PROCESSED"
 	StatusCompleted    = "COMPLETED"
 	refreshTokenCookie = "refresh_token"
-	domain             = "localhost"
 )
 
 const (
@@ -106,8 +105,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.GET(filtrationUrl, h.getFiltration)
 		api.GET(productsUrl, h.getProducts)
 		api.GET(productUrl, h.getProductById)
-		api.POST(orderUrl, h.newOrder)
-		api.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
 		api.POST(reviewUrl, h.addReview)
 		api.GET(reviewsUrl, h.getReviews)
 
@@ -166,12 +163,15 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		shopping := api.Group(shoppingUrl, h.getShoppingInfo)
 		{
-			shopping.POST(cartUrl, h.addToCart)
+			shopping.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
+			shopping.POST(orderUrl, h.newOrder)
+
 			shopping.GET(cartUrl, h.getFromCartById)
+			shopping.POST(cartUrl, h.addToCart)
 			shopping.DELETE(cartUrl, h.deleteFromCart)
 
-			shopping.POST(favouritesUrl, h.addToFavourites)
 			shopping.GET(favouritesUrl, h.getFavourites)
+			shopping.POST(favouritesUrl, h.addToFavourites)
 			shopping.DELETE(favouritesUrl, h.deleteFromFavourites)
 		}
 	}

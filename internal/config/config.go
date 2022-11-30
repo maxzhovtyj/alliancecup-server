@@ -10,6 +10,7 @@ import (
 
 const (
 	appPort        = "port"
+	domain         = "domain"
 	guestRole      = "roles.guest"
 	clientRole     = "roles.client"
 	moderatorRole  = "roles.moderator"
@@ -55,6 +56,7 @@ type Roles struct {
 }
 
 type Config struct {
+	Domain  string `yaml:"domain"`
 	AppPort string `yaml:"port"`
 	Roles
 	Storage
@@ -107,6 +109,7 @@ func GetConfig() *Config {
 		}
 
 		instance = &Config{
+			Domain:  viper.GetString(domain),
 			AppPort: viper.GetString(appPort),
 			Storage: storageInstance,
 			Redis:   redisInstance,

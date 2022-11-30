@@ -80,7 +80,7 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 
 	products, sum, err := h.services.Shopping.GetCart(cartId)
 	if err != nil {
-		ctx.SetCookie(userCartCookie, "", -1, "/", domain, false, true)
+		ctx.SetCookie(userCartCookie, "", -1, "/", h.cfg.Domain, false, true)
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -23,9 +23,10 @@ type Order struct {
 }
 
 type Product struct {
+	Id               int     `json:"id" db:"product_id"`
 	OrderId          int     `json:"-" db:"order_id"`
-	Id               int     `json:"productId" db:"product_id"`
 	Quantity         int     `json:"quantity" db:"quantity"`
+	Price            float64 `json:"price" db:"price"`
 	PriceForQuantity float64 `json:"priceForQuantity" db:"price_for_quantity"`
 }
 
@@ -42,17 +43,17 @@ type CreateDTO struct {
 }
 
 type ProductFullInfo struct {
-	Id               int            `json:"id" db:"id"`
-	OrderId          int            `json:"orderId" db:"order_id"`
-	Article          string         `json:"article" db:"article"`
-	ProductTitle     string         `json:"productTitle" db:"product_title"`
-	ImgUrl           *string        `json:"imgUrl" db:"img_url"`
-	AmountInStock    float64        `json:"amountInStock" db:"amount_in_stock"`
-	Price            float64        `json:"price" db:"price"`
-	Packaging        types.JSONText `json:"packaging" db:"packaging"`
-	CreatedAt        time.Time      `json:"createdAt" db:"created_at"`
-	Quantity         int            `json:"quantity" db:"quantity"`
-	PriceForQuantity float64        `json:"priceForQuantity" db:"price_for_quantity"`
+	Id               int             `json:"id" db:"id"`
+	OrderId          int             `json:"orderId" db:"order_id"`
+	Article          string          `json:"article" db:"article"`
+	ProductTitle     string          `json:"productTitle" db:"product_title"`
+	ImgUrl           *string         `json:"imgUrl" db:"img_url"`
+	AmountInStock    float64         `json:"amountInStock" db:"amount_in_stock"`
+	Price            float64         `json:"price" db:"price"`
+	Packaging        *types.JSONText `json:"packaging" db:"packaging"`
+	CreatedAt        time.Time       `json:"createdAt" db:"created_at"`
+	Quantity         int             `json:"quantity" db:"quantity"`
+	PriceForQuantity float64         `json:"priceForQuantity" db:"price_for_quantity"`
 }
 
 type SelectDTO struct {

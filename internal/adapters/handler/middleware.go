@@ -120,7 +120,7 @@ func (h *Handler) getShoppingInfo(ctx *gin.Context) {
 			return
 		}
 
-		ctx.SetCookie(userCartCookie, cartId, userCartCookieTTL, "/", domain, false, true)
+		ctx.SetCookie(userCartCookie, cartId, userCartCookieTTL, "/", h.cfg.Domain, false, true)
 		ctx.Set(userCartCtx, cartId)
 	} else {
 		ctx.Set(userCartCtx, userCartId)

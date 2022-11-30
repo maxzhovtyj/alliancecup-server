@@ -54,11 +54,19 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 		input.Order.UserId = &id
 	}
 
-	orderId, err := h.services.Order.New(input)
+	cartId, err := getCartId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, "user cart id not found")
+		return
+	}
+
+	orderId, err := h.services.Order.New(input, cartId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	ctx.SetCookie(cartId, "", -1, "/", h.cfg.Domain, false, true)
 
 	ctx.JSON(http.StatusCreated, OrderResponse{
 		Id:      orderId,
