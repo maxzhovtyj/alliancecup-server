@@ -13,6 +13,7 @@ import (
 
 type Service interface {
 	New(order CreateDTO, cartUUID string) (int, error)
+	AdminNew(order CreateDTO) (int, error)
 	GetUserOrders(userId int, createdAt string) ([]SelectDTO, error)
 	GetOrderById(orderId int) (SelectDTO, error)
 	AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error)
@@ -35,34 +36,7 @@ func NewOrdersService(repo Storage, productRepo product.Storage, cache *redis.Cl
 	}
 }
 
-func (s *service) OrderSumCount(products []Product) (float64, error) {
-	var sum float64
-	for _, item := range products {
-		p, err := s.productRepo.GetProductById(item.Id)
-		if err != nil {
-			return 0, err
-		}
-		inputPrice := item.PriceForQuantity / float64(item.Quantity)
-		if p.Price != inputPrice {
-			return 0, fmt.Errorf("invalid product price")
-		}
-		if p.Price*float64(item.Quantity) != item.PriceForQuantity {
-			return 0, fmt.Errorf("price for quantity mismatch")
-		}
-		sum += p.Price * float64(item.Quantity)
-	}
-	return sum, nil
-}
-
 func (s *service) New(order CreateDTO, cartUUID string) (int, error) {
-	sum, err := s.OrderSumCount(order.Products)
-	if err != nil {
-		return 0, err
-	}
-	if sum != order.Order.SumPrice {
-		return 0, fmt.Errorf("sum price mismatch, %f (computed) !== %f (given)", sum, order.Order.SumPrice)
-	}
-
 	id, err := s.repo.New(order)
 	if err != nil {
 		return 0, err
@@ -71,6 +45,15 @@ func (s *service) New(order CreateDTO, cartUUID string) (int, error) {
 	delCartCache := s.cache.Del(context.Background(), cartUUID)
 	if delCartCache.Err() != nil {
 		return 0, fmt.Errorf("failed to delete cart from cache")
+	}
+
+	return id, nil
+}
+
+func (s *service) AdminNew(order CreateDTO) (int, error) {
+	id, err := s.repo.New(order)
+	if err != nil {
+		return 0, err
 	}
 
 	return id, nil

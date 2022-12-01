@@ -25,6 +25,7 @@ values ('Переказ на карту');
 CREATE TABLE orders
 (
     id                SERIAL PRIMARY KEY,
+    executed_by       INT                                REFERENCES users (id) ON DELETE SET NULL,
     user_id           INT                                REFERENCES users (id) ON DELETE SET NULL DEFAULT NULL,
     user_lastname     TEXT                               NOT NULL,
     user_firstname    TEXT                               NOT NULL,
@@ -51,7 +52,7 @@ CREATE TABLE orders_products
 (
     order_id   INT REFERENCES orders (id) ON DELETE CASCADE NOT NULL,
     product_id INT                                          REFERENCES products (id) ON DELETE SET NULL NOT NULL,
-    price      DECIMAL(12, 2)                                        NOT NULL,
+    price      DECIMAL(12, 2)                               NOT NULL,
     quantity   INT                                          NOT NULL,
     PRIMARY KEY (order_id, product_id),
     CONSTRAINT valid_quantity CHECK ( quantity > 0 )

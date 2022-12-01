@@ -39,11 +39,6 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 		return
 	}
 
-	if input.Order.SumPrice < 400 {
-		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to create order, minimal order price is 400hrn").Error())
-		return
-	}
-
 	id, err := getUserId(ctx)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "user id not found")
@@ -67,6 +62,45 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 	}
 
 	ctx.SetCookie(cartId, "", -1, "/", h.cfg.Domain, false, true)
+
+	ctx.JSON(http.StatusCreated, OrderResponse{
+		Id:      orderId,
+		Message: "order created",
+	})
+}
+
+// adminNewOrder godoc
+// @Summary      New order
+// @Tags         api
+// @Description  Execute new order by admin
+// @ID creates an order by admin
+// @Accept       json
+// @Produce      json
+// @Param        input body order.CreateDTO true "order info"
+// @Success      200  {object}  handler.OrderResponse
+// @Failure      400  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/order [post]
+func (h *Handler) adminNewOrder(ctx *gin.Context) {
+	var input order.CreateDTO
+
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "user id not found")
+		return
+	}
+	input.Order.ExecutedBy = &id
+
+	orderId, err := h.services.Order.AdminNew(input)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	ctx.JSON(http.StatusCreated, OrderResponse{
 		Id:      orderId,

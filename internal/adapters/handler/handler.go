@@ -133,6 +133,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.GET(supplyProductsUrl, h.getSupplyProducts)
 			admin.DELETE(supplyUrl, h.deleteSupply)
 
+			admin.POST(orderUrl, h.adminNewOrder)
+
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
 				superAdmin.POST(moderatorUrl, h.createModerator)

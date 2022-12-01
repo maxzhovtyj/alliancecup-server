@@ -32,6 +32,7 @@ func NewOrdersPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
 }
 
 var orderInfoColumnsInsert = []string{
+	"executed_by",
 	"user_id",
 	"user_lastname",
 	"user_firstname",
@@ -63,6 +64,7 @@ func (s *storage) New(order CreateDTO) (int, error) {
 	queryInsertOrder := s.qb.Insert(postgres.OrdersTable).Columns(orderInfoColumnsInsert...)
 
 	queryInsertOrder = queryInsertOrder.Values(
+		order.Order.ExecutedBy,
 		order.Order.UserId,
 		order.Order.UserLastName,
 		order.Order.UserFirstName,

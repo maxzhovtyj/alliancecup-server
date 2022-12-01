@@ -8,6 +8,7 @@ import (
 
 type Order struct {
 	Id                int        `json:"id" db:"id"`
+	ExecutedBy        *int       `json:"executedBy" db:"executed_by"`
 	UserId            *int       `json:"userId" db:"user_id"`
 	UserLastName      string     `json:"userLastname" db:"user_lastname" binding:"required"`
 	UserFirstName     string     `json:"userFirstname" db:"user_firstname" binding:"required"`
@@ -16,7 +17,7 @@ type Order struct {
 	UserEmail         string     `json:"userEmail" db:"user_email" binding:"required"`
 	Status            string     `json:"status" db:"status"`
 	Comment           string     `json:"comment" db:"comment"`
-	SumPrice          float64    `json:"sumPrice" db:"sum_price" binding:"required"`
+	SumPrice          float64    `json:"sumPrice" db:"sum_price"`
 	DeliveryTypeTitle string     `json:"deliveryTypeTitle" db:"delivery_type_title" binding:"required"`
 	PaymentTypeTitle  string     `json:"paymentTypeTitle" db:"payment_type_title" binding:"required"`
 	CreatedAt         time.Time  `json:"createdAt" db:"created_at"`
@@ -24,10 +25,10 @@ type Order struct {
 }
 
 type Product struct {
-	Id               int     `json:"id" db:"product_id"`
+	Id               int     `json:"id" db:"product_id" binding:"required"`
 	OrderId          int     `json:"-" db:"order_id"`
-	Quantity         int     `json:"quantity" db:"quantity"`
-	Price            float64 `json:"price" db:"price"`
+	Quantity         int     `json:"quantity" db:"quantity" binding:"required"`
+	Price            float64 `json:"price" db:"price" binding:"required"`
 	PriceForQuantity float64 `json:"priceForQuantity" db:"price_for_quantity"`
 }
 
