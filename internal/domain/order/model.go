@@ -1,6 +1,7 @@
 package order
 
 import (
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx/types"
 	"time"
 )
@@ -48,6 +49,7 @@ type ProductFullInfo struct {
 	Article          string          `json:"article" db:"article"`
 	ProductTitle     string          `json:"productTitle" db:"product_title"`
 	ImgUrl           *string         `json:"imgUrl" db:"img_url"`
+	ImgUUID          *uuid.UUID      `json:"imgUUID" db:"img_uuid"`
 	AmountInStock    float64         `json:"amountInStock" db:"amount_in_stock"`
 	Price            float64         `json:"price" db:"price"`
 	Packaging        *types.JSONText `json:"packaging" db:"packaging"`

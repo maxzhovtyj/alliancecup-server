@@ -131,7 +131,6 @@ func (s *storage) New(order CreateDTO) (int, error) {
 	return orderId, tx.Commit()
 }
 
-// TODO !!!
 func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, error) {
 	var ordersAmount int
 	queryOrdersAmount, args, err := s.qb.Select("count(*)").
@@ -153,7 +152,8 @@ func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 
 	orders := make([]SelectDTO, ordersLimit)
 
-	query := s.qb.Select(
+	var ordersInfo []Order
+	querySelectOrderInfo := s.qb.Select(
 		"orders.id",
 		"orders.user_id",
 		"orders.user_lastname",
@@ -170,41 +170,41 @@ func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 		"orders.closed_at",
 	).
 		From(postgres.OrdersTable).
-		LeftJoin(postgres.DeliveryTypesTable + " ON orders.delivery_type_id = delivery_types.id").
-		LeftJoin(postgres.PaymentTypesTable + " ON orders.payment_type_id = payment_types.id").
+		Join(postgres.DeliveryTypesTable + " ON orders.delivery_type_id = delivery_types.id").
+		Join(postgres.PaymentTypesTable + " ON orders.payment_type_id = payment_types.id").
 		Where(sq.Eq{"user_id": userId})
 
 	if createdAt != "" {
-		query = query.Where(sq.Lt{"orders.created_at": createdAt})
+		querySelectOrderInfo = querySelectOrderInfo.Where(sq.Lt{"orders.created_at": createdAt})
 	}
 
-	ordered := query.OrderBy("orders.created_at DESC").Limit(12)
+	ordered := querySelectOrderInfo.OrderBy("orders.created_at DESC").Limit(12)
 
-	querySql, args, err := ordered.ToSql()
+	querySelectOrderInfoSql, args, err := ordered.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.db.Select(&ordersInfo, querySelectOrderInfoSql, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	for i := 0; i < ordersLimit; i++ {
-		err = s.db.Get(&orders[i].Info, querySql, args...)
-		if err != nil {
-			return nil, err
-		}
-	}
+		orders[i].Info = ordersInfo[i]
 
-	// TODO invalid select
-	for i := 0; i < ordersLimit; i++ {
 		queryOrderProducts, args, err := s.qb.
 			Select(
 				"products.id",
-				"orders_products.order_id",
 				"products.article",
 				"products.product_title",
 				"products.img_url",
+				"products.img_uuid",
 				"products.amount_in_stock",
-				"orders_products.price",
 				"products.packaging",
 				"products.created_at",
+				"orders_products.order_id",
+				"orders_products.price",
 				"orders_products.quantity",
 				"orders_products.quantity * orders_products.price as price_for_quantity",
 			).
