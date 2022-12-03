@@ -18,7 +18,7 @@ type Service interface {
 	GetOrderById(orderId int) (SelectDTO, error)
 	AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error)
 	DeliveryPaymentTypes() (shopping.DeliveryPaymentTypes, error)
-	ProcessedOrder(orderId int) error
+	ProcessedOrder(orderId int, status string) error
 	GetInvoice(orderId int) (gofpdf.Fpdf, error)
 }
 
@@ -88,8 +88,8 @@ func (s *service) DeliveryPaymentTypes() (shopping.DeliveryPaymentTypes, error) 
 	}, nil
 }
 
-func (s *service) ProcessedOrder(orderId int) error {
-	err := s.repo.ProcessedOrder(orderId)
+func (s *service) ProcessedOrder(orderId int, status string) error {
+	err := s.repo.ProcessedOrder(orderId, status)
 	if err != nil {
 		return err
 	}
