@@ -250,7 +250,6 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 		return
 	}
 
-	// TODO
 	if orderInput.ToStatus != StatusCompleted &&
 		orderInput.ToStatus != StatusProcessed &&
 		orderInput.ToStatus != StatusInProgress {
@@ -258,7 +257,7 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 		return
 	}
 
-	err := h.services.Order.ProcessedOrder(orderInput.OrderId)
+	err := h.services.Order.ProcessedOrder(orderInput.OrderId, StatusProcessed)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

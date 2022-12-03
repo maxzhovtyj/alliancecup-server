@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
@@ -20,14 +21,17 @@ type Storage interface {
 	UserExists(email string) (int, string, error)
 	SelectUserInfo(id int) (InfoDTO, error)
 	UpdatePersonalInfo(user InfoDTO, id int) error
+	GetModerators(createdAt string, roleCode string) (moderators []User, err error)
+	Delete(id int) error
 }
 
 type storage struct {
 	db *sqlx.DB
+	qb squirrel.StatementBuilderType
 }
 
-func NewAuthPostgres(db *sqlx.DB) *storage {
-	return &storage{db: db}
+func NewAuthPostgres(db *sqlx.DB, qb squirrel.StatementBuilderType) *storage {
+	return &storage{db: db, qb: qb}
 }
 
 func (s *storage) CreateUser(user User, code string) (int, string, error) {
@@ -281,4 +285,49 @@ func (s *storage) UpdatePersonalInfo(user InfoDTO, id int) error {
 	}
 
 	return nil
+}
+
+func (s *storage) GetModerators(createdAt string, roleCode string) (moderators []User, err error) {
+	var moderatorsColumnsSelect = []string{
+		"users.id",
+		"users.email",
+		"users.lastname",
+		"users.firstname",
+		"users.middle_name",
+		"users.phone_number",
+		"users.created_at",
+	}
+
+	querySelectModerators := s.qb.
+		Select(moderatorsColumnsSelect...).
+		From(postgres.UsersTable).
+		LeftJoin(postgres.RolesTable + " ON users.role_id = roles.id").
+		Where(squirrel.Eq{"roles.code": roleCode})
+
+	if createdAt != "" {
+		querySelectModerators = querySelectModerators.Where(squirrel.Lt{"users.created_at": createdAt})
+	}
+
+	querySelectModeratorsSql, args, err := querySelectModerators.
+		OrderBy("users.created_at").
+		Limit(12).
+		ToSql()
+
+	err = s.db.Select(&moderators, querySelectModeratorsSql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to select moderators due to %v", err)
+	}
+
+	return moderators, err
+}
+
+func (s *storage) Delete(id int) (err error) {
+	queryDeleteUser := fmt.Sprintf("DELETE FROM %s WHERE id = $1", postgres.UsersTable)
+
+	_, err = s.db.Exec(queryDeleteUser, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete user %v", err)
+	}
+
+	return err
 }

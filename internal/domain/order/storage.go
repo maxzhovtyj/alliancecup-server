@@ -16,7 +16,7 @@ type Storage interface {
 	AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error)
 	GetDeliveryTypes() ([]server.DeliveryType, error)
 	GetPaymentTypes() ([]server.PaymentType, error)
-	ProcessedOrder(orderId int) error
+	ProcessedOrder(orderId int, status string) error
 }
 
 type storage struct {
@@ -331,7 +331,7 @@ func (s *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]O
 		LeftJoin(postgres.PaymentTypesTable + " ON orders.payment_type_id = payment_types.id")
 
 	if status != "" {
-		queryOrders = queryOrders.Where(sq.Eq{"orders.order_status": status})
+		queryOrders = queryOrders.Where(sq.Eq{"orders.status": status})
 	}
 
 	if lastOrderCreatedAt != "" {
@@ -376,11 +376,11 @@ func (s *storage) GetPaymentTypes() (paymentTypes []server.PaymentType, err erro
 	return paymentTypes, err
 }
 
-func (s *storage) ProcessedOrder(orderId int) error {
+func (s *storage) ProcessedOrder(orderId int, status string) error {
 	tx, _ := s.db.Begin()
 
-	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id=$2", postgres.OrdersTable)
-	_, err := tx.Exec(queryUpdateStatus, "PROCESSED", orderId)
+	queryUpdateStatus := fmt.Sprintf("UPDATE %s SET order_status=$1 WHERE id = $2", postgres.OrdersTable)
+	_, err := tx.Exec(queryUpdateStatus, status, orderId)
 	if err != nil {
 		_ = tx.Rollback()
 		return fmt.Errorf("failed to update order status in database due to: %v", err)
@@ -392,7 +392,6 @@ func (s *storage) ProcessedOrder(orderId int) error {
 		return fmt.Errorf("failed to get order by its id due to: %v", err)
 	}
 
-	// TODO case when amount_in_stock is less than needed
 	queryUpdateAmount := fmt.Sprintf(
 		`
 		UPDATE %s

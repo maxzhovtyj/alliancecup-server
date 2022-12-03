@@ -18,7 +18,7 @@ const (
 	refreshSigningKey = "Sepasd213*99921@@#dsad+-=SXxassd@lLL;"
 )
 
-type AuthorizationService interface {
+type Service interface {
 	CreateUser(user User, role string) (int, string, error)
 	GenerateTokens(email string, password string) (string, string, error)
 	ParseToken(token string) (int, string, error)
@@ -30,6 +30,8 @@ type AuthorizationService interface {
 	UserForgotPassword(email string) error
 	UserInfo(id int) (InfoDTO, error)
 	ChangePersonalInfo(user InfoDTO, id int) error
+	GetModerators(createdAt string, roleCode string) ([]User, error)
+	Delete(id int) error
 }
 
 type tokenClaims struct {
@@ -38,20 +40,20 @@ type tokenClaims struct {
 	UserRoleCode string
 }
 
-type AuthService struct {
+type service struct {
 	repo Storage
 }
 
-func NewAuthService(repo Storage) AuthorizationService {
-	return &AuthService{repo: repo}
+func NewAuthService(repo Storage) Service {
+	return &service{repo: repo}
 }
 
-func (s *AuthService) CreateUser(user User, role string) (int, string, error) {
+func (s *service) CreateUser(user User, role string) (int, string, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, role)
 }
 
-func (s *AuthService) GenerateTokens(email, password string) (string, string, error) {
+func (s *service) GenerateTokens(email, password string) (string, string, error) {
 	selectedUser, err := s.repo.GetUser(email, generatePasswordHash(password))
 	if err != nil {
 		return "", "", fmt.Errorf("user are not found")
@@ -79,7 +81,7 @@ func (s *AuthService) GenerateTokens(email, password string) (string, string, er
 	return accessToken, refreshToken, nil
 }
 
-func (s *AuthService) GenerateRefreshToken() (string, error) {
+func (s *service) GenerateRefreshToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(refreshTokenTTL).Unix(),
 		IssuedAt:  time.Now().Unix(),
@@ -93,7 +95,7 @@ func (s *AuthService) GenerateRefreshToken() (string, error) {
 	return refreshToken, err
 }
 
-func (s *AuthService) ParseToken(accessToken string) (int, string, error) {
+func (s *service) ParseToken(accessToken string) (int, string, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -113,7 +115,7 @@ func (s *AuthService) ParseToken(accessToken string) (int, string, error) {
 	return claims.UserId, claims.UserRoleCode, nil
 }
 
-func (s *AuthService) ParseRefreshToken(refreshToken string) error {
+func (s *service) ParseRefreshToken(refreshToken string) error {
 	token, err := jwt.ParseWithClaims(refreshToken, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -140,7 +142,7 @@ func generatePasswordHash(password string) string {
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
-func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, string, error) {
+func (s *service) RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, string, error) {
 	// get user session by old refresh token
 	session, err := s.repo.GetSessionByRefresh(refreshToken)
 	if err != nil {
@@ -197,7 +199,7 @@ func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (s
 	return accessToken, newRefreshToken, session.UserId, session.RoleCode, err
 }
 
-func (s *AuthService) CreateNewSession(session models.Session) (models.Session, error) {
+func (s *service) CreateNewSession(session models.Session) (models.Session, error) {
 	newSession, err := s.repo.NewSession(session)
 	if err != nil {
 		return models.Session{}, err
@@ -205,11 +207,11 @@ func (s *AuthService) CreateNewSession(session models.Session) (models.Session, 
 	return newSession, err
 }
 
-func (s *AuthService) Logout(id int) error {
+func (s *service) Logout(id int) error {
 	return s.repo.DeleteSessionByUserId(id)
 }
 
-func (s *AuthService) ChangePassword(userId int, oldPassword, newPassword string) error {
+func (s *service) ChangePassword(userId int, oldPassword, newPassword string) error {
 	hash, err := s.repo.GetUserPasswordHash(userId)
 	if err != nil {
 		return err
@@ -231,7 +233,7 @@ func (s *AuthService) ChangePassword(userId int, oldPassword, newPassword string
 	return nil
 }
 
-func (s *AuthService) UserForgotPassword(email string) error {
+func (s *service) UserForgotPassword(email string) error {
 	// check whether user with such email exists
 	userId, userRoleCode, err := s.repo.UserExists(email)
 	if err != nil {
@@ -253,10 +255,18 @@ func (s *AuthService) UserForgotPassword(email string) error {
 	return nil
 }
 
-func (s *AuthService) UserInfo(id int) (InfoDTO, error) {
+func (s *service) UserInfo(id int) (InfoDTO, error) {
 	return s.repo.SelectUserInfo(id)
 }
 
-func (s *AuthService) ChangePersonalInfo(user InfoDTO, id int) error {
+func (s *service) ChangePersonalInfo(user InfoDTO, id int) error {
 	return s.repo.UpdatePersonalInfo(user, id)
+}
+
+func (s *service) GetModerators(createdAt string, roleCode string) ([]User, error) {
+	return s.repo.GetModerators(createdAt, roleCode)
+}
+
+func (s *service) Delete(id int) error {
+	return s.repo.Delete(id)
 }

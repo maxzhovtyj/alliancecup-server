@@ -8,6 +8,7 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
 	"net/http"
 	"net/mail"
+	"strconv"
 	"time"
 )
 
@@ -73,56 +74,6 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, map[string]interface{}{
-		"id":       id,
-		"roleCode": roleCode,
-	})
-}
-
-// createModerator godoc
-// @Summary      CreateModerator
-// @Security 	 ApiKeyAuth
-// @Tags         api/admin
-// @Description  registers a new moderator
-// @ID 			 create account for moderator
-// @Accept       json
-// @Produce      json
-// @Param        input body user.User true "account info"
-// @Success      200  {object}  object
-// @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
-// @Failure      500  {object}  Error
-// @Router       /api/admin/moderator [post]
-func (h *Handler) createModerator(ctx *gin.Context) {
-	var input user.User
-
-	if err := ctx.BindJSON(&input); err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// email, password, phone_number validation
-	_, err := mail.ParseAddress(input.Email)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid email")
-		return
-	}
-
-	if len(input.Password) < 4 {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid password")
-		return
-	}
-
-	if len(input.PhoneNumber) < 10 {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid phone_number")
-		return
-	}
-
-	id, roleCode, err := h.services.Authorization.CreateUser(input, h.cfg.Roles.Moderator)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
 	ctx.JSON(http.StatusCreated, map[string]interface{}{
 		"id":       id,
 		"roleCode": roleCode,
@@ -349,7 +300,6 @@ func (h *Handler) forgotPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "email was successfully send")
 }
 
-// TODO
 func (h *Handler) personalInfo(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {
@@ -366,7 +316,6 @@ func (h *Handler) personalInfo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userInfo)
 }
 
-// TODO
 func (h *Handler) updatePersonalInfo(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {
@@ -387,4 +336,111 @@ func (h *Handler) updatePersonalInfo(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, "user info updated")
+}
+
+// createModerator godoc
+// @Summary      CreateModerator
+// @Security 	 ApiKeyAuth
+// @Tags         api/super/admin
+// @Description  registers a new moderator
+// @ID 			 create account for moderator
+// @Accept       json
+// @Produce      json
+// @Param        input body user.User true "account info"
+// @Success      200  {object}  object
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/super/moderator [post]
+func (h *Handler) createModerator(ctx *gin.Context) {
+	var input user.User
+
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// email, password, phone_number validation
+	_, err := mail.ParseAddress(input.Email)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid email")
+		return
+	}
+
+	if len(input.Password) < 4 {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid password")
+		return
+	}
+
+	if len(input.PhoneNumber) < 10 {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid phone_number")
+		return
+	}
+
+	id, roleCode, err := h.services.Authorization.CreateUser(input, h.cfg.Roles.Moderator)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusCreated, map[string]interface{}{
+		"id":       id,
+		"roleCode": roleCode,
+	})
+}
+
+// getModerators godoc
+// @Summary      Get moderators
+// @Security 	 ApiKeyAuth
+// @Tags         api/super/admin
+// @Description  registers a new moderator
+// @ID 			 create account for moderator
+// @Accept       json
+// @Produce      json
+// @Param        input body user.User true "account info"
+// @Success      200  {object}  object
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/super/moderator [get]
+func (h *Handler) getModerators(ctx *gin.Context) {
+	createdAt := ctx.Query("createdAt")
+
+	moderators, err := h.services.Authorization.GetModerators(createdAt, h.cfg.Roles.Moderator)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, moderators)
+}
+
+// deleteModerator godoc
+// @Summary      Delete moderator
+// @Security 	 ApiKeyAuth
+// @Tags         api/super/admin
+// @Description  Deletes moderator
+// @ID 			 delete moderator
+// @Accept       json
+// @Produce      json
+// @Param        id query int true "Moderator id"
+// @Success      200  {string}  string
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/super/moderator [delete]
+func (h *Handler) deleteModerator(ctx *gin.Context) {
+	id := ctx.Query("id")
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "invalid moderator id")
+		return
+	}
+
+	err = h.services.Authorization.Delete(userId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "moderator successfully deleted")
 }

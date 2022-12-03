@@ -16,7 +16,7 @@ import (
 )
 
 type Service struct {
-	Authorization user.AuthorizationService
+	Authorization user.Service
 	Category      category.Service
 	Product       product.Service
 	Order         order.Service

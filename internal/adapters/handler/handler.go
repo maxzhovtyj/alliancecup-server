@@ -124,7 +124,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
 			admin.GET(ordersUrl, h.adminGetOrders)
-			//admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
+			admin.PUT("/processed-order", h.processedOrder)
 
 			admin.POST(filtrationUrl, h.addFiltrationItem)
 
@@ -137,7 +137,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
+				superAdmin.GET(moderatorUrl, h.getModerators)
 				superAdmin.POST(moderatorUrl, h.createModerator)
+				superAdmin.DELETE(moderatorUrl, h.deleteModerator)
 
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
 				superAdmin.POST("/save-inventory", h.saveInventory)
