@@ -156,7 +156,7 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      401  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/order [get]
+// @Router       /api/admin/order [get]
 func (h *Handler) getOrderById(ctx *gin.Context) {
 	orderId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {

@@ -133,6 +133,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.GET(supplyProductsUrl, h.getSupplyProducts)
 			admin.DELETE(supplyUrl, h.deleteSupply)
 
+			admin.GET(orderUrl, h.getOrderById)
 			admin.POST(orderUrl, h.adminNewOrder)
 
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
@@ -161,8 +162,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.DELETE(logoutUrl, h.logout)
 
 			client.GET(userOrdersUrl, h.userOrders)
-
-			client.GET(orderUrl, h.getOrderById)
 		}
 
 		shopping := api.Group(shoppingUrl, h.getShoppingInfo)
