@@ -221,7 +221,20 @@ func (s *storage) GetFavourites(userId int) ([]Product, error) {
 	var products []Product
 
 	queryGetFavourites := fmt.Sprintf(
-		"SELECT products.id, products.article, products.product_title, products.img_url, products.price, products.packaging, products.amount_in_stock, products.created_at FROM %s, %s WHERE user_id=$1 AND %s.product_id=%s.id",
+		`
+		SELECT 
+			products.id, 
+			products.article, 
+			products.product_title, 
+			products.img_url, 
+			products.img_uuid, 
+			products.price, 
+			products.packaging, 
+			products.amount_in_stock, 
+			products.created_at 
+		FROM %s, %s 
+		WHERE user_id = $1 AND %s.product_id = %s.id
+		`,
 		postgres.FavouritesTable,
 		postgres.ProductsTable,
 		postgres.FavouritesTable,

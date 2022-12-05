@@ -199,9 +199,7 @@ func (h *Handler) getFavourites(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"products": products,
-	})
+	ctx.JSON(http.StatusOK, products)
 }
 
 // deleteFromFavourites godoc

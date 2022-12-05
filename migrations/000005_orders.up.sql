@@ -36,16 +36,9 @@ CREATE TABLE orders
     comment           TEXT,
     delivery_type_id  INT REFERENCES delivery_types (id) NOT NULL,
     payment_type_id   INT REFERENCES payment_types (id)  NOT NULL,
+    delivery_info     JSONB,
     created_at        TIMESTAMPTZ                                                                 DEFAULT (now() AT TIME ZONE 'utc-3'),
     closed_at         TIMESTAMPTZ                                                                 DEFAULT (NULL AT TIME ZONE 'utc-3')
-);
-
-CREATE TABLE orders_delivery
-(
-    order_id             INT REFERENCES orders (id) ON DELETE CASCADE NOT NULL,
-    delivery_title       TEXT                                         NOT NULL,
-    delivery_description TEXT                                         NOT NULL,
-    PRIMARY KEY (order_id, delivery_title, delivery_description)
 );
 
 CREATE TABLE orders_products

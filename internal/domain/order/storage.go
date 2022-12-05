@@ -31,6 +31,16 @@ func NewOrdersPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
 	}
 }
 
+var selectDeliveryType = fmt.Sprintf(
+	"(SELECT delivery_type_title FROM %s WHERE %s.id = orders.delivery_type_id)",
+	postgres.DeliveryTypesTable, postgres.DeliveryTypesTable,
+)
+
+var selectPaymentType = fmt.Sprintf(
+	"(SELECT payment_type_title FROM %s WHERE %s.id = orders.payment_type_id)",
+	postgres.PaymentTypesTable, postgres.PaymentTypesTable,
+)
+
 var orderInfoColumnsInsert = []string{
 	"executed_by",
 	"user_id",
@@ -42,38 +52,46 @@ var orderInfoColumnsInsert = []string{
 	"comment",
 	"delivery_type_id",
 	"payment_type_id",
+	"delivery_info",
 }
 
 func (s *storage) New(order CreateDTO) (int, error) {
 	tx, _ := s.db.Begin()
 
 	var deliveryTypeId int
-	queryGetDeliveryId := fmt.Sprintf("SELECT id FROM %s WHERE delivery_type_title=$1", postgres.DeliveryTypesTable)
-	err := s.db.Get(&deliveryTypeId, queryGetDeliveryId, order.Order.DeliveryTypeTitle)
+	queryGetDeliveryId := fmt.Sprintf(
+		"SELECT id FROM %s WHERE delivery_type_title=$1",
+		postgres.DeliveryTypesTable,
+	)
+	err := s.db.Get(&deliveryTypeId, queryGetDeliveryId, order.Info.DeliveryTypeTitle)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create order, delivery type not found %s, error: %v", order.Order.DeliveryTypeTitle, err)
+		return 0, fmt.Errorf("failed to create order, delivery type not found %s, error: %v", order.Info.DeliveryTypeTitle, err)
 	}
 
 	var paymentTypeId int
-	queryGetPaymentTypeId := fmt.Sprintf("SELECT id FROM %s WHERE payment_type_title=$1", postgres.PaymentTypesTable)
-	err = s.db.Get(&paymentTypeId, queryGetPaymentTypeId, order.Order.PaymentTypeTitle)
+	queryGetPaymentTypeId := fmt.Sprintf(
+		"SELECT id FROM %s WHERE payment_type_title=$1",
+		postgres.PaymentTypesTable,
+	)
+	err = s.db.Get(&paymentTypeId, queryGetPaymentTypeId, order.Info.PaymentTypeTitle)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create order, payment type not found %s, error: %v", order.Order.PaymentTypeTitle, err)
+		return 0, fmt.Errorf("failed to create order, payment type not found %s, error: %v", order.Info.PaymentTypeTitle, err)
 	}
 
 	queryInsertOrder := s.qb.Insert(postgres.OrdersTable).Columns(orderInfoColumnsInsert...)
 
 	queryInsertOrder = queryInsertOrder.Values(
-		order.Order.ExecutedBy,
-		order.Order.UserId,
-		order.Order.UserLastName,
-		order.Order.UserFirstName,
-		order.Order.UserMiddleName,
-		order.Order.UserPhoneNumber,
-		order.Order.UserEmail,
-		order.Order.Comment,
-		deliveryTypeId, // TODO refactor to sub-query
-		paymentTypeId,  // TODO refactor to sub-query
+		order.Info.ExecutedBy,
+		order.Info.UserId,
+		order.Info.UserLastName,
+		order.Info.UserFirstName,
+		order.Info.UserMiddleName,
+		order.Info.UserPhoneNumber,
+		order.Info.UserEmail,
+		order.Info.Comment,
+		deliveryTypeId,
+		paymentTypeId,
+		order.Info.Delivery,
 	)
 
 	queryInsertOrderSql, args, err := queryInsertOrder.ToSql()
@@ -103,27 +121,13 @@ func (s *storage) New(order CreateDTO) (int, error) {
 		}
 	}
 
-	for _, delivery := range order.Delivery {
-		queryInsertDelivery, args, err := s.qb.Insert(postgres.OrdersDeliveryTable).
-			Columns("order_id", "delivery_title", "delivery_description").
-			Values(orderId, delivery.DeliveryTitle, delivery.DeliveryDescription).ToSql()
+	if order.Info.UserId != nil {
+		queryDeleteCartProducts := fmt.Sprintf(
+			"DELETE FROM %s WHERE cart_id = (SELECT id FROM %s WHERE user_id = $1)",
+			postgres.CartsProductsTable, postgres.CartsTable,
+		)
 
-		_, err = tx.Exec(queryInsertDelivery, args...)
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
-		}
-	}
-
-	if order.Order.UserId != nil {
-		queryDeleteCartProducts, args, err := s.qb.Delete(postgres.CartsProductsTable).
-			Where(sq.Eq{"cart_id": order.Order.UserId}).
-			ToSql()
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
-		}
-		_, err = tx.Exec(queryDeleteCartProducts, args...)
+		_, err = tx.Exec(queryDeleteCartProducts, order.Info.UserId)
 		if err != nil {
 			_ = tx.Rollback()
 			return 0, err
@@ -166,14 +170,13 @@ func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 		"orders.status",
 		"orders.comment",
 		"(SELECT SUM(orders_products.price * orders_products.quantity) as sum_price FROM orders_products WHERE order_id = orders.id)",
-		"delivery_types.delivery_type_title",
-		"payment_types.payment_type_title",
+		selectDeliveryType,
+		selectPaymentType,
+		"orders.delivery_info",
 		"orders.created_at",
 		"orders.closed_at",
 	).
 		From(postgres.OrdersTable).
-		Join(postgres.DeliveryTypesTable + " ON orders.delivery_type_id = delivery_types.id").
-		Join(postgres.PaymentTypesTable + " ON orders.payment_type_id = payment_types.id").
 		Where(sq.Eq{"user_id": userId})
 
 	if createdAt != "" {
@@ -222,20 +225,6 @@ func (s *storage) GetUserOrders(userId int, createdAt string) ([]SelectDTO, erro
 		if err != nil {
 			return nil, err
 		}
-
-		queryOrderDelivery, args, err := s.qb.
-			Select("*").
-			From(postgres.OrdersDeliveryTable).
-			Where(sq.Eq{"order_id": orders[i].Info.Id}).
-			ToSql()
-		if err != nil {
-			return nil, err
-		}
-
-		err = s.db.Select(&orders[i].Delivery, queryOrderDelivery, args...)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return orders, err
@@ -247,6 +236,7 @@ func (s *storage) GetOrderById(orderId int) (SelectDTO, error) {
 	queryOrderInfoSql, args, err := s.qb.
 		Select(
 			"orders.id",
+			"orders.executed_by",
 			"orders.user_id",
 			"orders.user_lastname",
 			"orders.user_firstname",
@@ -256,14 +246,13 @@ func (s *storage) GetOrderById(orderId int) (SelectDTO, error) {
 			"orders.status",
 			"orders.comment",
 			"(SELECT SUM(price * quantity) as sum_price FROM orders_products WHERE order_id = orders.id)",
-			"delivery_types.delivery_type_title",
-			"payment_types.payment_type_title",
+			selectDeliveryType,
+			selectPaymentType,
+			"orders.delivery_info",
 			"orders.created_at",
 			"orders.closed_at",
 		).
 		From(postgres.OrdersTable).
-		LeftJoin(postgres.DeliveryTypesTable + " ON orders.delivery_type_id = delivery_types.id").
-		LeftJoin(postgres.PaymentTypesTable + " ON orders.payment_type_id = payment_types.id").
 		Where(sq.Eq{"orders.id": orderId}).
 		ToSql()
 
@@ -286,23 +275,13 @@ func (s *storage) GetOrderById(orderId int) (SelectDTO, error) {
 			"products.created_at",
 		).
 		From(postgres.OrdersProductsTable).
-		LeftJoin(postgres.ProductsTable + " ON products.id=orders_products.product_id").
+		LeftJoin(postgres.ProductsTable + " ON products.id = orders_products.product_id").
 		Where(sq.Eq{"order_id": orderId}).
 		ToSql()
 
 	err = s.db.Select(&order.Products, queryProductsSql, args...)
 	if err != nil {
 		return SelectDTO{}, fmt.Errorf("failed to get order products due to: %v", err)
-	}
-
-	queryDeliverySql, args, err := s.qb.
-		Select("order_id, delivery_title, delivery_description").
-		From(postgres.OrdersDeliveryTable).
-		Where(sq.Eq{"order_id": orderId}).ToSql()
-
-	err = s.db.Select(&order.Delivery, queryDeliverySql, args...)
-	if err != nil {
-		return SelectDTO{}, fmt.Errorf("failed to get order delivery info due to: %v", err)
 	}
 
 	return order, err
@@ -313,6 +292,7 @@ func (s *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]O
 
 	queryOrders := s.qb.Select(
 		"orders.id",
+		"orders.executed_by",
 		"orders.user_lastname",
 		"orders.user_firstname",
 		"orders.user_middle_name",
@@ -321,8 +301,9 @@ func (s *storage) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]O
 		"orders.status",
 		"orders.comment",
 		"(SELECT SUM(price * quantity) as sum_price FROM orders_products WHERE order_id = orders.id)",
-		"delivery_types.delivery_type_title",
-		"payment_types.payment_type_title",
+		selectDeliveryType,
+		selectPaymentType,
+		"orders.delivery_info",
 		"orders.created_at",
 		"orders.closed_at",
 	).

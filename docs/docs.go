@@ -325,7 +325,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/order.Order"
+                                "$ref": "#/definitions/order.Info"
                             }
                         }
                     },
@@ -1173,7 +1173,7 @@ const docTemplate = `{
                 "operationId": "change user password",
                 "parameters": [
                     {
-                        "description": "Order to change password",
+                        "description": "Info to change password",
                         "name": "input",
                         "in": "body",
                         "required": true,
@@ -2489,7 +2489,7 @@ const docTemplate = `{
                     }
                 },
                 "order": {
-                    "$ref": "#/definitions/order.Order"
+                    "$ref": "#/definitions/order.Info"
                 },
                 "products": {
                     "type": "array",
@@ -2499,7 +2499,7 @@ const docTemplate = `{
                 }
             }
         },
-        "order.Order": {
+        "order.Info": {
             "type": "object",
             "required": [
                 "delivery_type_title",
@@ -2632,7 +2632,7 @@ const docTemplate = `{
                     }
                 },
                 "info": {
-                    "$ref": "#/definitions/order.Order"
+                    "$ref": "#/definitions/order.Info"
                 },
                 "products": {
                     "type": "array",

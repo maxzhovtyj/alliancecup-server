@@ -46,7 +46,7 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 	}
 
 	if id != 0 {
-		input.Order.UserId = &id
+		input.Info.UserId = &id
 	}
 
 	cartId, err := getCartId(ctx)
@@ -94,7 +94,7 @@ func (h *Handler) adminNewOrder(ctx *gin.Context) {
 		newErrorResponse(ctx, http.StatusInternalServerError, "user id not found")
 		return
 	}
-	input.Order.ExecutedBy = &id
+	input.Info.ExecutedBy = &id
 
 	orderId, err := h.services.Order.AdminNew(input)
 	if err != nil {

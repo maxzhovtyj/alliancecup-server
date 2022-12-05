@@ -129,14 +129,6 @@ func (s *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 		Country:     "Україна",
 	})
 
-	var orderDeliveryInfo string
-	for i, d := range order.Delivery {
-		orderDeliveryInfo += d.DeliveryDescription
-		if len(order.Delivery)-1 != i {
-			orderDeliveryInfo += ", "
-		}
-	}
-
 	doc.SetCustomer(&goinvoice.Customer{
 		LastName:     order.Info.UserLastName,
 		FirstName:    order.Info.UserFirstName,
@@ -144,7 +136,7 @@ func (s *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 		PhoneNumber:  order.Info.UserPhoneNumber,
 		Email:        order.Info.UserEmail,
 		DeliveryType: order.Info.DeliveryTypeTitle,
-		DeliveryInfo: orderDeliveryInfo,
+		DeliveryInfo: order.Info.Delivery.String(),
 	})
 
 	for _, p := range order.Products {

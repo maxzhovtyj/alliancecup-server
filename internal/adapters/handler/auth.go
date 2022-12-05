@@ -247,7 +247,7 @@ func (h *Handler) refresh(ctx *gin.Context) {
 // @ID change user password
 // @Accept json
 // @Produce json
-// @Param input body handler.ChangePasswordInput true "Order to change password"
+// @Param input body handler.ChangePasswordInput true "Info to change password"
 // @Success 200  {object} object
 // @Failure 400  {object} Error
 // @Failure 401  {object} Error

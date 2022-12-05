@@ -7,21 +7,22 @@ import (
 )
 
 type Order struct {
-	Id                int        `json:"id" db:"id"`
-	ExecutedBy        *int       `json:"executedBy" db:"executed_by"`
-	UserId            *int       `json:"userId" db:"user_id"`
-	UserLastName      string     `json:"userLastname" db:"user_lastname" binding:"required"`
-	UserFirstName     string     `json:"userFirstname" db:"user_firstname" binding:"required"`
-	UserMiddleName    string     `json:"userMiddleName" db:"user_middle_name" binding:"required"`
-	UserPhoneNumber   string     `json:"userPhoneNumber" db:"user_phone_number" binding:"required"`
-	UserEmail         string     `json:"userEmail" db:"user_email" binding:"required"`
-	Status            string     `json:"status" db:"status"`
-	Comment           string     `json:"comment" db:"comment"`
-	SumPrice          float64    `json:"sumPrice" db:"sum_price"`
-	DeliveryTypeTitle string     `json:"deliveryTypeTitle" db:"delivery_type_title" binding:"required"`
-	PaymentTypeTitle  string     `json:"paymentTypeTitle" db:"payment_type_title" binding:"required"`
-	CreatedAt         time.Time  `json:"createdAt" db:"created_at"`
-	ClosedAt          *time.Time `json:"closedAt" db:"closed_at"`
+	Id                int             `json:"id" db:"id"`
+	ExecutedBy        *int            `json:"executedBy" db:"executed_by"`
+	UserId            *int            `json:"userId" db:"user_id"`
+	UserLastName      string          `json:"userLastname" db:"user_lastname" binding:"required"`
+	UserFirstName     string          `json:"userFirstname" db:"user_firstname" binding:"required"`
+	UserMiddleName    string          `json:"userMiddleName" db:"user_middle_name" binding:"required"`
+	UserPhoneNumber   string          `json:"userPhoneNumber" db:"user_phone_number" binding:"required"`
+	UserEmail         string          `json:"userEmail" db:"user_email" binding:"required"`
+	Status            string          `json:"status" db:"status"`
+	Comment           *string         `json:"comment" db:"comment"`
+	SumPrice          float64         `json:"sumPrice" db:"sum_price"`
+	DeliveryTypeTitle string          `json:"deliveryTypeTitle" db:"delivery_type_title" binding:"required"`
+	PaymentTypeTitle  string          `json:"paymentTypeTitle" db:"payment_type_title" binding:"required"`
+	Delivery          *types.JSONText `json:"delivery" db:"delivery_info"`
+	CreatedAt         time.Time       `json:"createdAt" db:"created_at"`
+	ClosedAt          *time.Time      `json:"closedAt" db:"closed_at"`
 }
 
 type Product struct {
@@ -32,16 +33,9 @@ type Product struct {
 	PriceForQuantity float64 `json:"priceForQuantity" db:"price_for_quantity"`
 }
 
-type OrdersDelivery struct {
-	OrderId             int    `json:"-" db:"order_id"`
-	DeliveryTitle       string `json:"deliveryTitle" db:"delivery_title"`
-	DeliveryDescription string `json:"deliveryDescription" db:"delivery_description"`
-}
-
 type CreateDTO struct {
-	Order    Order            `json:"order"`
-	Products []Product        `json:"products"`
-	Delivery []OrdersDelivery `json:"delivery"`
+	Info     Order     `json:"order"`
+	Products []Product `json:"products"`
 }
 
 type ProductFullInfo struct {
@@ -62,5 +56,4 @@ type ProductFullInfo struct {
 type SelectDTO struct {
 	Info     Order             `json:"info"`
 	Products []ProductFullInfo `json:"products"`
-	Delivery []OrdersDelivery  `json:"delivery"`
 }
