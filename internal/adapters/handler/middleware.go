@@ -191,11 +191,11 @@ func getCartId(ctx *gin.Context) (string, error) {
 	return id.(string), nil
 }
 
-//func getFavouritesId(ctx *gin.Context) (string, error) {
-//	id, exists := ctx.Get(userFavouritesCtx)
-//	if !exists {
-//		return "", fmt.Errorf("failed to find user favourites id")
-//	}
-//
-//	return id.(string), nil
-//}
+func getFavouritesId(ctx *gin.Context) (string, error) {
+	id, exists := ctx.Get(userFavouritesCtx)
+	if !exists {
+		return "", fmt.Errorf("failed to find user favourites id")
+	}
+
+	return id.(string), nil
+}
