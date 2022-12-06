@@ -14,8 +14,8 @@ const userCartCacheTTL = 72 * time.Hour
 
 type Service interface {
 	NewCart(userId int) (uuid.UUID, error)
-	AddToCart(info CartProduct, cartId string, userId int) error
 	GetCart(cartId string) ([]CartProduct, float64, error)
+	AddToCart(info CartProduct, cartId string, userId int) error
 	DeleteFromCart(productId, userId int, cartId string) error
 	AddToFavourites(userId, productId int) error
 	DeleteFromFavourites(userId, productId int) error

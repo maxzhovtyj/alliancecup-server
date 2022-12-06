@@ -9,12 +9,15 @@ import (
 )
 
 const (
-	authorizationHeader = "Authorization"
-	userCartCookie      = "UserCart"
-	userIdCtx           = "userId"
-	userRoleCodeCtx     = "userRoleCode"
-	userCartCtx         = "userCart"
-	userCartCookieTTL   = 60 * 60 * 72
+	authorizationHeader     = "Authorization"
+	userIdCtx               = "userId"
+	userRoleCodeCtx         = "userRoleCode"
+	userCartCookie          = "UserCart"
+	userFavouritesCookie    = "UserFavourites"
+	userCartCtx             = "userCart"
+	userFavouritesCtx       = "userFavourites"
+	userCartCookieTTL       = 60 * 60 * 72
+	userFavouritesCookieTTL = 60 * 60 * 72
 )
 
 func (h *Handler) userIdentity(ctx *gin.Context) {
@@ -113,10 +116,11 @@ func getUserRole(ctx *gin.Context) (string, error) {
 
 func (h *Handler) getShoppingInfo(ctx *gin.Context) {
 	userCartId, err := ctx.Cookie(userCartCookie)
+
 	if err != nil || userCartId == "" {
 		cartId, errNewCart := h.newCart(ctx)
 		if errNewCart != nil {
-			newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+			newErrorResponse(ctx, http.StatusInternalServerError, errNewCart.Error())
 			return
 		}
 
@@ -125,6 +129,28 @@ func (h *Handler) getShoppingInfo(ctx *gin.Context) {
 	} else {
 		ctx.Set(userCartCtx, userCartId)
 	}
+
+	//userFavouritesId, favErr := ctx.Cookie(userFavouritesCookie)
+	//if favErr != nil || userFavouritesId == "" {
+	//	favouritesId, errNewFav := h.newFavourites(ctx)
+	//	if errNewFav != nil {
+	//		newErrorResponse(ctx, http.StatusInternalServerError, errNewFav.Error())
+	//		return
+	//	}
+	//
+	//	ctx.SetCookie(
+	//		userFavouritesCookie,
+	//		favouritesId,
+	//		userFavouritesCookieTTL,
+	//		"/",
+	//		h.cfg.Domain,
+	//		false,
+	//		true,
+	//	)
+	//	ctx.Set(userFavouritesCtx, favouritesId)
+	//} else {
+	//	ctx.Set(userFavouritesCtx, userFavouritesId)
+	//}
 }
 
 func (h *Handler) newCart(ctx *gin.Context) (string, error) {
@@ -142,6 +168,20 @@ func (h *Handler) newCart(ctx *gin.Context) (string, error) {
 	return cartUUID.String(), err
 }
 
+//func (h *Handler) newFavourites(ctx *gin.Context) (string, error) {
+//	id, err := getUserId(ctx)
+//	if err != nil {
+//		return "", err
+//	}
+//
+//	favouritesUUID, err := h.services.Shopping.NewFavourites(id)
+//	if err != nil {
+//		return "", err
+//	}
+//
+//	return favouritesUUID.String(), err
+//}
+
 func getCartId(ctx *gin.Context) (string, error) {
 	id, exists := ctx.Get(userCartCtx)
 	if !exists {
@@ -150,3 +190,12 @@ func getCartId(ctx *gin.Context) (string, error) {
 
 	return id.(string), nil
 }
+
+//func getFavouritesId(ctx *gin.Context) (string, error) {
+//	id, exists := ctx.Get(userFavouritesCtx)
+//	if !exists {
+//		return "", fmt.Errorf("failed to find user favourites id")
+//	}
+//
+//	return id.(string), nil
+//}
