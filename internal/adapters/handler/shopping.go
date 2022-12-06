@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"net/http"
 	"strconv"
@@ -132,5 +133,132 @@ func (h *Handler) deleteFromCart(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
 		Id:      productId,
 		Message: "product deleted",
+	})
+}
+
+// addToFavourites godoc
+// @Summary      AddToFavourites
+// @Security 	 ApiKeyAuth
+// @Tags         api/client
+// @Description  adds a product to favourites
+// @ID 			 adds to favourites
+// @Accept       json
+// @Produce      json
+// @Param        input body shopping.FavouriteProduct true "Product"
+// @Success      200  {object}  handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/shopping/favourites [post]
+func (h *Handler) addToFavourites(ctx *gin.Context) {
+	var inputProduct models.Product
+	if err := ctx.BindJSON(&inputProduct); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userId, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
+		return
+	}
+
+	favouritesId, err := getFavouritesId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "failed to find favourites id")
+		return
+	}
+
+	err = h.services.Shopping.AddToFavourites(inputProduct, favouritesId, userId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      inputProduct.Id,
+		Message: "item added to favourites",
+	})
+}
+
+// getFavourites godoc
+// @Summary      GetFavourites
+// @Security 	 ApiKeyAuth
+// @Tags         api/client
+// @Description  gets user favourite products
+// @ID get favourites
+// @Produce      json
+// @Success      200  {array}  	product.Product
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/shopping/favourites [get]
+func (h *Handler) getFavourites(ctx *gin.Context) {
+	userFavouritesId, err := getFavouritesId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "failed to find user favourites id")
+		return
+	}
+
+	products, err := h.services.Shopping.GetFavourites(userFavouritesId)
+	if err != nil {
+		ctx.SetCookie(userFavouritesCookie, "", -1, "/", h.cfg.Domain, false, true)
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, products)
+}
+
+// deleteFromFavourites godoc
+// @Summary DeleteFromFavourites
+// @Security ApiKeyAuth
+// @Tags api/client
+// @Description deletes product from favourites
+// @ID deletes from favourites
+// @Accepts json
+// @Produce json
+// @Param 		 id query string true "Product id"
+// @Success      200  {array}  	handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/shopping/favourites [delete]
+func (h *Handler) deleteFromFavourites(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userId, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(
+			ctx,
+			http.StatusInternalServerError,
+			fmt.Errorf("user favourite products id was not found, %v", err).Error(),
+		)
+		return
+	}
+
+	favouritesId, err := getFavouritesId(ctx)
+	if err != nil {
+		newErrorResponse(
+			ctx,
+			http.StatusInternalServerError,
+			fmt.Errorf("user favourite products id was not found, %v", err).Error(),
+		)
+		return
+	}
+
+	err = h.services.Shopping.DeleteFromFavourites(favouritesId, userId, id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      id,
+		Message: "product deleted from favourites",
 	})
 }

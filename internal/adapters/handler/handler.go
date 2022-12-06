@@ -173,9 +173,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			shopping.POST(cartUrl, h.addToCart)
 			shopping.DELETE(cartUrl, h.deleteFromCart)
 
-			//shopping.GET(favouritesUrl, h.getFavourites)
-			//shopping.POST(favouritesUrl, h.addToFavourites)
-			//shopping.DELETE(favouritesUrl, h.deleteFromFavourites)
+			shopping.GET(favouritesUrl, h.getFavourites)
+			shopping.POST(favouritesUrl, h.addToFavourites)
+			shopping.DELETE(favouritesUrl, h.deleteFromFavourites)
 		}
 	}
 
