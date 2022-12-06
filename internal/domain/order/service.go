@@ -89,7 +89,12 @@ func (s *service) DeliveryPaymentTypes() (shopping.DeliveryPaymentTypes, error) 
 }
 
 func (s *service) ProcessedOrder(orderId int, status string) error {
-	err := s.repo.ProcessedOrder(orderId, status)
+	err := s.repo.ChangeOrderStatus(orderId, status)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.ProcessedOrder(orderId)
 	if err != nil {
 		return err
 	}
@@ -129,6 +134,11 @@ func (s *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 		Country:     "Україна",
 	})
 
+	deliveryInfo := order.Info.Delivery.String()
+	if deliveryInfo == "{}" {
+		deliveryInfo = ""
+	}
+
 	doc.SetCustomer(&goinvoice.Customer{
 		LastName:     order.Info.UserLastName,
 		FirstName:    order.Info.UserFirstName,
@@ -136,7 +146,7 @@ func (s *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 		PhoneNumber:  order.Info.UserPhoneNumber,
 		Email:        order.Info.UserEmail,
 		DeliveryType: order.Info.DeliveryTypeTitle,
-		DeliveryInfo: order.Info.Delivery.String(),
+		DeliveryInfo: deliveryInfo,
 	})
 
 	for _, p := range order.Products {
