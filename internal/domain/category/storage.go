@@ -8,10 +8,10 @@ import (
 
 type Storage interface {
 	GetAll() ([]Category, error)
-	GetFiltration(fkName string, id int) ([]Filtration, error)
 	Update(category Category) (int, error)
 	Create(category Category) (int, error)
 	Delete(id int) error
+	GetFiltration(fkName string, id int) ([]Filtration, error)
 	AddFiltration(filtration Filtration) (int, error)
 }
 
@@ -40,33 +40,6 @@ func (c *storage) GetAll() ([]Category, error) {
 	err := c.db.Select(&categories, queryGetCategories)
 
 	return categories, err
-}
-
-func (c *storage) GetFiltration(fkName string, id int) ([]Filtration, error) {
-	var filtration []Filtration
-
-	//fkName can be either category_id or filtration_list_id
-	queryGetFiltration := fmt.Sprintf(
-		`
-		SELECT id,
-			   category_id,
-			   img_url,
-			   info_description,
-			   filtration_title,
-			   filtration_description,
-			   filtration_list_id 
-		FROM %s 
-		WHERE %s=$1
-		`,
-		postgres.CategoriesFiltrationTable,
-		fkName,
-	)
-	err := c.db.Select(&filtration, queryGetFiltration, id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get category filtration from db due to: %v", err)
-	}
-
-	return filtration, nil
 }
 
 func (c *storage) Update(category Category) (int, error) {
@@ -123,25 +96,56 @@ func (c *storage) Delete(id int) error {
 	return err
 }
 
+func (c *storage) GetFiltration(fkName string, id int) ([]Filtration, error) {
+	var filtration []Filtration
+
+	//fkName can be either category_id or filtration_list_id
+	queryGetFiltration := fmt.Sprintf(
+		`
+		SELECT id,
+			   category_id,
+			   img_url,
+			   img_uuid,
+			   search_key,
+			   search_characteristic,
+			   filtration_title,
+			   filtration_description,
+			   filtration_list_id 
+		FROM %s 
+		WHERE %s=$1
+		`,
+		postgres.CategoriesFiltrationTable,
+		fkName,
+	)
+	err := c.db.Select(&filtration, queryGetFiltration, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get category filtration from db due to: %v", err)
+	}
+
+	return filtration, nil
+}
+
 func (c *storage) AddFiltration(filtration Filtration) (int, error) {
 	var filtrationId int
 
 	queryAddFiltration := fmt.Sprintf(
 		`
 		INSERT INTO %s
-			(info_description, filtration_title, filtration_description, img_url, category_id, filtration_list_id) 
+			(search_key, search_characteristic, filtration_title, filtration_description, img_url, img_uuid, category_id, filtration_list_id) 
 		VALUES 
-			($1, $2, $3, $4, $5, $6) 
+			($1, $2, $3, $4, $5, $6, $7, $8) 
 		RETURNING id
 		`,
 		postgres.CategoriesFiltrationTable,
 	)
 	row := c.db.QueryRow(
 		queryAddFiltration,
-		filtration.InfoDescription,
+		filtration.SearchKey,
+		filtration.SearchCharacteristic,
 		filtration.FiltrationTitle,
 		filtration.FiltrationDescription,
 		filtration.ImgUrl,
+		filtration.ImgUUID,
 		filtration.CategoryId,
 		filtration.FiltrationListId,
 	)

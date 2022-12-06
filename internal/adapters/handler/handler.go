@@ -42,6 +42,8 @@ const (
 	orderUrl             = "/order"
 	userOrdersUrl        = "/user-orders"
 	orderInfoTypesUrl    = "/order-info-types"
+	processedOrder       = "/processed-order"
+	forgotPassword       = "/forgot-password"
 	moderatorUrl         = "/moderator"
 	superAdminUrl        = "/super"
 	supplyUrl            = "/supply"
@@ -49,6 +51,7 @@ const (
 	inventoryUrl         = "/inventory"
 	inventoriesUrl       = "/inventories"
 	inventoryProductsUrl = "/inventory-products"
+	saveInventory        = "/save-inventory"
 	invoiceUrl           = "/invoice"
 	personalInfoUrl      = "personal-info"
 	shoppingUrl          = "/shopping"
@@ -108,7 +111,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.POST(reviewUrl, h.addReview)
 		api.GET(reviewsUrl, h.getReviews)
 
-		api.POST("forgot-password", h.forgotPassword)
+		api.POST(forgotPassword, h.forgotPassword)
 
 		api.GET(invoiceUrl, h.getOrderInvoice)
 
@@ -117,14 +120,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
 			admin.DELETE(productUrl, h.deleteProduct)
-			//admin.PUT("/product-amount") // TODO
 
 			admin.POST(categoryUrl, h.addCategory)
 			admin.PUT(categoryUrl, h.updateCategory)
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
 			admin.GET(ordersUrl, h.adminGetOrders)
-			admin.PUT("/processed-order", h.processedOrder)
+			admin.PUT(processedOrder, h.processedOrder)
 
 			admin.POST(filtrationUrl, h.addFiltrationItem)
 
@@ -143,7 +145,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				superAdmin.DELETE(moderatorUrl, h.deleteModerator)
 
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
-				superAdmin.POST("/save-inventory", h.saveInventory)
+				superAdmin.POST(saveInventory, h.saveInventory)
 				superAdmin.POST(inventoryUrl, h.doInventory)
 				superAdmin.GET(inventoriesUrl, h.getInventories)
 				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)
