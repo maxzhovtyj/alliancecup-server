@@ -130,27 +130,27 @@ func (h *Handler) getShoppingInfo(ctx *gin.Context) {
 		ctx.Set(userCartCtx, userCartId)
 	}
 
-	//userFavouritesId, favErr := ctx.Cookie(userFavouritesCookie)
-	//if favErr != nil || userFavouritesId == "" {
-	//	favouritesId, errNewFav := h.newFavourites(ctx)
-	//	if errNewFav != nil {
-	//		newErrorResponse(ctx, http.StatusInternalServerError, errNewFav.Error())
-	//		return
-	//	}
-	//
-	//	ctx.SetCookie(
-	//		userFavouritesCookie,
-	//		favouritesId,
-	//		userFavouritesCookieTTL,
-	//		"/",
-	//		h.cfg.Domain,
-	//		false,
-	//		true,
-	//	)
-	//	ctx.Set(userFavouritesCtx, favouritesId)
-	//} else {
-	//	ctx.Set(userFavouritesCtx, userFavouritesId)
-	//}
+	userFavouritesId, favErr := ctx.Cookie(userFavouritesCookie)
+	if favErr != nil || userFavouritesId == "" {
+		favouritesId, errNewFav := h.newFavourites(ctx)
+		if errNewFav != nil {
+			newErrorResponse(ctx, http.StatusInternalServerError, errNewFav.Error())
+			return
+		}
+
+		ctx.SetCookie(
+			userFavouritesCookie,
+			favouritesId,
+			userFavouritesCookieTTL,
+			"/",
+			h.cfg.Domain,
+			false,
+			true,
+		)
+		ctx.Set(userFavouritesCtx, favouritesId)
+	} else {
+		ctx.Set(userFavouritesCtx, userFavouritesId)
+	}
 }
 
 func (h *Handler) newCart(ctx *gin.Context) (string, error) {
@@ -168,19 +168,19 @@ func (h *Handler) newCart(ctx *gin.Context) (string, error) {
 	return cartUUID.String(), err
 }
 
-//func (h *Handler) newFavourites(ctx *gin.Context) (string, error) {
-//	id, err := getUserId(ctx)
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	favouritesUUID, err := h.services.Shopping.NewFavourites(id)
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	return favouritesUUID.String(), err
-//}
+func (h *Handler) newFavourites(ctx *gin.Context) (string, error) {
+	id, err := getUserId(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	favouritesUUID, err := h.services.Shopping.NewFavourites(id)
+	if err != nil {
+		return "", err
+	}
+
+	return favouritesUUID.String(), err
+}
 
 func getCartId(ctx *gin.Context) (string, error) {
 	id, exists := ctx.Get(userCartCtx)
