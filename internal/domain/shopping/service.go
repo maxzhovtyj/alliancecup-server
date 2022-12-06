@@ -59,8 +59,8 @@ func validateNoDuplicateInFavourites(products []models.Product, productId int) e
 	return nil
 }
 
-func remove(slice []CartProduct, s int) []CartProduct {
-	return append(slice[:s], slice[s+1:]...)
+func remove[Slice any](sl []Slice, index int) []Slice {
+	return append(sl[:index], sl[index+1:]...)
 }
 
 func (s *service) NewCart(userId int) (cartUUID uuid.UUID, err error) {
@@ -345,11 +345,11 @@ func (s *service) DeleteFromFavourites(userFavouritesId string, userId, productI
 			return fmt.Errorf("failed to unmarshal favourite products, %v", err)
 		}
 
-		//for i, p := range favourites {
-		//	if p.Id == productId {
-		//		favourites = remove(favourites, i)
-		//	}
-		//}
+		for i, p := range favourites {
+			if p.Id == productId {
+				favourites = remove(favourites, i)
+			}
+		}
 	}
 
 	favouritesMarshal, err := json.Marshal(favourites)
