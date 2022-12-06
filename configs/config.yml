@@ -1,4 +1,11 @@
 port: "8000"
+domain: "localhost"
+
+roles:
+    guest: "0000"
+    client: "0001"
+    moderator: "1002"
+    superAdmin: "2003"
 
 db:
     username: "postgres"

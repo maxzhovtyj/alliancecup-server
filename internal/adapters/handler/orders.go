@@ -39,8 +39,53 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 		return
 	}
 
-	if input.Order.SumPrice < 400 {
-		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to create order, minimal order price is 400hrn").Error())
+	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "user id not found")
+		return
+	}
+
+	if id != 0 {
+		input.Info.UserId = &id
+	}
+
+	cartId, err := getCartId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, "user cart id not found")
+		return
+	}
+
+	orderId, err := h.services.Order.New(input, cartId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.SetCookie(cartId, "", -1, "/", h.cfg.Domain, false, true)
+
+	ctx.JSON(http.StatusCreated, OrderResponse{
+		Id:      orderId,
+		Message: "order created",
+	})
+}
+
+// adminNewOrder godoc
+// @Summary      New order
+// @Tags         api
+// @Description  Execute new order by admin
+// @ID creates an order by admin
+// @Accept       json
+// @Produce      json
+// @Param        input body order.CreateDTO true "order info"
+// @Success      200  {object}  handler.OrderResponse
+// @Failure      400  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/order [post]
+func (h *Handler) adminNewOrder(ctx *gin.Context) {
+	var input order.CreateDTO
+
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -49,12 +94,9 @@ func (h *Handler) newOrder(ctx *gin.Context) {
 		newErrorResponse(ctx, http.StatusInternalServerError, "user id not found")
 		return
 	}
+	input.Info.ExecutedBy = &id
 
-	if id != 0 {
-		input.Order.UserId = &id
-	}
-
-	orderId, err := h.services.Order.New(input)
+	orderId, err := h.services.Order.AdminNew(input)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -114,7 +156,7 @@ func (h *Handler) userOrders(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      401  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/order [get]
+// @Router       /api/admin/order [get]
 func (h *Handler) getOrderById(ctx *gin.Context) {
 	orderId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
@@ -208,7 +250,6 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 		return
 	}
 
-	// TODO
 	if orderInput.ToStatus != StatusCompleted &&
 		orderInput.ToStatus != StatusProcessed &&
 		orderInput.ToStatus != StatusInProgress {
@@ -216,7 +257,7 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 		return
 	}
 
-	err := h.services.Order.ProcessedOrder(orderInput.OrderId)
+	err := h.services.Order.ProcessedOrder(orderInput.OrderId, StatusProcessed)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

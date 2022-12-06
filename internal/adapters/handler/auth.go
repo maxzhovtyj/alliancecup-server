@@ -8,17 +8,17 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
 	"net/http"
 	"net/mail"
-	"os"
+	"strconv"
 	"time"
 )
 
 const refreshTokenTTL = 1440 * time.Hour
 
 type SignInResponse struct {
-	AccessToken string `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo"`
-	SessionId   int    `json:"sessionId" example:"15"`
-	UserId      int    `json:"userId" example:"5"`
-	UserRoleId  int    `json:"userRoleId" example:"1"`
+	AccessToken  string `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo"`
+	SessionId    int    `json:"sessionId" example:"15"`
+	UserId       int    `json:"userId" example:"5"`
+	UserRoleCode string `json:"userRoleCode" example:"5000"`
 }
 
 type SignInInput struct {
@@ -39,7 +39,7 @@ type ChangePasswordInput struct {
 // @Accept       json
 // @Produce      json
 // @Param        input body user.User true "account info"
-// @Success      200  {integer} integer 2
+// @Success      200  {object} 	object
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
@@ -52,79 +52,31 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		return
 	}
 
-	// email, password, phone_number validation
 	_, err := mail.ParseAddress(input.Email)
 	if err != nil || input.Email == "" {
 		newErrorResponse(ctx, http.StatusBadRequest, "invalid email")
 		return
 	}
+
 	if len(input.Password) < 4 {
 		newErrorResponse(ctx, http.StatusBadRequest, "invalid password")
 		return
 	}
 
-	// 068 306 29 75
 	if len(input.PhoneNumber) < 10 {
 		newErrorResponse(ctx, http.StatusBadRequest, "invalid phone_number")
 		return
 	}
 
-	id, roleId, err := h.services.Authorization.CreateUser(input)
+	id, roleCode, err := h.services.Authorization.CreateUser(input, h.cfg.Roles.Client)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	ctx.JSON(http.StatusCreated, map[string]interface{}{
-		"id":      id,
-		"role_id": roleId,
-	})
-}
-
-// createModerator godoc
-// @Summary      CreateModerator
-// @Security 	 ApiKeyAuth
-// @Tags         api/admin
-// @Description  registers a new moderator
-// @ID 			 create account for moderator
-// @Accept       json
-// @Produce      json
-// @Param        input body user.User true "account info"
-// @Success      200  {object}  object
-// @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
-// @Failure      500  {object}  Error
-// @Router       /api/admin/moderator [post]
-func (h *Handler) createModerator(ctx *gin.Context) {
-	var input user.User
-
-	if err := ctx.BindJSON(&input); err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// email, password, phone_number validation
-	_, err := mail.ParseAddress(input.Email)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid email")
-		return
-	}
-	if len(input.Password) < 4 {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid password")
-		return
-	}
-	if len(input.PhoneNumber) < 10 {
-		newErrorResponse(ctx, http.StatusBadRequest, "non valid phone_number")
-		return
-	}
-
-	id, roleId, err := h.services.Authorization.CreateModerator(input)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-	ctx.JSON(http.StatusCreated, map[string]interface{}{
-		"id":      id,
-		"role_id": roleId,
+		"id":       id,
+		"roleCode": roleCode,
 	})
 }
 
@@ -141,49 +93,56 @@ func (h *Handler) createModerator(ctx *gin.Context) {
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
 // @Router       /auth/sign-in [post]
-func (h *Handler) signIn(c *gin.Context) {
+func (h *Handler) signIn(ctx *gin.Context) {
 	var input SignInInput
 
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	accessToken, refreshToken, err := h.services.Authorization.GenerateTokens(input.Email, input.Password)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	userId, userRoleId, err := h.services.Authorization.ParseToken(accessToken)
+	userId, userRoleCode, err := h.services.Authorization.ParseToken(accessToken)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	newSession, err := h.services.Authorization.CreateNewSession(&models.Session{
+	newSession, err := h.services.Authorization.CreateNewSession(models.Session{
 		UserId:       userId,
-		RoleId:       userRoleId,
+		RoleCode:     userRoleCode,
 		RefreshToken: refreshToken,
-		ClientIp:     c.ClientIP(),
-		UserAgent:    c.Request.UserAgent(),
+		ClientIp:     ctx.ClientIP(),
+		UserAgent:    ctx.Request.UserAgent(),
 		ExpiresAt:    time.Now().Add(refreshTokenTTL),
 		CreatedAt:    time.Now(),
 	})
 
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "unable to create new session: "+err.Error())
+		newErrorResponse(ctx, http.StatusInternalServerError, "unable to create new session: "+err.Error())
 		return
 	}
 
-	dm := os.Getenv(domain)
-	c.SetCookie(refreshTokenCookie, refreshToken, 60*60*24*60, "/", dm, false, true)
+	ctx.SetCookie(
+		refreshTokenCookie,
+		refreshToken,
+		60*60*24*60,
+		"/",
+		h.cfg.Domain,
+		false,
+		true,
+	)
 
-	c.JSON(http.StatusOK, SignInResponse{
-		AccessToken: accessToken,
-		UserId:      userId,
-		UserRoleId:  userRoleId,
-		SessionId:   newSession.Id,
+	ctx.JSON(http.StatusOK, SignInResponse{
+		AccessToken:  accessToken,
+		UserId:       userId,
+		UserRoleCode: userRoleCode,
+		SessionId:    newSession.Id,
 	})
 }
 
@@ -206,8 +165,8 @@ func (h *Handler) logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Set(userCtx, 0)
-	ctx.Set(userRoleIdCtx, 0)
+	ctx.Set(userIdCtx, 0)
+	ctx.Set(userRoleCodeCtx, 0)
 
 	err = h.services.Authorization.Logout(id)
 	if err != nil {
@@ -215,9 +174,8 @@ func (h *Handler) logout(ctx *gin.Context) {
 		return
 	}
 
-	dm := os.Getenv(domain)
-	ctx.SetCookie(refreshTokenCookie, "", -1, "/", dm, false, true)
-	ctx.SetCookie(userCartCookie, "", -1, "/", dm, false, true)
+	ctx.SetCookie(refreshTokenCookie, "", -1, "/", h.cfg.Domain, false, true)
+	ctx.SetCookie(userCartCookie, "", -1, "/", h.cfg.Domain, false, true)
 
 	ctx.JSON(http.StatusOK, map[string]interface{}{
 		"message": "logged out, session deleted",
@@ -238,8 +196,8 @@ func (h *Handler) logout(ctx *gin.Context) {
 func (h *Handler) refresh(ctx *gin.Context) {
 	cookieToken, err := ctx.Cookie(refreshTokenCookie)
 	if err != nil {
-		ctx.Set(userCtx, 0)
-		ctx.Set(userRoleIdCtx, 0)
+		ctx.Set(userIdCtx, 0)
+		ctx.Set(userRoleCodeCtx, "")
 		newErrorResponse(ctx, http.StatusUnauthorized, "refresh_token was not found "+err.Error())
 		return
 	}
@@ -249,28 +207,36 @@ func (h *Handler) refresh(ctx *gin.Context) {
 
 	err = h.services.Authorization.ParseRefreshToken(cookieToken)
 	if err != nil {
-		ctx.Set(userCtx, 0)
-		ctx.Set(userRoleIdCtx, 0)
+		ctx.Set(userIdCtx, 0)
+		ctx.Set(userRoleCodeCtx, 0)
 		newErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	accessToken, newRefreshToken, userId, userRoleId, err := h.services.Authorization.RefreshTokens(cookieToken, clientIp, userAgent)
+	accessToken, newRefreshToken, userId, userRoleCode, err := h.services.Authorization.RefreshTokens(cookieToken, clientIp, userAgent)
 	if err != nil {
-		ctx.Set(userCtx, 0)
-		ctx.Set(userRoleIdCtx, 0)
+		ctx.Set(userIdCtx, 0)
+		ctx.Set(userRoleCodeCtx, 0)
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	dm := os.Getenv(domain)
-	ctx.SetCookie(refreshTokenCookie, newRefreshToken, 60*60*24*60, "/", dm, false, true)
+	ctx.SetCookie(
+		refreshTokenCookie,
+		newRefreshToken,
+		60*60*24*60,
+		"/",
+		h.cfg.Domain,
+		false,
+		true,
+	)
 
 	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"accessToken": accessToken,
-		"userId":      userId,
-		"userRoleId":  userRoleId,
+		"accessToken":  accessToken,
+		"userId":       userId,
+		"userRoleCode": userRoleCode,
 	})
+
 }
 
 // changePassword godoc
@@ -281,7 +247,7 @@ func (h *Handler) refresh(ctx *gin.Context) {
 // @ID change user password
 // @Accept json
 // @Produce json
-// @Param input body handler.ChangePasswordInput true "Order to change password"
+// @Param input body handler.ChangePasswordInput true "Info to change password"
 // @Success 200  {object} object
 // @Failure 400  {object} Error
 // @Failure 401  {object} Error
@@ -334,7 +300,6 @@ func (h *Handler) forgotPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "email was successfully send")
 }
 
-// TODO
 func (h *Handler) personalInfo(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {
@@ -351,7 +316,6 @@ func (h *Handler) personalInfo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userInfo)
 }
 
-// TODO
 func (h *Handler) updatePersonalInfo(ctx *gin.Context) {
 	id, err := getUserId(ctx)
 	if err != nil {
@@ -372,4 +336,111 @@ func (h *Handler) updatePersonalInfo(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, "user info updated")
+}
+
+// createModerator godoc
+// @Summary      CreateModerator
+// @Security 	 ApiKeyAuth
+// @Tags         api/super/admin
+// @Description  registers a new moderator
+// @ID 			 create account for moderator
+// @Accept       json
+// @Produce      json
+// @Param        input body user.User true "account info"
+// @Success      200  {object}  object
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/super/moderator [post]
+func (h *Handler) createModerator(ctx *gin.Context) {
+	var input user.User
+
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// email, password, phone_number validation
+	_, err := mail.ParseAddress(input.Email)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid email")
+		return
+	}
+
+	if len(input.Password) < 4 {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid password")
+		return
+	}
+
+	if len(input.PhoneNumber) < 10 {
+		newErrorResponse(ctx, http.StatusBadRequest, "non valid phone_number")
+		return
+	}
+
+	id, roleCode, err := h.services.Authorization.CreateUser(input, h.cfg.Roles.Moderator)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusCreated, map[string]interface{}{
+		"id":       id,
+		"roleCode": roleCode,
+	})
+}
+
+// getModerators godoc
+// @Summary      Get moderators
+// @Security 	 ApiKeyAuth
+// @Tags         api/super/admin
+// @Description  registers a new moderator
+// @ID 			 create account for moderator
+// @Accept       json
+// @Produce      json
+// @Param        input body user.User true "account info"
+// @Success      200  {object}  object
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/super/moderator [get]
+func (h *Handler) getModerators(ctx *gin.Context) {
+	createdAt := ctx.Query("createdAt")
+
+	moderators, err := h.services.Authorization.GetModerators(createdAt, h.cfg.Roles.Moderator)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, moderators)
+}
+
+// deleteModerator godoc
+// @Summary      Delete moderator
+// @Security 	 ApiKeyAuth
+// @Tags         api/super/admin
+// @Description  Deletes moderator
+// @ID 			 delete moderator
+// @Accept       json
+// @Produce      json
+// @Param        id query int true "Moderator id"
+// @Success      200  {string}  string
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/super/moderator [delete]
+func (h *Handler) deleteModerator(ctx *gin.Context) {
+	id := ctx.Query("id")
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "invalid moderator id")
+		return
+	}
+
+	err = h.services.Authorization.Delete(userId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "moderator successfully deleted")
 }

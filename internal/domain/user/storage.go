@@ -2,56 +2,59 @@ package user
 
 import (
 	"fmt"
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
 	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
 )
 
 type Storage interface {
-	CreateUser(user User, role string) (int, int, error)
+	CreateUser(user User, code string) (int, string, error)
 	GetUser(email string, password string) (User, error)
-	NewSession(session models.Session) (*models.Session, error)
-	GetSessionByRefresh(refresh string) (*models.Session, error)
+	NewSession(session models.Session) (models.Session, error)
+	GetSessionByRefresh(refresh string) (models.Session, error)
 	DeleteSessionByRefresh(refresh string) error
 	DeleteSessionByUserId(id int) error
 	UpdateRefreshToken(userId int, newRefreshToken string) error
 	GetUserPasswordHash(userId int) (string, error)
 	UpdatePassword(userId int, newPassword string) error
-	UserExists(email string) (int, int, error)
+	UserExists(email string) (int, string, error)
 	SelectUserInfo(id int) (InfoDTO, error)
 	UpdatePersonalInfo(user InfoDTO, id int) error
+	GetModerators(createdAt string, roleCode string) (moderators []User, err error)
+	Delete(id int) error
 }
 
 type storage struct {
 	db *sqlx.DB
+	qb squirrel.StatementBuilderType
 }
 
-func NewAuthPostgres(db *sqlx.DB) *storage {
-	return &storage{db: db}
+func NewAuthPostgres(db *sqlx.DB, qb squirrel.StatementBuilderType) *storage {
+	return &storage{db: db, qb: qb}
 }
 
-func (s *storage) CreateUser(user User, role string) (int, int, error) {
-	// Transaction begin
+func (s *storage) CreateUser(user User, code string) (int, string, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return 0, 0, err
+		return 0, "", err
 	}
 
-	var id int // variable for user's id
-	var userRoleId int
+	var userId int
 
 	query := fmt.Sprintf(
 		`
 		INSERT INTO %s 
 		(role_id, email, lastname, firstname, middle_name, password_hash, phone_number) 
-		values ((SELECT id FROM roles WHERE role_title = $1), $2, $3, $4, $5, $6, $7) 
-		RETURNING id, role_id
+		values ((SELECT id FROM roles WHERE code = $1), $2, $3, $4, $5, $6, $7) 
+		RETURNING id
 		`,
 		postgres.UsersTable,
 	)
+
 	row := tx.QueryRow(
 		query,
-		role,
+		code,
 		user.Email,
 		user.Lastname,
 		user.Firstname,
@@ -59,49 +62,75 @@ func (s *storage) CreateUser(user User, role string) (int, int, error) {
 		user.Password,
 		user.PhoneNumber,
 	)
-	if err = row.Scan(&id, &userRoleId); err != nil {
+
+	if err = row.Scan(&userId); err != nil {
 		_ = tx.Rollback() // db rollback in error case
-		return 0, 0, err
+		return 0, "", err
 	}
 
 	// new user's cart query
 	query = fmt.Sprintf("INSERT INTO %s (user_id) values ($1)", postgres.CartsTable)
-	_, err = tx.Exec(query, id)
+	_, err = tx.Exec(query, userId)
 	if err != nil {
 		_ = tx.Rollback() // db rollback in error case
-		return 0, 0, err
+		return 0, "", err
 	}
 
 	// return id and transaction commit
-	return id, userRoleId, tx.Commit()
+	return userId, code, tx.Commit()
 }
 
 func (s *storage) GetUser(email, password string) (User, error) {
 	var user User
-	query := fmt.Sprintf("SELECT id, role_id FROM %s WHERE email=$1 AND password_hash=$2", postgres.UsersTable)
+	query := fmt.Sprintf(
+		`
+		SELECT users.id, roles.code as role_code
+		FROM %s 
+		JOIN %s ON users.role_id = roles.id 
+		WHERE email = $1 AND password_hash = $2
+		`,
+		postgres.UsersTable,
+		postgres.RolesTable,
+	)
+
 	err := s.db.Get(&user, query, email, password)
 
 	return user, err
 }
 
-func (s *storage) NewSession(session models.Session) (*models.Session, error) {
-	queryDeleteOldSession := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", postgres.SessionsTable)
+func (s *storage) NewSession(session models.Session) (models.Session, error) {
+	queryDeleteOldSession := fmt.Sprintf("DELETE FROM %s WHERE user_id = $1", postgres.SessionsTable)
 	_, err := s.db.Exec(queryDeleteOldSession, session.UserId)
 	if err != nil {
-		return nil, err
+		return models.Session{}, err
 	}
 
 	var newSession models.Session
 	query := fmt.Sprintf(
-		"INSERT INTO %s (user_id, role_id, refresh_token, client_ip, user_agent, expires_at) values ($1, $2, $3, $4, $5, $6) RETURNING *",
+		`
+		INSERT INTO %s 
+		(user_id, role_code, refresh_token, client_ip, user_agent, expires_at) 
+		VALUES 
+		($1, $2, $3, $4, $5, $6) 
+		RETURNING id, user_id, role_code, refresh_token, client_ip, user_agent, is_blocked, expires_at, created_at
+		`,
 		postgres.SessionsTable,
 	)
-	row := s.db.QueryRow(query, session.UserId, session.RoleId, session.RefreshToken, session.ClientIp, session.UserAgent, session.ExpiresAt)
+
+	row := s.db.QueryRow(
+		query,
+		session.UserId,
+		session.RoleCode,
+		session.RefreshToken,
+		session.ClientIp,
+		session.UserAgent,
+		session.ExpiresAt,
+	)
 
 	if err = row.Scan(
 		&newSession.Id,
 		&newSession.UserId,
-		&newSession.RoleId,
+		&newSession.RoleCode,
 		&newSession.RefreshToken,
 		&newSession.ClientIp,
 		&newSession.UserAgent,
@@ -109,15 +138,15 @@ func (s *storage) NewSession(session models.Session) (*models.Session, error) {
 		&newSession.ExpiresAt,
 		&newSession.CreatedAt,
 	); err != nil {
-		return nil, err
+		return models.Session{}, err
 	}
 
-	return &newSession, nil
+	return newSession, nil
 }
 
 func (s *storage) DeleteSessionByRefresh(refresh string) error {
 	var id int
-	query := fmt.Sprintf("DELETE from %s WHERE refresh_token=$1 RETURNING id", postgres.SessionsTable)
+	query := fmt.Sprintf("DELETE from %s WHERE refresh_token = $1 RETURNING id", postgres.SessionsTable)
 	row := s.db.QueryRow(query, refresh)
 
 	err := row.Scan(&id)
@@ -127,16 +156,33 @@ func (s *storage) DeleteSessionByRefresh(refresh string) error {
 	return nil
 }
 
-func (s *storage) GetSessionByRefresh(refresh string) (*models.Session, error) {
+func (s *storage) GetSessionByRefresh(refresh string) (models.Session, error) {
 	var session models.Session
-	queryGetSession := fmt.Sprintf("SELECT * from %s WHERE refresh_token=$1 LIMIT 1", postgres.SessionsTable)
+	queryGetSession := fmt.Sprintf(`
+		SELECT 
+			sessions.id,
+			sessions.user_id,
+			(SELECT code FROM roles WHERE users.role_id = roles.id) as role_code,
+			sessions.refresh_token,
+			sessions.client_ip,
+			sessions.user_agent,
+			sessions.is_blocked,
+			sessions.expires_at,
+			sessions.created_at
+		FROM %s
+		LEFT JOIN %s ON sessions.user_id = users.id 
+		WHERE refresh_token = $1 LIMIT 1
+		`,
+		postgres.SessionsTable,
+		postgres.UsersTable,
+	)
 	err := s.db.Get(&session, queryGetSession, refresh)
 
 	if err != nil {
-		return nil, fmt.Errorf("session wasn't found by refresh=%s, due to: %v", refresh, err)
+		return models.Session{}, fmt.Errorf("session wasn't found by refresh=%s, due to: %v", refresh, err)
 	}
 
-	return &session, nil
+	return session, nil
 }
 
 func (s *storage) DeleteSessionByUserId(id int) error {
@@ -177,18 +223,22 @@ func (s *storage) UpdatePassword(userId int, newPassword string) error {
 	return nil
 }
 
-func (s *storage) UserExists(email string) (int, int, error) {
+func (s *storage) UserExists(email string) (int, string, error) {
 	var userId int
-	var userRoleId int
+	var userRoleCode string
 
-	queryGetUserId := fmt.Sprintf("SELECT id, role_id FROM %s WHERE email = $1", postgres.UsersTable)
+	queryGetUserId := fmt.Sprintf(
+		`SELECT users.id, roles.code as role_code FROM %s JOIN %s ON users.role_id = roles.id WHERE email = $1`,
+		postgres.UsersTable,
+		postgres.RolesTable,
+	)
 
 	row := s.db.QueryRow(queryGetUserId, email)
-	if err := row.Scan(&userId, userRoleId); err != nil {
-		return 0, 0, err
+	if err := row.Scan(&userId, userRoleCode); err != nil {
+		return 0, "", err
 	}
 
-	return userId, userRoleId, nil
+	return userId, userRoleCode, nil
 }
 
 func (s *storage) SelectUserInfo(id int) (user InfoDTO, err error) {
@@ -235,4 +285,49 @@ func (s *storage) UpdatePersonalInfo(user InfoDTO, id int) error {
 	}
 
 	return nil
+}
+
+func (s *storage) GetModerators(createdAt string, roleCode string) (moderators []User, err error) {
+	var moderatorsColumnsSelect = []string{
+		"users.id",
+		"users.email",
+		"users.lastname",
+		"users.firstname",
+		"users.middle_name",
+		"users.phone_number",
+		"users.created_at",
+	}
+
+	querySelectModerators := s.qb.
+		Select(moderatorsColumnsSelect...).
+		From(postgres.UsersTable).
+		LeftJoin(postgres.RolesTable + " ON users.role_id = roles.id").
+		Where(squirrel.Eq{"roles.code": roleCode})
+
+	if createdAt != "" {
+		querySelectModerators = querySelectModerators.Where(squirrel.Lt{"users.created_at": createdAt})
+	}
+
+	querySelectModeratorsSql, args, err := querySelectModerators.
+		OrderBy("users.created_at").
+		Limit(12).
+		ToSql()
+
+	err = s.db.Select(&moderators, querySelectModeratorsSql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to select moderators due to %v", err)
+	}
+
+	return moderators, err
+}
+
+func (s *storage) Delete(id int) (err error) {
+	queryDeleteUser := fmt.Sprintf("DELETE FROM %s WHERE id = $1", postgres.UsersTable)
+
+	_, err = s.db.Exec(queryDeleteUser, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete user %v", err)
+	}
+
+	return err
 }

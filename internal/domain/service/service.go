@@ -16,7 +16,7 @@ import (
 )
 
 type Service struct {
-	Authorization user.AuthorizationService
+	Authorization user.Service
 	Category      category.Service
 	Product       product.Service
 	Order         order.Service
@@ -37,7 +37,7 @@ func NewService(
 		Authorization: user.NewAuthService(repos.Authorization),
 		Product:       product.NewProductsService(repos.Product, fileStorage),
 		Category:      category.NewCategoryService(repos.Category, fileStorage),
-		Order:         order.NewOrdersService(repos.Order, repos.Product),
+		Order:         order.NewOrdersService(repos.Order, repos.Product, cache),
 		Shopping:      shopping.NewShoppingService(repos.Shopping, cache),
 		Supply:        supply.NewSupplyService(repos.Supply),
 		Review:        review.NewReviewService(repos.Review),

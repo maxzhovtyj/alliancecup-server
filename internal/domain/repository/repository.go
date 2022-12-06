@@ -30,7 +30,7 @@ func NewRepository(db *sqlx.DB, logger *logging.Logger) *Repository {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	return &Repository{
-		Authorization: user.NewAuthPostgres(db),
+		Authorization: user.NewAuthPostgres(db, psql),
 		Product:       product.NewProductsPostgres(db, psql),
 		Category:      category.NewCategoryPostgres(db),
 		Shopping:      shopping.NewShoppingPostgres(db, psql),

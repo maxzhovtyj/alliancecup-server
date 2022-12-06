@@ -16,50 +16,44 @@ const (
 	signingKey        = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
 	refreshTokenTTL   = 1440 * time.Hour
 	refreshSigningKey = "Sepasd213*99921@@#dsad+-=SXxassd@lLL;"
-	clientRole        = "CLIENT"
-	moderatorRole     = "MODERATOR"
 )
 
-type AuthorizationService interface {
-	CreateUser(user User) (int, int, error)
-	CreateModerator(user User) (int, int, error)
+type Service interface {
+	CreateUser(user User, role string) (int, string, error)
 	GenerateTokens(email string, password string) (string, string, error)
-	ParseToken(token string) (int, int, error)
+	ParseToken(token string) (int, string, error)
 	ParseRefreshToken(refreshToken string) error
-	RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, int, error)
-	CreateNewSession(session *models.Session) (*models.Session, error)
+	RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, string, error)
+	CreateNewSession(session models.Session) (models.Session, error)
 	Logout(id int) error
 	ChangePassword(userId int, oldPassword, newPassword string) error
 	UserForgotPassword(email string) error
 	UserInfo(id int) (InfoDTO, error)
 	ChangePersonalInfo(user InfoDTO, id int) error
+	GetModerators(createdAt string, roleCode string) ([]User, error)
+	Delete(id int) error
 }
 
 type tokenClaims struct {
 	jwt.StandardClaims
-	UserId     int `json:"user_id"`
-	UserRoleId int `json:"user_role_id"`
+	UserId       int
+	UserRoleCode string
 }
 
-type AuthService struct {
+type service struct {
 	repo Storage
 }
 
-func NewAuthService(repo Storage) AuthorizationService {
-	return &AuthService{repo: repo}
+func NewAuthService(repo Storage) Service {
+	return &service{repo: repo}
 }
 
-func (s *AuthService) CreateUser(user User) (int, int, error) {
+func (s *service) CreateUser(user User, role string) (int, string, error) {
 	user.Password = generatePasswordHash(user.Password)
-	return s.repo.CreateUser(user, clientRole)
+	return s.repo.CreateUser(user, role)
 }
 
-func (s *AuthService) CreateModerator(user User) (int, int, error) {
-	user.Password = generatePasswordHash(user.Password)
-	return s.repo.CreateUser(user, moderatorRole)
-}
-
-func (s *AuthService) GenerateTokens(email, password string) (string, string, error) {
+func (s *service) GenerateTokens(email, password string) (string, string, error) {
 	selectedUser, err := s.repo.GetUser(email, generatePasswordHash(password))
 	if err != nil {
 		return "", "", fmt.Errorf("user are not found")
@@ -71,7 +65,7 @@ func (s *AuthService) GenerateTokens(email, password string) (string, string, er
 			IssuedAt:  time.Now().Unix(),
 		},
 		selectedUser.Id,
-		selectedUser.RoleId,
+		selectedUser.RoleCode,
 	})
 
 	refreshToken, err := s.GenerateRefreshToken()
@@ -87,7 +81,7 @@ func (s *AuthService) GenerateTokens(email, password string) (string, string, er
 	return accessToken, refreshToken, nil
 }
 
-func (s *AuthService) GenerateRefreshToken() (string, error) {
+func (s *service) GenerateRefreshToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(refreshTokenTTL).Unix(),
 		IssuedAt:  time.Now().Unix(),
@@ -97,10 +91,11 @@ func (s *AuthService) GenerateRefreshToken() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return refreshToken, err
 }
 
-func (s *AuthService) ParseToken(accessToken string) (int, int, error) {
+func (s *service) ParseToken(accessToken string) (int, string, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -109,18 +104,18 @@ func (s *AuthService) ParseToken(accessToken string) (int, int, error) {
 		return []byte(signingKey), nil
 	})
 	if err != nil {
-		return 0, 0, err
+		return 0, "", err
 	}
 
 	claims, ok := token.Claims.(*tokenClaims)
 	if !ok {
-		return 0, 0, errors.New("token claims are not of type *tokenClaims")
+		return 0, "", errors.New("token claims are not of type *tokenClaims")
 	}
 
-	return claims.UserId, claims.UserRoleId, nil
+	return claims.UserId, claims.UserRoleCode, nil
 }
 
-func (s *AuthService) ParseRefreshToken(refreshToken string) error {
+func (s *service) ParseRefreshToken(refreshToken string) error {
 	token, err := jwt.ParseWithClaims(refreshToken, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -147,45 +142,45 @@ func generatePasswordHash(password string) string {
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
-func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, int, error) {
+func (s *service) RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, string, error) {
 	// get user session by old refresh token
 	session, err := s.repo.GetSessionByRefresh(refreshToken)
 	if err != nil {
-		return "", "", 0, 0, err
+		return "", "", 0, "", err
 	}
 
 	// validation if client IP or user agent is not the same
 	if session.ClientIp != clientIp || session.UserAgent != userAgent {
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
-			return "", "", 0, 0, fmt.Errorf("cannot delete session: " + err.Error())
+			return "", "", 0, "", fmt.Errorf("cannot delete session: " + err.Error())
 		}
-		return "", "", 0, 0, fmt.Errorf("invalid meta data")
+		return "", "", 0, "", fmt.Errorf("invalid meta data")
 	}
 
 	// validation if refresh token is expired
 	if time.Now().After(session.ExpiresAt) {
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
-			return "", "", 0, 0, fmt.Errorf("cannot delete session: " + err.Error())
+			return "", "", 0, "", fmt.Errorf("cannot delete session: " + err.Error())
 		}
-		return "", "", 0, 0, fmt.Errorf("refresh expired token, session deleted from db")
+		return "", "", 0, "", fmt.Errorf("refresh expired token, session deleted from db")
 	}
 
 	// validation if refresh token is blocked
 	if session.IsBlocked {
 		err = s.repo.DeleteSessionByRefresh(session.RefreshToken)
 		if err != nil {
-			return "", "", 0, 0, fmt.Errorf("cannot delete session: " + err.Error())
+			return "", "", 0, "", fmt.Errorf("cannot delete session: " + err.Error())
 		}
-		return "", "", 0, 0, fmt.Errorf("session is blocked, session deleted from db")
+		return "", "", 0, "", fmt.Errorf("session is blocked, session deleted from db")
 	}
 
 	newRefreshToken, err := s.GenerateRefreshToken()
 
 	err = s.repo.UpdateRefreshToken(session.UserId, newRefreshToken)
 	if err != nil {
-		return "", "", 0, 0, err
+		return "", "", 0, "", err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
@@ -194,29 +189,29 @@ func (s *AuthService) RefreshTokens(refreshToken, clientIp, userAgent string) (s
 			IssuedAt:  time.Now().Unix(),
 		},
 		session.UserId,
-		session.RoleId,
+		session.RoleCode,
 	})
 	accessToken, err := token.SignedString([]byte(signingKey))
 	if err != nil {
-		return "", "", 0, 0, err
+		return "", "", 0, "", err
 	}
 
-	return accessToken, newRefreshToken, session.UserId, session.RoleId, err
+	return accessToken, newRefreshToken, session.UserId, session.RoleCode, err
 }
 
-func (s *AuthService) CreateNewSession(session *models.Session) (*models.Session, error) {
-	newSession, err := s.repo.NewSession(*session)
+func (s *service) CreateNewSession(session models.Session) (models.Session, error) {
+	newSession, err := s.repo.NewSession(session)
 	if err != nil {
-		return nil, err
+		return models.Session{}, err
 	}
 	return newSession, err
 }
 
-func (s *AuthService) Logout(id int) error {
+func (s *service) Logout(id int) error {
 	return s.repo.DeleteSessionByUserId(id)
 }
 
-func (s *AuthService) ChangePassword(userId int, oldPassword, newPassword string) error {
+func (s *service) ChangePassword(userId int, oldPassword, newPassword string) error {
 	hash, err := s.repo.GetUserPasswordHash(userId)
 	if err != nil {
 		return err
@@ -238,9 +233,9 @@ func (s *AuthService) ChangePassword(userId int, oldPassword, newPassword string
 	return nil
 }
 
-func (s *AuthService) UserForgotPassword(email string) error {
+func (s *service) UserForgotPassword(email string) error {
 	// check whether user with such email exists
-	userId, userRoleId, err := s.repo.UserExists(email)
+	userId, userRoleCode, err := s.repo.UserExists(email)
 	if err != nil {
 		return fmt.Errorf("failed to get user with email %s due to %v", email, err)
 	}
@@ -252,7 +247,7 @@ func (s *AuthService) UserForgotPassword(email string) error {
 			IssuedAt:  time.Now().Unix(),
 		},
 		userId,
-		userRoleId,
+		userRoleCode,
 	})
 
 	// TODO send a letter to an email
@@ -260,10 +255,18 @@ func (s *AuthService) UserForgotPassword(email string) error {
 	return nil
 }
 
-func (s *AuthService) UserInfo(id int) (InfoDTO, error) {
+func (s *service) UserInfo(id int) (InfoDTO, error) {
 	return s.repo.SelectUserInfo(id)
 }
 
-func (s *AuthService) ChangePersonalInfo(user InfoDTO, id int) error {
+func (s *service) ChangePersonalInfo(user InfoDTO, id int) error {
 	return s.repo.UpdatePersonalInfo(user, id)
+}
+
+func (s *service) GetModerators(createdAt string, roleCode string) ([]User, error) {
+	return s.repo.GetModerators(createdAt, roleCode)
+}
+
+func (s *service) Delete(id int) error {
+	return s.repo.Delete(id)
 }

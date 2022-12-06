@@ -6,6 +6,7 @@ import (
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
 	_ "github.com/zh0vtyj/allincecup-server/docs"
+	"github.com/zh0vtyj/allincecup-server/internal/config"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
 	"github.com/zh0vtyj/allincecup-server/pkg/logging"
 	"net/http"
@@ -16,7 +17,6 @@ const (
 	StatusProcessed    = "PROCESSED"
 	StatusCompleted    = "COMPLETED"
 	refreshTokenCookie = "refresh_token"
-	domain             = "localhost"
 )
 
 const (
@@ -42,6 +42,8 @@ const (
 	orderUrl             = "/order"
 	userOrdersUrl        = "/user-orders"
 	orderInfoTypesUrl    = "/order-info-types"
+	processedOrder       = "/processed-order"
+	forgotPassword       = "/forgot-password"
 	moderatorUrl         = "/moderator"
 	superAdminUrl        = "/super"
 	supplyUrl            = "/supply"
@@ -49,6 +51,7 @@ const (
 	inventoryUrl         = "/inventory"
 	inventoriesUrl       = "/inventories"
 	inventoryProductsUrl = "/inventory-products"
+	saveInventory        = "/save-inventory"
 	invoiceUrl           = "/invoice"
 	personalInfoUrl      = "personal-info"
 	shoppingUrl          = "/shopping"
@@ -57,12 +60,14 @@ const (
 type Handler struct {
 	services *service.Service
 	logger   *logging.Logger
+	cfg      *config.Config
 }
 
-func NewHandler(services *service.Service, logger *logging.Logger) *Handler {
+func NewHandler(services *service.Service, logger *logging.Logger, cfg *config.Config) *Handler {
 	return &Handler{
 		services: services,
 		logger:   logger,
+		cfg:      cfg,
 	}
 }
 
@@ -103,30 +108,25 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.GET(filtrationUrl, h.getFiltration)
 		api.GET(productsUrl, h.getProducts)
 		api.GET(productUrl, h.getProductById)
-		api.POST(orderUrl, h.newOrder)
-		api.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
 		api.POST(reviewUrl, h.addReview)
 		api.GET(reviewsUrl, h.getReviews)
 
-		api.POST("forgot-password", h.forgotPassword)
+		api.POST(forgotPassword, h.forgotPassword)
 
 		api.GET(invoiceUrl, h.getOrderInvoice)
 
-		admin := api.Group(adminUrl, h.userHasPermission)
+		admin := api.Group(adminUrl, h.moderatorPermission)
 		{
-			admin.POST(moderatorUrl, h.createModerator)
-
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
 			admin.DELETE(productUrl, h.deleteProduct)
-			//admin.PUT("/product-amount") // TODO
 
 			admin.POST(categoryUrl, h.addCategory)
 			admin.PUT(categoryUrl, h.updateCategory)
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
 			admin.GET(ordersUrl, h.adminGetOrders)
-			//admin.PUT("/processed-order", h.processedOrder) // TODO amount_in_stock handling
+			admin.PUT(processedOrder, h.processedOrder)
 
 			admin.POST(filtrationUrl, h.addFiltrationItem)
 
@@ -135,10 +135,17 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.GET(supplyProductsUrl, h.getSupplyProducts)
 			admin.DELETE(supplyUrl, h.deleteSupply)
 
+			admin.GET(orderUrl, h.getOrderById)
+			admin.POST(orderUrl, h.adminNewOrder)
+
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
+				superAdmin.GET(moderatorUrl, h.getModerators)
+				superAdmin.POST(moderatorUrl, h.createModerator)
+				superAdmin.DELETE(moderatorUrl, h.deleteModerator)
+
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
-				superAdmin.POST("/save-inventory", h.saveInventory)
+				superAdmin.POST(saveInventory, h.saveInventory)
 				superAdmin.POST(inventoryUrl, h.doInventory)
 				superAdmin.GET(inventoriesUrl, h.getInventories)
 				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)
@@ -157,18 +164,19 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.DELETE(logoutUrl, h.logout)
 
 			client.GET(userOrdersUrl, h.userOrders)
-
-			client.GET(orderUrl, h.getOrderById)
 		}
 
 		shopping := api.Group(shoppingUrl, h.getShoppingInfo)
 		{
-			shopping.POST(cartUrl, h.addToCart)
+			shopping.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
+			shopping.POST(orderUrl, h.newOrder)
+
 			shopping.GET(cartUrl, h.getFromCartById)
+			shopping.POST(cartUrl, h.addToCart)
 			shopping.DELETE(cartUrl, h.deleteFromCart)
 
-			shopping.POST(favouritesUrl, h.addToFavourites)
 			shopping.GET(favouritesUrl, h.getFavourites)
+			shopping.POST(favouritesUrl, h.addToFavourites)
 			shopping.DELETE(favouritesUrl, h.deleteFromFavourites)
 		}
 	}

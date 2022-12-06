@@ -25,37 +25,28 @@ values ('Переказ на карту');
 CREATE TABLE orders
 (
     id                SERIAL PRIMARY KEY,
-    user_id           INT REFERENCES users (id) ON DELETE CASCADE DEFAULT NULL,
+    executed_by       INT                                REFERENCES users (id) ON DELETE SET NULL,
+    user_id           INT                                REFERENCES users (id) ON DELETE SET NULL DEFAULT NULL,
     user_lastname     TEXT                               NOT NULL,
     user_firstname    TEXT                               NOT NULL,
     user_middle_name  TEXT                               NOT NULL,
     user_phone_number TEXT                               NOT NULL,
     user_email        TEXT                               NOT NULL,
-    status            TEXT                                        DEFAULT 'IN_PROGRESS',
+    status            TEXT                                                                        DEFAULT 'IN_PROGRESS',
     comment           TEXT,
-    sum_price         DECIMAL(12, 2)                     NOT NULL,
     delivery_type_id  INT REFERENCES delivery_types (id) NOT NULL,
     payment_type_id   INT REFERENCES payment_types (id)  NOT NULL,
-    created_at        TIMESTAMPTZ                                 DEFAULT (now() AT TIME ZONE 'utc-3'),
-    closed_at         TIMESTAMPTZ                                 DEFAULT (NULL AT TIME ZONE 'utc-3'),
-    CONSTRAINT valid_sum_price CHECK ( sum_price > 0 )
-);
-
-CREATE TABLE orders_delivery
-(
-    order_id             INT REFERENCES orders (id) ON DELETE CASCADE NOT NULL,
-    delivery_title       TEXT                                         NOT NULL,
-    delivery_description TEXT                                         NOT NULL,
-    PRIMARY KEY (order_id, delivery_title, delivery_description)
+    delivery_info     JSONB,
+    created_at        TIMESTAMPTZ                                                                 DEFAULT (now() AT TIME ZONE 'utc-3'),
+    closed_at         TIMESTAMPTZ                                                                 DEFAULT (NULL AT TIME ZONE 'utc-3')
 );
 
 CREATE TABLE orders_products
 (
-    order_id           INT REFERENCES orders (id) ON DELETE CASCADE   NOT NULL,
-    product_id         INT REFERENCES products (id) ON DELETE CASCADE NOT NULL,
-    quantity           INT                                            NOT NULL,
-    price_for_quantity DECIMAL(12, 2)                                 NOT NULL,
+    order_id   INT REFERENCES orders (id) ON DELETE CASCADE NOT NULL,
+    product_id INT                                          REFERENCES products (id) ON DELETE SET NULL NOT NULL,
+    price      DECIMAL(12, 2)                               NOT NULL,
+    quantity   INT                                          NOT NULL,
     PRIMARY KEY (order_id, product_id),
-    CONSTRAINT valid_quantity CHECK ( quantity > 0 ),
-    CONSTRAINT valid_price_for_quantity CHECK ( price_for_quantity > 0 )
+    CONSTRAINT valid_quantity CHECK ( quantity > 0 )
 );

@@ -34,6 +34,7 @@ func (s *service) New(supply Supply) error {
 		if sumWithoutTax != product.SumWithoutTax {
 			return fmt.Errorf("invalid sum without tax, %f != %f", sumWithoutTax, product.SumWithoutTax)
 		}
+
 		if product.Tax > 100 || product.Tax < 0 {
 			return fmt.Errorf("invalid tax value")
 		}
@@ -43,6 +44,7 @@ func (s *service) New(supply Supply) error {
 		if !almostEqual(totalSum, product.TotalSum) {
 			return fmt.Errorf("invalid total sum with tax, %f != %f", totalSum, product.TotalSum)
 		}
+
 		productsSum += product.TotalSum
 	}
 

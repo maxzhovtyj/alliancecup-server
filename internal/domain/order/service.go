@@ -1,65 +1,57 @@
 package order
 
 import (
+	"context"
 	"fmt"
+	"github.com/go-redis/redis/v9"
 	"github.com/jung-kurt/gofpdf"
 	goinvoice "github.com/maxzhovtyj/go-invoice"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
-	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"os"
 )
 
 type Service interface {
-	New(order CreateDTO) (int, error)
+	New(order CreateDTO, cartUUID string) (int, error)
+	AdminNew(order CreateDTO) (int, error)
 	GetUserOrders(userId int, createdAt string) ([]SelectDTO, error)
 	GetOrderById(orderId int) (SelectDTO, error)
 	AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error)
-	DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error)
-	ProcessedOrder(orderId int) error
+	DeliveryPaymentTypes() (shopping.DeliveryPaymentTypes, error)
+	ProcessedOrder(orderId int, status string) error
 	GetInvoice(orderId int) (gofpdf.Fpdf, error)
 }
 
 type service struct {
 	repo        Storage
 	productRepo product.Storage
+	cache       *redis.Client
 }
 
-func NewOrdersService(repo Storage, productRepo product.Storage) Service {
+func NewOrdersService(repo Storage, productRepo product.Storage, cache *redis.Client) Service {
 	return &service{
 		repo:        repo,
 		productRepo: productRepo,
+		cache:       cache,
 	}
 }
 
-func (o *service) OrderSumCount(products []Product) (float64, error) {
-	var sum float64
-	for _, item := range products {
-		p, err := o.productRepo.GetProductById(item.ProductId)
-		if err != nil {
-			return 0, err
-		}
-		inputPrice := item.PriceForQuantity / float64(item.Quantity)
-		if p.Price != inputPrice {
-			return 0, fmt.Errorf("invalid product price")
-		}
-		if p.Price*float64(item.Quantity) != item.PriceForQuantity {
-			return 0, fmt.Errorf("price for quantity mismatch")
-		}
-		sum += p.Price * float64(item.Quantity)
-	}
-	return sum, nil
-}
-
-func (o *service) New(order CreateDTO) (int, error) {
-	sum, err := o.OrderSumCount(order.Products)
+func (s *service) New(order CreateDTO, cartUUID string) (int, error) {
+	id, err := s.repo.New(order)
 	if err != nil {
 		return 0, err
 	}
-	if sum != order.Order.SumPrice {
-		return 0, fmt.Errorf("sum price mismatch, %f (computed) !== %f (given)", sum, order.Order.SumPrice)
+
+	delCartCache := s.cache.Del(context.Background(), cartUUID)
+	if delCartCache.Err() != nil {
+		return 0, fmt.Errorf("failed to delete cart from cache")
 	}
 
-	id, err := o.repo.New(order)
+	return id, nil
+}
+
+func (s *service) AdminNew(order CreateDTO) (int, error) {
+	id, err := s.repo.New(order)
 	if err != nil {
 		return 0, err
 	}
@@ -67,37 +59,51 @@ func (o *service) New(order CreateDTO) (int, error) {
 	return id, nil
 }
 
-func (o *service) GetUserOrders(userId int, createdAt string) ([]SelectDTO, error) {
-	return o.repo.GetUserOrders(userId, createdAt)
+func (s *service) GetUserOrders(userId int, createdAt string) ([]SelectDTO, error) {
+	return s.repo.GetUserOrders(userId, createdAt)
 }
 
-func (o *service) GetOrderById(orderId int) (SelectDTO, error) {
-	return o.repo.GetOrderById(orderId)
+func (s *service) GetOrderById(orderId int) (SelectDTO, error) {
+	return s.repo.GetOrderById(orderId)
 }
 
-func (o *service) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error) {
-	return o.repo.AdminGetOrders(status, lastOrderCreatedAt, search)
+func (s *service) AdminGetOrders(status, lastOrderCreatedAt, search string) ([]Order, error) {
+	return s.repo.AdminGetOrders(status, lastOrderCreatedAt, search)
 }
 
-func (o *service) DeliveryPaymentTypes() (server.DeliveryPaymentTypes, error) {
-	deliveryTypes, err := o.repo.GetDeliveryTypes()
+func (s *service) DeliveryPaymentTypes() (shopping.DeliveryPaymentTypes, error) {
+	deliveryTypes, err := s.repo.GetDeliveryTypes()
 	if err != nil {
-		return server.DeliveryPaymentTypes{}, fmt.Errorf("failed to load delivery types due to: %v", err)
+		return shopping.DeliveryPaymentTypes{}, fmt.Errorf("failed to load delivery types due to: %v", err)
 	}
 
-	paymentTypes, err := o.repo.GetPaymentTypes()
+	paymentTypes, err := s.repo.GetPaymentTypes()
 	if err != nil {
-		return server.DeliveryPaymentTypes{}, fmt.Errorf("failed to load payment types due to: %v", err)
+		return shopping.DeliveryPaymentTypes{}, fmt.Errorf("failed to load payment types due to: %v", err)
 	}
 
-	return server.DeliveryPaymentTypes{
+	return shopping.DeliveryPaymentTypes{
 		DeliveryTypes: deliveryTypes,
 		PaymentTypes:  paymentTypes,
 	}, nil
 }
 
-func (o *service) ProcessedOrder(orderId int) error {
-	err := o.repo.ProcessedOrder(orderId)
+func (s *service) ProcessedOrder(orderId int, status string) error {
+	order, err := s.repo.GetOrderById(orderId)
+	if err != nil {
+		return err
+	}
+
+	if order.Info.Status == status {
+		return fmt.Errorf("order is already processed")
+	}
+
+	err = s.repo.ChangeOrderStatus(orderId, status)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.ProcessedOrder(orderId)
 	if err != nil {
 		return err
 	}
@@ -105,8 +111,8 @@ func (o *service) ProcessedOrder(orderId int) error {
 	return nil
 }
 
-func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
-	order, err := o.repo.GetOrderById(orderId)
+func (s *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
+	order, err := s.repo.GetOrderById(orderId)
 	if err != nil {
 		return gofpdf.Fpdf{}, err
 	}
@@ -137,12 +143,9 @@ func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 		Country:     "Україна",
 	})
 
-	var orderDeliveryInfo string
-	for i, d := range order.Delivery {
-		orderDeliveryInfo += d.DeliveryDescription
-		if len(order.Delivery)-1 != i {
-			orderDeliveryInfo += ", "
-		}
+	deliveryInfo := order.Info.Delivery.String()
+	if deliveryInfo == "{}" {
+		deliveryInfo = ""
 	}
 
 	doc.SetCustomer(&goinvoice.Customer{
@@ -152,7 +155,7 @@ func (o *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 		PhoneNumber:  order.Info.UserPhoneNumber,
 		Email:        order.Info.UserEmail,
 		DeliveryType: order.Info.DeliveryTypeTitle,
-		DeliveryInfo: orderDeliveryInfo,
+		DeliveryInfo: deliveryInfo,
 	})
 
 	for _, p := range order.Products {

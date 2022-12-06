@@ -7,7 +7,7 @@ import (
 type Session struct {
 	Id           int       `json:"-" db:"id"`
 	UserId       int       `json:"userId" db:"user_id"`
-	RoleId       int       `json:"roleId" db:"role_id"`
+	RoleCode     string    `json:"roleCode" db:"role_code"`
 	RefreshToken string    `json:"refreshToken" db:"refresh_token"`
 	IsBlocked    bool      `json:"isBlocked" db:"is_blocked"`
 	ClientIp     string    `json:"clientIp" db:"client_ip"`

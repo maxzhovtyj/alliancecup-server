@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
 	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
 	"net/http"
 	"strconv"
@@ -80,7 +81,7 @@ func (h *Handler) getFromCartById(ctx *gin.Context) {
 
 	products, sum, err := h.services.Shopping.GetCart(cartId)
 	if err != nil {
-		ctx.SetCookie(userCartCookie, "", -1, "/", domain, false, true)
+		ctx.SetCookie(userCartCookie, "", -1, "/", h.cfg.Domain, false, true)
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -140,36 +141,42 @@ func (h *Handler) deleteFromCart(ctx *gin.Context) {
 // @Security 	 ApiKeyAuth
 // @Tags         api/client
 // @Description  adds a product to favourites
-// @ID adds to favourites
+// @ID 			 adds to favourites
 // @Accept       json
 // @Produce      json
-// @Param        input body handler.ProductIdInput true "product id"
+// @Param        input body shopping.FavouriteProduct true "Product"
 // @Success      200  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/favourites [post]
+// @Router       /api/shopping/favourites [post]
 func (h *Handler) addToFavourites(ctx *gin.Context) {
-	var input ProductIdInput
+	var inputProduct models.Product
+	if err := ctx.BindJSON(&inputProduct); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	userId, err := getUserId(ctx)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
 		return
 	}
 
-	if err = ctx.BindJSON(&input); err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+	favouritesId, err := getFavouritesId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, "failed to find favourites id")
 		return
 	}
 
-	err = h.services.Shopping.AddToFavourites(userId, input.Id)
+	err = h.services.Shopping.AddToFavourites(inputProduct, favouritesId, userId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
-		Id:      input.Id,
+		Id:      inputProduct.Id,
 		Message: "item added to favourites",
 	})
 }
@@ -185,23 +192,22 @@ func (h *Handler) addToFavourites(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/favourites [get]
+// @Router       /api/shopping/favourites [get]
 func (h *Handler) getFavourites(ctx *gin.Context) {
-	userId, err := getUserId(ctx)
+	userFavouritesId, err := getFavouritesId(ctx)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, "no user's id")
+		newErrorResponse(ctx, http.StatusInternalServerError, "failed to find user favourites id")
 		return
 	}
 
-	products, err := h.services.Product.GetFavourites(userId)
+	products, err := h.services.Shopping.GetFavourites(userFavouritesId)
 	if err != nil {
+		ctx.SetCookie(userFavouritesCookie, "", -1, "/", h.cfg.Domain, false, true)
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"products": products,
-	})
+	ctx.JSON(http.StatusOK, products)
 }
 
 // deleteFromFavourites godoc
@@ -217,7 +223,7 @@ func (h *Handler) getFavourites(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/client/favourites [delete]
+// @Router       /api/shopping/favourites [delete]
 func (h *Handler) deleteFromFavourites(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
@@ -227,11 +233,25 @@ func (h *Handler) deleteFromFavourites(ctx *gin.Context) {
 
 	userId, err := getUserId(ctx)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusUnauthorized, "user id was not found "+err.Error())
+		newErrorResponse(
+			ctx,
+			http.StatusInternalServerError,
+			fmt.Errorf("user favourite products id was not found, %v", err).Error(),
+		)
 		return
 	}
 
-	err = h.services.Shopping.DeleteFromFavourites(userId, id)
+	favouritesId, err := getFavouritesId(ctx)
+	if err != nil {
+		newErrorResponse(
+			ctx,
+			http.StatusInternalServerError,
+			fmt.Errorf("user favourite products id was not found, %v", err).Error(),
+		)
+		return
+	}
+
+	err = h.services.Shopping.DeleteFromFavourites(favouritesId, userId, id)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
