@@ -89,7 +89,16 @@ func (s *service) DeliveryPaymentTypes() (shopping.DeliveryPaymentTypes, error) 
 }
 
 func (s *service) ProcessedOrder(orderId int, status string) error {
-	err := s.repo.ChangeOrderStatus(orderId, status)
+	order, err := s.repo.GetOrderById(orderId)
+	if err != nil {
+		return err
+	}
+
+	if order.Info.Status == status {
+		return fmt.Errorf("order is already processed")
+	}
+
+	err = s.repo.ChangeOrderStatus(orderId, status)
 	if err != nil {
 		return err
 	}
