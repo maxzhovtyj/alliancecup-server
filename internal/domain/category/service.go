@@ -14,6 +14,7 @@ type Service interface {
 	Create(dto CreateDTO) (int, error)
 	Delete(id int) error
 	GetFiltration(fkName string, id int) ([]Filtration, error)
+	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(dto CreateFiltrationDTO) (int, error)
 }
 
@@ -144,4 +145,8 @@ func (s *service) AddFiltration(dto CreateFiltrationDTO) (int, error) {
 
 func (s *service) GetFiltration(fkName string, id int) ([]Filtration, error) {
 	return s.repo.GetFiltration(fkName, id)
+}
+
+func (s *service) GetFiltrationItems() ([]Filtration, error) {
+	return s.repo.GetFiltrationItems()
 }

@@ -79,6 +79,27 @@ func (h *Handler) getFiltration(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, filtrationList)
 }
 
+// getFiltrationAllItems godoc
+// @Summary Get all filtration items
+// @Tags api/admin/characteristics
+// @Description gets all filtration items
+// @ID get filtration items
+// @Accept json
+// @Produce json
+// @Success 200 {array}  category.Filtration
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /api/admin/characteristics [get]
+func (h *Handler) getFiltrationAllItems(ctx *gin.Context) {
+	filtrationItems, err := h.services.Category.GetFiltrationItems()
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, filtrationItems)
+}
+
 // addCategory godoc
 // @Summary AddCategory
 // @Security ApiKeyAuth

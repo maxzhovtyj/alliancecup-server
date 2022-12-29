@@ -12,6 +12,7 @@ type Storage interface {
 	Create(category Category) (int, error)
 	Delete(id int) error
 	GetFiltration(fkName string, id int) ([]Filtration, error)
+	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(filtration Filtration) (int, error)
 }
 
@@ -123,6 +124,32 @@ func (c *storage) GetFiltration(fkName string, id int) ([]Filtration, error) {
 	}
 
 	return filtration, nil
+}
+
+func (c *storage) GetFiltrationItems() ([]Filtration, error) {
+	var filtrationItems []Filtration
+
+	queryGetFiltration := fmt.Sprintf(
+		`
+		SELECT id,
+			   category_id,
+			   img_url,
+			   img_uuid,
+			   search_key,
+			   search_characteristic,
+			   filtration_title,
+			   filtration_description,
+			   filtration_list_id 
+		FROM %s 
+		`,
+		postgres.CategoriesFiltrationTable,
+	)
+	err := c.db.Select(&filtrationItems, queryGetFiltration)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get category filtration from db due to: %v", err)
+	}
+
+	return filtrationItems, nil
 }
 
 func (c *storage) AddFiltration(filtration Filtration) (int, error) {
