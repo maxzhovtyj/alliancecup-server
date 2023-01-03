@@ -43,6 +43,7 @@ const (
 	userOrdersUrl        = "/user-orders"
 	orderInfoTypesUrl    = "/order-info-types"
 	processedOrder       = "/processed-order"
+	completeOrder        = "/complete-order"
 	forgotPassword       = "/forgot-password"
 	moderatorUrl         = "/moderator"
 	superAdminUrl        = "/super"
@@ -130,6 +131,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			admin.GET(ordersUrl, h.adminGetOrders)
 			admin.PUT(processedOrder, h.processedOrder)
+			admin.PUT(completeOrder, h.completeOrder)
 
 			admin.POST(supplyUrl, h.newSupply)
 			admin.GET(supplyUrl, h.getAllSupply)
@@ -152,7 +154,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)
 			}
 
-			//admin.POST("write-off") // TODO product write off
 			admin.DELETE(reviewUrl, h.deleteReview)
 		}
 

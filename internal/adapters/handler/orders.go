@@ -14,9 +14,8 @@ type OrderResponse struct {
 	Message string `json:"message"`
 }
 
-type ProcessedOrderStatus struct {
-	OrderId  int    `json:"orderId" binding:"required"`
-	ToStatus string `json:"toStatus" binding:"required"`
+type HandleOrderStatus struct {
+	OrderId int `json:"orderId" binding:"required"`
 }
 
 // newOrder godoc
@@ -243,21 +242,14 @@ func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/processed-order [put]
 func (h *Handler) processedOrder(ctx *gin.Context) {
-	var orderInput ProcessedOrderStatus
+	var orderInput HandleOrderStatus
 
 	if err := ctx.BindJSON(&orderInput); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to bind input data due to: %v", err).Error())
 		return
 	}
 
-	if orderInput.ToStatus != StatusCompleted &&
-		orderInput.ToStatus != StatusProcessed &&
-		orderInput.ToStatus != StatusInProgress {
-		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to update order status, invalid input status").Error())
-		return
-	}
-
-	err := h.services.Order.ProcessedOrder(orderInput.OrderId, StatusProcessed)
+	err := h.services.Order.HandleOrderStatus(orderInput.OrderId, StatusProcessed)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -266,6 +258,39 @@ func (h *Handler) processedOrder(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
 		Id:      orderInput.OrderId,
 		Message: "order processed",
+	})
+}
+
+// completeOrder godoc
+// @Summary      Complete order by it`s id
+// @Security 	 ApiKeyAuth
+// @Tags         api/admin
+// @Description  handler for admin/moderator to complete order by id
+// @ID complete order
+// @Accept 	  	 json
+// @Produce      json
+// @Param 		 input body handler.ProcessedOrderStatus true "order status"
+// @Success      200  {object}  ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/complete-order [put]
+func (h *Handler) completeOrder(ctx *gin.Context) {
+	var orderInput HandleOrderStatus
+
+	if err := ctx.BindJSON(&orderInput); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to bind input data due to: %v", err).Error())
+		return
+	}
+
+	err := h.services.Order.HandleOrderStatus(orderInput.OrderId, StatusCompleted)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      orderInput.OrderId,
+		Message: "order completed",
 	})
 }
 
