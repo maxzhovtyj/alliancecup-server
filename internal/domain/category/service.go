@@ -13,7 +13,9 @@ type Service interface {
 	Update(category Category) (int, error)
 	Create(dto CreateDTO) (int, error)
 	Delete(id int) error
+	DeleteFiltration(id int) error
 	GetFiltration(fkName string, id int) ([]Filtration, error)
+	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(dto CreateFiltrationDTO) (int, error)
 }
 
@@ -91,6 +93,30 @@ func (s *service) Delete(id int) error {
 	return s.repo.Delete(id)
 }
 
+func (s *service) DeleteFiltration(id int) error {
+	item, err := s.repo.GetFiltrationItem(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.DeleteFiltration(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.fileStorage.RemoveObject(
+		context.Background(),
+		minioPkg.ImagesBucket,
+		item.ImgUUID.String(),
+		minio.RemoveObjectOptions{},
+	)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
 func (s *service) AddFiltration(dto CreateFiltrationDTO) (int, error) {
 	var imgUUIDPtr *uuid.UUID
 	if dto.Img != nil {
@@ -144,4 +170,8 @@ func (s *service) AddFiltration(dto CreateFiltrationDTO) (int, error) {
 
 func (s *service) GetFiltration(fkName string, id int) ([]Filtration, error) {
 	return s.repo.GetFiltration(fkName, id)
+}
+
+func (s *service) GetFiltrationItems() ([]Filtration, error) {
+	return s.repo.GetFiltrationItems()
 }
