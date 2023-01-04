@@ -128,6 +128,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			admin.GET("characteristics", h.getFiltrationAllItems)
 			admin.POST(filtrationUrl, h.addFiltrationItem)
+			admin.DELETE(filtrationUrl, h.deleteFiltrationItem)
 
 			admin.GET(ordersUrl, h.adminGetOrders)
 			admin.PUT(processedOrder, h.processedOrder)

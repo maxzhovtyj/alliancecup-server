@@ -11,6 +11,8 @@ type Storage interface {
 	Update(category Category) (int, error)
 	Create(category Category) (int, error)
 	Delete(id int) error
+	DeleteFiltration(id int) error
+	GetFiltrationItem(id int) (filtrationItem Filtration, err error)
 	GetFiltration(fkName string, id int) ([]Filtration, error)
 	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(filtration Filtration) (int, error)
@@ -95,6 +97,38 @@ func (c *storage) Delete(id int) error {
 	queryDeleteCategory := fmt.Sprintf("DELETE FROM %s WHERE id=$1", postgres.CategoriesTable)
 	_, err := c.db.Exec(queryDeleteCategory, id)
 	return err
+}
+
+func (c *storage) DeleteFiltration(id int) error {
+	queryDeleteFiltrationItem := fmt.Sprintf("DELETE FROM %s WHERE id = $1", postgres.CategoriesFiltrationTable)
+	_, err := c.db.Exec(queryDeleteFiltrationItem, id)
+	return err
+}
+
+func (c *storage) GetFiltrationItem(id int) (filtrationItem Filtration, err error) {
+	queryDeleteFiltrationItem := fmt.Sprintf(
+		`
+			SELECT id,
+				   category_id,
+				   img_url,
+				   img_uuid,
+				   search_key,
+				   search_characteristic,
+				   filtration_title,
+				   filtration_description,
+				   filtration_list_id
+			FROM %s 
+			WHERE id = $1
+		`,
+		postgres.CategoriesFiltrationTable,
+	)
+
+	err = c.db.Get(&filtrationItem, queryDeleteFiltrationItem, id)
+	if err != nil {
+		return Filtration{}, err
+	}
+
+	return filtrationItem, err
 }
 
 func (c *storage) GetFiltration(fkName string, id int) ([]Filtration, error) {

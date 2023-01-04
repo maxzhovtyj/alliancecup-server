@@ -10,7 +10,7 @@ import (
 )
 
 // addFiltrationItem godoc
-// @Summary Add filtration for category
+// @Summary Add filtration
 // @Security ApiKeyAuth
 // @Tags api/admin
 // @Description Adds a filtration item to a category
@@ -116,4 +116,35 @@ func (h *Handler) addFiltrationItem(ctx *gin.Context) {
 		"id":      id,
 		"message": "filtration list created",
 	})
+}
+
+// deleteFiltrationItem godoc
+// @Summary Delete filtration
+// @Security ApiKeyAuth
+// @Tags api/admin
+// @Description Deletes a filtration item
+// @ID delete filtration
+// @Accept json
+// @Produce json
+// @Param id query int true "filtration id"
+// @Success 200 {string} string
+// @Failure 400 {object} Error
+// @Failure 403 {object} Error
+// @Failure 500 {object} Error
+// @Router /api/admin/filtration [delete]
+func (h *Handler) deleteFiltrationItem(ctx *gin.Context) {
+	filtrationId := ctx.Query("id")
+	filtrationIdInt, err := strconv.Atoi(filtrationId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = h.services.Category.DeleteFiltration(filtrationIdInt)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "filtration item deleted")
 }
