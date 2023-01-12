@@ -234,7 +234,7 @@ func (s *storage) UserExists(email string) (int, string, error) {
 	)
 
 	row := s.db.QueryRow(queryGetUserId, email)
-	if err := row.Scan(&userId, userRoleCode); err != nil {
+	if err := row.Scan(&userId, &userRoleCode); err != nil {
 		return 0, "", err
 	}
 

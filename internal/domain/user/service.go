@@ -241,7 +241,7 @@ func (s *service) UserForgotPassword(email string) error {
 	}
 
 	// generate a token for changing a password
-	_ = jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
@@ -249,6 +249,19 @@ func (s *service) UserForgotPassword(email string) error {
 		userId,
 		userRoleCode,
 	})
+
+	signedStringToken, err := token.SignedString([]byte(signingKey))
+	if err != nil {
+		return err
+	}
+
+	// https://alliancecup.com.ua/forgot-password?token=fmfkamsdk132m131k23kk##!k2mee1
+	restorePasswordUrl := fmt.Sprintf(
+		"https://localhost:3000/restore-password?token=%s",
+		signedStringToken,
+	)
+
+	fmt.Println(restorePasswordUrl)
 
 	// TODO send a letter to an email
 

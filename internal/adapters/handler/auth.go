@@ -26,6 +26,10 @@ type SignInInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type ForgotPasswordInput struct {
+	Email string `json:"email" binding:"required"`
+}
+
 type ChangePasswordInput struct {
 	OldPassword string `json:"oldPassword" binding:"required"`
 	NewPassword string `json:"newPassword" binding:"required"`
@@ -282,16 +286,15 @@ func (h *Handler) changePassword(ctx *gin.Context) {
 	})
 }
 
-// TODO
 func (h *Handler) forgotPassword(ctx *gin.Context) {
-	var input string
+	var input ForgotPasswordInput
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err := h.services.Authorization.UserForgotPassword(input)
+	err := h.services.Authorization.UserForgotPassword(input.Email)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
