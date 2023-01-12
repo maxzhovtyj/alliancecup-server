@@ -108,13 +108,12 @@ func (h *Handler) getFiltrationAllItems(ctx *gin.Context) {
 // @ID adds category
 // @Accept json
 // @Produce json
-// @Param input body category.Category true "category info"
+// @Param input body category.Category true "category info" // TODO
 // @Success 201 {object} handler.ItemProcessedResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router  /api/admin/category [post]
 func (h *Handler) addCategory(ctx *gin.Context) {
-	// TODO img file add doesn't work!!!
 	ctx.Writer.Header().Set("Content-Type", "form/json")
 	err := ctx.Request.ParseMultipartForm(32 << 20)
 	if err != nil {

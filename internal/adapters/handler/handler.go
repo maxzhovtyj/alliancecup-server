@@ -120,6 +120,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
+			admin.PUT("product-image", h.updateProductImage)
 			admin.DELETE(productUrl, h.deleteProduct)
 
 			admin.POST(categoryUrl, h.addCategory)

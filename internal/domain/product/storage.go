@@ -17,6 +17,7 @@ type Storage interface {
 	Create(product Product) (int, error)
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
+	UpdateImage(product Product) (int, error)
 	Delete(productId int) error
 }
 
@@ -31,8 +32,6 @@ func NewProductsPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
 		qb: psql,
 	}
 }
-
-//TODO product discount
 
 var productsColumnsSelect = []string{
 	"products.id",
@@ -148,7 +147,6 @@ func (s *storage) Create(product Product) (int, error) {
 }
 
 func (s *storage) Update(product Product) (int, error) {
-	//TODO update product
 	tx, _ := s.db.Begin()
 
 	queryUpdateProduct := fmt.Sprintf(
@@ -158,11 +156,10 @@ func (s *storage) Update(product Product) (int, error) {
 			category_id = (SELECT id FROM %s WHERE category_title = $2),
 			product_title = $3,
 			img_url = $4,
-			amount_in_stock = $5,
-			price = $6,
-			characteristics = $7,
-			packaging = $8
-		WHERE id = $9
+			price = $5,
+			characteristics = $6,
+			packaging = $7
+		WHERE id = $8
 		`,
 		postgres.CategoriesTable,
 		postgres.ProductsTable,
@@ -174,10 +171,30 @@ func (s *storage) Update(product Product) (int, error) {
 		product.CategoryTitle,
 		product.ProductTitle,
 		product.ImgUrl,
-		product.AmountInStock,
 		product.Price,
 		product.Characteristics,
 		product.Packaging,
+		product.Id,
+	)
+	if err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+
+	return product.Id, tx.Commit()
+}
+
+func (s *storage) UpdateImage(product Product) (int, error) {
+	tx, _ := s.db.Begin()
+
+	queryUpdateProduct := fmt.Sprintf(
+		`UPDATE %s SET img_uuid = $1 WHERE id = $2`,
+		postgres.ProductsTable,
+	)
+
+	_, err := tx.Exec(
+		queryUpdateProduct,
+		product.ImgUUID,
 		product.Id,
 	)
 	if err != nil {

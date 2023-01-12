@@ -7,6 +7,7 @@ import (
 )
 
 type Storage interface {
+	GetById(id int) (Category, error)
 	GetAll() ([]Category, error)
 	Update(category Category) (int, error)
 	Create(category Category) (int, error)
@@ -24,6 +25,20 @@ type storage struct {
 
 func NewCategoryPostgres(db *sqlx.DB) *storage {
 	return &storage{db: db}
+}
+
+func (c *storage) GetById(id int) (category Category, err error) {
+	queryGetCategory := fmt.Sprintf(
+		"SELECT id, category_title, img_url, img_uuid, description FROM %s WHERE id = $1",
+		postgres.CategoriesTable,
+	)
+
+	err = c.db.Get(&category, queryGetCategory, id)
+	if err != nil {
+		return Category{}, err
+	}
+
+	return category, err
 }
 
 func (c *storage) GetAll() ([]Category, error) {
@@ -51,14 +66,22 @@ func (c *storage) Update(category Category) (int, error) {
 	queryUpdate := fmt.Sprintf(
 		`
 		UPDATE %s 
-		SET category_title=$1,
-			img_url=$2 
-		WHERE id=$3 
+		SET category_title = $1,
+			img_url = $2,
+			description = $3
+		WHERE id = $4 
 		RETURNING id
 		`,
 		postgres.CategoriesTable,
 	)
-	row := c.db.QueryRow(queryUpdate, category.CategoryTitle, category.ImgUrl, category.Id)
+
+	row := c.db.QueryRow(
+		queryUpdate,
+		category.CategoryTitle,
+		category.ImgUrl,
+		category.Description,
+		category.Id,
+	)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}

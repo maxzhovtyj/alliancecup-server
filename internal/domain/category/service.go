@@ -90,7 +90,29 @@ func (s *service) Create(dto CreateDTO) (int, error) {
 }
 
 func (s *service) Delete(id int) error {
-	return s.repo.Delete(id)
+	category, err := s.repo.GetById(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.Delete(id)
+	if err != nil {
+		return fmt.Errorf("failed to delete category due to %v", err)
+	}
+
+	if category.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			category.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to remove image object due to %v", err)
+		}
+	}
+
+	return err
 }
 
 func (s *service) DeleteFiltration(id int) error {
@@ -104,14 +126,16 @@ func (s *service) DeleteFiltration(id int) error {
 		return err
 	}
 
-	err = s.fileStorage.RemoveObject(
-		context.Background(),
-		minioPkg.ImagesBucket,
-		item.ImgUUID.String(),
-		minio.RemoveObjectOptions{},
-	)
-	if err != nil {
-		return err
+	if item.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			item.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	return err

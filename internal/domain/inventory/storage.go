@@ -109,7 +109,6 @@ func (s *storage) DoInventory(products []InsertProductDTO) error {
 			return fmt.Errorf("failed to insert inventory product, %v", err)
 		}
 
-		// TODO update product fields
 		_, err = tx.Exec(queryUpdateProduct, inventoryId, p.ProductId)
 		if err != nil {
 			_ = tx.Rollback()
@@ -166,7 +165,6 @@ var inventoryProducts = []string{
 func (s *storage) getInventoryProductsById(inventoryId int) ([]SelectProductDTO, error) {
 	var products []SelectProductDTO
 
-	// TODO createdAt
 	query, args, err := s.qb.
 		Select(inventoryProducts...).
 		Join(postgres.ProductsTable + " ON products.id = inventory_products.product_id").

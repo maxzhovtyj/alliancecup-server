@@ -19,7 +19,7 @@ type ProductIdInput struct {
 // getProducts godoc
 // @Summary      GetProducts
 // @Tags         api
-// @Product  	 get products from certain category with params
+// @Description  	 get products from certain category with params
 // @ID 			 gets products
 // @Produce      json
 // @Param 		 category query string false "Category"
@@ -46,7 +46,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 		}
 	}
 
-	params.PriceRange = ctx.Query("priceRange") // TODO price validation
+	params.PriceRange = ctx.Query("priceRange")
 	params.CreatedAt = ctx.Query("createdAt")
 	params.Search = ctx.Query("search")
 	characteristic := ctx.Query("characteristic")
@@ -83,11 +83,11 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Summary      Create
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  	 Adds a new product
+// @Description  Adds a new product
 // @ID 			 adds product
 // @Accept 	     json
 // @Produce      json
-// @Param        input body product.Product true "product info"
+// @Param        input body product.Product true "product info" // TODO
 // @Success      201  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -189,7 +189,7 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 // getProductById godoc
 // @Summary      GetProductById
 // @Tags         api
-// @Product  get product full info by its id
+// @Description  get product full info by its id
 // @ID 			 gets full product info
 // @Produce      json
 // @Param 		 id query int true "Product id"
@@ -218,7 +218,7 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Summary      UpdateProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  	 Updates product
+// @Description  Updates product
 // @ID 			 updates product
 // @Accept 	     json
 // @Produce      json
@@ -248,11 +248,71 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 	})
 }
 
+// updateProductImage godoc
+// @Summary      Update product
+// @Tags         api
+// @Description  Update product image
+// @ID 			 updates product image
+// @Produce      json
+// @Param 		 id query int true "Product id"
+// @Success      200  {object}
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/product [put]
+func (h *Handler) updateProductImage(ctx *gin.Context) {
+	ctx.Writer.Header().Set("Content-Type", "form/json")
+	err := ctx.Request.ParseMultipartForm(32 << 20)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var dto product.UpdateImageDTO
+
+	dto.Id, err = strconv.Atoi(ctx.Request.Form.Get("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("invalid id: %d", dto.Id))
+		return
+	}
+
+	files, ok := ctx.Request.MultipartForm.File["file"]
+	if len(files) != 0 {
+		if !ok {
+			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
+			return
+		}
+
+		fileInfo := files[0]
+		fileReader, err := fileInfo.Open()
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		dto.Img = &models.FileDTO{
+			Name:   fileInfo.Filename,
+			Size:   fileInfo.Size,
+			Reader: fileReader,
+		}
+	}
+
+	id, err := h.services.Product.UpdateImage(dto)
+	if err != nil {
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      id,
+		Message: "product image updated",
+	})
+}
+
 // deleteProduct godoc
 // @Summary      DeleteProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  	 Deletes product
+// @Description  	 Deletes product
 // @ID 			 delete product
 // @Accept 	     json
 // @Produce      json

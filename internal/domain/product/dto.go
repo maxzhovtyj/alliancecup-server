@@ -17,3 +17,8 @@ type CreateDTO struct {
 	Packaging       *types.JSONText `json:"packaging" db:"packaging"`
 	Description     *string         `json:"description" db:"description"`
 }
+
+type UpdateImageDTO struct {
+	Id  int             `json:"id" example:"15"`
+	Img *models.FileDTO `json:"file"`
+}

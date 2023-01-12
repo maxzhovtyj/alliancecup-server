@@ -16,6 +16,7 @@ type Service interface {
 	Add(product CreateDTO) (int, error)
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
+	UpdateImage(dto UpdateImageDTO) (int, error)
 	Delete(productId int) error
 }
 
@@ -106,8 +107,79 @@ func (s *service) Update(product Product) (int, error) {
 	return s.repo.Update(product)
 }
 
+func (s *service) UpdateImage(dto UpdateImageDTO) (int, error) {
+	var imgUUIDPtr *uuid.UUID
+	if dto.Img != nil {
+		imgUUID := uuid.New()
+		imgUUIDPtr = &imgUUID
+	} else {
+		return 0, nil
+	}
+
+	oldProduct, err := s.repo.GetProductById(dto.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	_, err = s.fileStorage.PutObject(
+		context.Background(),
+		minioPkg.ImagesBucket,
+		imgUUIDPtr.String(),
+		dto.Img.Reader,
+		dto.Img.Size,
+		minio.PutObjectOptions{},
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	if oldProduct.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			oldProduct.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return 0, fmt.Errorf("failed to remove old product image due to %v", err)
+		}
+	}
+
+	id, err := s.repo.UpdateImage(Product{
+		Id:      dto.Id,
+		ImgUUID: imgUUIDPtr,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to update product image uuid")
+	}
+
+	return id, err
+}
+
 func (s *service) Delete(productId int) error {
-	return s.repo.Delete(productId)
+	product, err := s.repo.GetProductById(productId)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.Delete(productId)
+	if err != nil {
+		return fmt.Errorf("failed to delete product %d due to %v", productId, err)
+	}
+
+	if product.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			product.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to remove object")
+		}
+	}
+
+	return err
 }
 
 func (s *service) GetProductById(id int) (Product, error) {
