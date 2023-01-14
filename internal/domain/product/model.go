@@ -9,7 +9,7 @@ import (
 type Product struct {
 	Id              int             `json:"id" db:"id" example:"5"`
 	Article         string          `json:"article" db:"article" binding:"required" example:"000123"`
-	CategoryTitle   *string         `json:"categoryTitle" db:"category_title" binding:"required" example:"Одноразові стакани"`
+	CategoryTitle   *string         `json:"categoryTitle" db:"category_title" example:"Одноразові стакани"`
 	ProductTitle    string          `json:"productTitle" db:"product_title" binding:"required" example:"Стакан одноразовий Крафт 110мл"`
 	ImgUrl          *string         `json:"imgUrl" db:"img_url" example:"https://google-images.com/some-img123"`
 	ImgUUID         *uuid.UUID      `json:"imgUUID" db:"img_uuid" example:"https://google-images.com/some-img123"`

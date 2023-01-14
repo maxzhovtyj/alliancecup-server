@@ -166,8 +166,8 @@ func (s *storage) Update(product Product) (int, error) {
 			packaging = $7
 		WHERE id = $8
 		`,
-		postgres.CategoriesTable,
 		postgres.ProductsTable,
+		postgres.CategoriesTable,
 	)
 
 	_, err := tx.Exec(
