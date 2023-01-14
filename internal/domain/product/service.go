@@ -54,7 +54,7 @@ func (s *service) Add(dto CreateDTO) (int, error) {
 
 	product := Product{
 		Article:         dto.Article,
-		CategoryTitle:   dto.CategoryTitle,
+		CategoryTitle:   &dto.CategoryTitle,
 		ProductTitle:    dto.ProductTitle,
 		AmountInStock:   dto.AmountInStock,
 		ImgUUID:         imgUUIDPtr,

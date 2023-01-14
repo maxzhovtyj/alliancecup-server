@@ -44,6 +44,7 @@ var productsColumnsSelect = []string{
 	"products.price",
 	"products.characteristics",
 	"products.packaging",
+	"products.is_active",
 	"products.created_at",
 }
 
@@ -78,7 +79,11 @@ func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 	}
 
 	if params.CategoryId != 0 {
-		query = query.Where("products.category_id=?", params.CategoryId)
+		query = query.Where("products.category_id = ?", params.CategoryId)
+	}
+
+	if params.IsActive != nil {
+		query = query.Where("products.is_active = ?", params.IsActive)
 	}
 
 	ordered := query.OrderBy("products.created_at DESC").Limit(9)

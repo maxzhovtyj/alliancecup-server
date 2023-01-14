@@ -33,7 +33,7 @@ type ProductIdInput struct {
 // @Failure      500  {object}  Error
 // @Router       /api/products [post]
 func (h *Handler) getProducts(ctx *gin.Context) {
-	// Example http://localhost:8000/api/products?characteristic=Колір:Білий+Розмір:110мл
+	// Example http://localhost:8000/api/products?characteristic=Колір:Білий|Розмір:110мл
 	var params shopping.SearchParams
 
 	category := ctx.Query("category")
@@ -49,8 +49,18 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 	params.PriceRange = ctx.Query("priceRange")
 	params.CreatedAt = ctx.Query("createdAt")
 	params.Search = ctx.Query("search")
-	characteristic := ctx.Query("characteristic")
 
+	isActive := ctx.Query("isActive")
+	if isActive != "" {
+		parseBool, err := strconv.ParseBool(isActive)
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to parse isActive field %v", err).Error())
+			return
+		}
+		params.IsActive = &parseBool
+	}
+
+	characteristic := ctx.Query("characteristic")
 	if characteristic != "" {
 		arr := strings.Split(characteristic, "|")
 		for _, e := range arr {
@@ -70,7 +80,6 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 	}
 
 	products, err := h.services.Product.GetWithParams(params)
-
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

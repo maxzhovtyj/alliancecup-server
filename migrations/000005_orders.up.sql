@@ -44,7 +44,7 @@ CREATE TABLE orders
 CREATE TABLE orders_products
 (
     order_id   INT REFERENCES orders (id) ON DELETE CASCADE NOT NULL,
-    product_id INT                                          REFERENCES products (id) ON DELETE SET NULL NOT NULL,
+    product_id INT                                          REFERENCES products (id) ON DELETE SET NULL,
     price      DECIMAL(12, 2)                               NOT NULL,
     quantity   INT                                          NOT NULL,
     PRIMARY KEY (order_id, product_id),
