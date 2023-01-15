@@ -10,6 +10,7 @@ type Storage interface {
 	GetById(id int) (Category, error)
 	GetAll() ([]Category, error)
 	Update(category Category) (int, error)
+	UpdateImage(category Category) (int, error)
 	Create(category Category) (int, error)
 	Delete(id int) error
 	DeleteFiltration(id int) error
@@ -80,6 +81,26 @@ func (c *storage) Update(category Category) (int, error) {
 		category.CategoryTitle,
 		category.ImgUrl,
 		category.Description,
+		category.Id,
+	)
+	if err := row.Scan(&id); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (c *storage) UpdateImage(category Category) (int, error) {
+	var id int
+
+	queryUpdate := fmt.Sprintf(
+		`UPDATE %s SET img_uuid = $1 WHERE id = $2 RETURNING id`,
+		postgres.CategoriesTable,
+	)
+
+	row := c.db.QueryRow(
+		queryUpdate,
+		category.ImgUUID,
 		category.Id,
 	)
 	if err := row.Scan(&id); err != nil {

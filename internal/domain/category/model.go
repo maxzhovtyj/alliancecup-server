@@ -20,6 +20,11 @@ type CreateDTO struct {
 	CategoryDescription *string
 }
 
+type UpdateImageDTO struct {
+	Id  int
+	Img *models.FileDTO
+}
+
 type CreateFiltrationDTO struct {
 	Id                    int
 	CategoryId            *int

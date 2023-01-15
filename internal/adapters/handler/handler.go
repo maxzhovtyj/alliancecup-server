@@ -105,10 +105,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group(apiUrl, h.userIdentity)
 	{
+		api.GET("category", h.getCategory)
 		api.GET(categoriesUrl, h.getCategories)
 		api.GET(filtrationUrl, h.getFiltration)
+
 		api.GET(productsUrl, h.getProducts)
 		api.GET(productUrl, h.getProductById)
+
 		api.POST(reviewUrl, h.addReview)
 		api.GET(reviewsUrl, h.getReviews)
 
@@ -125,6 +128,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 			admin.POST(categoryUrl, h.addCategory)
 			admin.PUT(categoryUrl, h.updateCategory)
+			admin.PUT("category-image", h.updateCategoryImage)
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
 			admin.GET("characteristics", h.getFiltrationAllItems)

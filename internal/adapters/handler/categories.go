@@ -19,6 +19,33 @@ type DeleteCategoryInput struct {
 	CategoryTitle string `json:"category_title"`
 }
 
+// getCategory godoc
+// @Summary      Get category
+// @Tags         api
+// @Description  get category
+// @ID get categories
+// @Accept       json
+// @Produce      json
+// @Param        id query int true "Category id"
+// @Success      200  {object}  category.Category
+// @Failure      500  {object}  Error
+// @Router       /api/category [get]
+func (h *Handler) getCategory(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid id, %v", err).Error())
+		return
+	}
+
+	categoryItem, err := h.services.Category.Get(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, categoryItem)
+}
+
 // getCategories godoc
 // @Summary      GetCategories
 // @Tags         api
@@ -202,6 +229,68 @@ func (h *Handler) updateCategory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
 		Id:      id,
 		Message: "category updated",
+	})
+}
+
+// updateCategoryImage godoc
+// @Summary      Update category image
+// @Security 	 ApiKeyAuth
+// @Tags         api/admin
+// @Description  Updates category image
+// @ID 			 updates category image
+// @Accept 	     json
+// @Produce      json
+// @Param        input body category.Category true "category info"
+// @Success      200  {object}  handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/category [put]
+func (h *Handler) updateCategoryImage(ctx *gin.Context) {
+	ctx.Writer.Header().Set("Content-Type", "form/json")
+	err := ctx.Request.ParseMultipartForm(32 << 20)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var dto category.UpdateImageDTO
+
+	dto.Id, err = strconv.Atoi(ctx.Request.Form.Get("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("invalid id: %d", dto.Id))
+		return
+	}
+
+	files, ok := ctx.Request.MultipartForm.File["file"]
+	if len(files) != 0 {
+		if !ok {
+			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
+			return
+		}
+
+		fileInfo := files[0]
+		fileReader, err := fileInfo.Open()
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		dto.Img = &models.FileDTO{
+			Name:   fileInfo.Filename,
+			Size:   fileInfo.Size,
+			Reader: fileReader,
+		}
+	}
+
+	id, err := h.services.Category.UpdateImage(dto)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      id,
+		Message: "category image updated",
 	})
 }
 

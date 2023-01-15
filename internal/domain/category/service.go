@@ -9,8 +9,10 @@ import (
 )
 
 type Service interface {
+	Get(id int) (Category, error)
 	GetAll() ([]Category, error)
 	Update(category Category) (int, error)
+	UpdateImage(dto UpdateImageDTO) (int, error)
 	Create(dto CreateDTO) (int, error)
 	Delete(id int) error
 	DeleteFiltration(id int) error
@@ -31,12 +33,65 @@ func NewCategoryService(repo Storage, fileStorage *minio.Client) Service {
 	}
 }
 
+func (s *service) Get(id int) (Category, error) {
+	return s.repo.GetById(id)
+}
+
 func (s *service) GetAll() ([]Category, error) {
 	return s.repo.GetAll()
 }
 
 func (s *service) Update(category Category) (int, error) {
 	return s.repo.Update(category)
+}
+
+func (s *service) UpdateImage(dto UpdateImageDTO) (int, error) {
+	var imgUUIDPtr *uuid.UUID
+	if dto.Img != nil {
+		imgUUID := uuid.New()
+		imgUUIDPtr = &imgUUID
+	} else {
+		return 0, nil
+	}
+
+	oldCategory, err := s.repo.GetById(dto.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	_, err = s.fileStorage.PutObject(
+		context.Background(),
+		minioPkg.ImagesBucket,
+		imgUUIDPtr.String(),
+		dto.Img.Reader,
+		dto.Img.Size,
+		minio.PutObjectOptions{},
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	if oldCategory.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			oldCategory.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return 0, fmt.Errorf("failed to remove old product image due to %v", err)
+		}
+	}
+
+	id, err := s.repo.UpdateImage(Category{
+		Id:      dto.Id,
+		ImgUUID: imgUUIDPtr,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return id, err
 }
 
 func (s *service) Create(dto CreateDTO) (int, error) {
