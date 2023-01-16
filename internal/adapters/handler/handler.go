@@ -52,10 +52,10 @@ const (
 	inventoryUrl         = "/inventory"
 	inventoriesUrl       = "/inventories"
 	inventoryProductsUrl = "/inventory-products"
-	saveInventory        = "/save-inventory"
-	invoiceUrl           = "/invoice"
-	personalInfoUrl      = "personal-info"
-	shoppingUrl          = "/shopping"
+	//saveInventory        = "/save-inventory"
+	invoiceUrl      = "/invoice"
+	personalInfoUrl = "personal-info"
+	shoppingUrl     = "/shopping"
 )
 
 type Handler struct {
@@ -124,6 +124,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
 			admin.PUT("product-image", h.updateProductImage)
+			admin.PUT("product-visibility", h.updateProductVisibility)
 			admin.DELETE(productUrl, h.deleteProduct)
 
 			admin.POST(categoryUrl, h.addCategory)
@@ -154,7 +155,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				superAdmin.DELETE(moderatorUrl, h.deleteModerator)
 
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
-				superAdmin.POST(saveInventory, h.saveInventory)
+				//superAdmin.POST(saveInventory, h.saveInventory)
 				superAdmin.POST(inventoryUrl, h.doInventory)
 				superAdmin.GET(inventoriesUrl, h.getInventories)
 				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)

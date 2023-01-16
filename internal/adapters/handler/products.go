@@ -16,6 +16,11 @@ type ProductIdInput struct {
 	Id int `json:"id"`
 }
 
+type ProductVisibility struct {
+	Id       int  `json:"id"`
+	IsActive bool `json:"isActive"`
+}
+
 // getProducts godoc
 // @Summary      GetProducts
 // @Tags         api
@@ -239,7 +244,6 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Router       /api/admin/product [put]
 func (h *Handler) updateProduct(ctx *gin.Context) {
 	var input product.Product
-
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -314,6 +318,36 @@ func (h *Handler) updateProductImage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ItemProcessedResponse{
 		Id:      id,
 		Message: "product image updated",
+	})
+}
+
+// updateProductVisibility godoc
+// @Summary      Update product visibility
+// @Tags         api
+// @Description  Update product image
+// @ID 			 updates product image
+// @Produce      json
+// @Param 		 id body bool true "Product id"
+// @Success      200  {object}
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/product-visibility [put]
+func (h *Handler) updateProductVisibility(ctx *gin.Context) {
+	var input ProductVisibility
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.services.Product.UpdateVisibility(input.Id, input.IsActive)
+	if err != nil {
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      input.Id,
+		Message: "product visibility changed",
 	})
 }
 

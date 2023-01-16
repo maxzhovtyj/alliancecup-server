@@ -17,6 +17,7 @@ type Service interface {
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
 	UpdateImage(dto UpdateImageDTO) (int, error)
+	UpdateVisibility(id int, isActive bool) error
 	Delete(productId int) error
 }
 
@@ -105,6 +106,13 @@ func (s *service) GetFavourites(userId int) ([]Product, error) {
 
 func (s *service) Update(product Product) (int, error) {
 	return s.repo.Update(product)
+}
+
+func (s *service) UpdateVisibility(id int, isActive bool) error {
+	return s.repo.UpdateVisibility(Product{
+		Id:       id,
+		IsActive: isActive,
+	})
 }
 
 func (s *service) UpdateImage(dto UpdateImageDTO) (int, error) {

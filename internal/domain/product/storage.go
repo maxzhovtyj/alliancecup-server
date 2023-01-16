@@ -18,6 +18,7 @@ type Storage interface {
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
 	UpdateImage(product Product) (int, error)
+	UpdateVisibility(product Product) error
 	Delete(productId int) error
 }
 
@@ -208,6 +209,24 @@ func (s *storage) UpdateImage(product Product) (int, error) {
 	}
 
 	return product.Id, tx.Commit()
+}
+
+func (s *storage) UpdateVisibility(product Product) error {
+	queryUpdateProduct := fmt.Sprintf(
+		`UPDATE %s SET is_active = $1 WHERE id = $2`,
+		postgres.ProductsTable,
+	)
+
+	_, err := s.db.Exec(
+		queryUpdateProduct,
+		product.IsActive,
+		product.Id,
+	)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (s *storage) Delete(productId int) error {
