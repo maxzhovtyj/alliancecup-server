@@ -266,12 +266,12 @@ func (s *storage) GetOrderById(orderId int) (SelectDTO, error) {
 		Select(
 			"orders_products.quantity",
 			"orders_products.price * orders_products.quantity as price_for_quantity",
+			"orders_products.price",
 			"products.id",
 			"products.article",
 			"products.product_title",
 			"products.img_url",
 			"products.amount_in_stock",
-			"products.price",
 			"products.packaging",
 			"products.created_at",
 		).

@@ -74,12 +74,14 @@ func NewHandler(services *service.Service, logger *logging.Logger, cfg *config.C
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
-	c := cors.New(cors.Config{
+
+	corsConfig := cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:3000",
+			"http://192.168.1.53:3000",
 		},
 		AllowMethods: []string{
-			http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut,
+			http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut, http.MethodPatch,
 		},
 		AllowHeaders: []string{
 			"Authorization",
@@ -90,8 +92,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{},
-	})
+	}
 
+	c := cors.New(corsConfig)
 	router.Use(c)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
