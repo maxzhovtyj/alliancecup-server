@@ -79,6 +79,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		AllowOrigins: []string{
 			"http://localhost:3000",
 			"http://192.168.1.53:3000",
+			"http://172.20.10.3:3000",
 		},
 		AllowMethods: []string{
 			http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut, http.MethodPatch,

@@ -72,8 +72,10 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 			var paramChar shopping.CharacteristicParam
 
 			eArr := strings.Split(e, ":")
-			paramChar.Name = eArr[0]
-			paramChar.Value = eArr[1]
+			if len(eArr) == 2 {
+				paramChar.Name = eArr[0]
+				paramChar.Value = eArr[1]
+			}
 
 			params.Characteristic = append(params.Characteristic, paramChar)
 		}
