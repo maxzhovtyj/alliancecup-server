@@ -213,7 +213,7 @@ func (s *storage) GetUserPasswordHash(userId int) (string, error) {
 }
 
 func (s *storage) UpdatePassword(userId int, newPassword string) error {
-	queryUpdatePassword := fmt.Sprintf("UPDATE %s SET password_hash=$1 WHERE id=$2", postgres.UsersTable)
+	queryUpdatePassword := fmt.Sprintf("UPDATE %s SET password_hash = $1 WHERE id = $2", postgres.UsersTable)
 
 	_, err := s.db.Exec(queryUpdatePassword, newPassword, userId)
 	if err != nil {

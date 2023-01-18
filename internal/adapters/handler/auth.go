@@ -35,6 +35,10 @@ type ChangePasswordInput struct {
 	NewPassword string `json:"newPassword" binding:"required"`
 }
 
+type RestorePasswordInput struct {
+	NewPassword string `json:"password" binding:"required"`
+}
+
 // signUp godoc
 // @Summary      SignUp
 // @Tags         auth
@@ -276,6 +280,49 @@ func (h *Handler) changePassword(ctx *gin.Context) {
 	}
 
 	err = h.services.Authorization.ChangePassword(id, input.OldPassword, input.NewPassword)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"message": "password changed",
+	})
+}
+
+// restorePassword godoc
+// @Summary Client restore password
+// @Security ApiKeyAuth
+// @Tags api/client
+// @Description Restores user password
+// @ID change user password
+// @Accept json
+// @Produce json
+// @Param input body handler.ChangePasswordInput true "Info to change password"
+// @Success 200  {object} object
+// @Failure 400  {object} Error
+// @Failure 401  {object} Error
+// @Failure 500  {object} Error
+// @Router /api/client/restore-password [put]
+func (h *Handler) restorePassword(ctx *gin.Context) {
+	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var input RestorePasswordInput
+	if err = ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(input.NewPassword) < 4 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid password lenght").Error())
+		return
+	}
+
+	err = h.services.Authorization.RestorePassword(id, input.NewPassword)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

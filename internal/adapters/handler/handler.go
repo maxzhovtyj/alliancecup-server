@@ -174,6 +174,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.PUT(personalInfoUrl, h.updatePersonalInfo)
 
 			client.PUT(changePasswordUrl, h.changePassword)
+			client.PUT("restore-password", h.restorePassword)
 			client.DELETE(logoutUrl, h.logout)
 
 			client.GET(userOrdersUrl, h.userOrders)
