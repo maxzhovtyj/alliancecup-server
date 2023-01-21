@@ -25,6 +25,11 @@ type UpdateImageDTO struct {
 	Img *models.FileDTO
 }
 
+type DeleteImageDTO struct {
+	Id  int
+	Img *models.FileDTO
+}
+
 type CreateFiltrationDTO struct {
 	Id                    int
 	CategoryId            *int
@@ -35,6 +40,17 @@ type CreateFiltrationDTO struct {
 	FiltrationTitle       string
 	FiltrationDescription *string
 	FiltrationListId      *int
+}
+
+type UpdateFiltrationDTO struct {
+	Id                    int     `json:"id" binding:"required"`
+	CategoryId            *int    `json:"categoryId"`
+	FiltrationListId      *int    `json:"filtrationListId"`
+	ImgUrl                *string `json:"imgUrl"`
+	SearchKey             string  `json:"searchKey" binding:"required"`
+	SearchCharacteristic  string  `json:"searchCharacteristic" binding:"required"`
+	FiltrationTitle       string  `json:"filtrationTitle" binding:"required"`
+	FiltrationDescription *string `json:"filtrationDescription"`
 }
 
 type Filtration struct {

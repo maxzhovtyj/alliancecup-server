@@ -80,7 +80,6 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 			params.Characteristic = append(params.Characteristic, paramChar)
 		}
 	}
-
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -243,7 +242,7 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/product [put]
+// @Router       /api/admin/product-image [put]
 func (h *Handler) updateProduct(ctx *gin.Context) {
 	var input product.Product
 	if err := ctx.BindJSON(&input); err != nil {
@@ -321,6 +320,23 @@ func (h *Handler) updateProductImage(ctx *gin.Context) {
 		Id:      id,
 		Message: "product image updated",
 	})
+}
+
+// deleteProductImage godoc
+// @Summary      Delete product image (Minio)
+// @Tags         api
+// @Description  Delete product image (Minio)
+// @ID 			 delete product image (minio)
+// @Produce      json
+// @Param 		 id query int true "Product id"
+// @Success      200  {object}
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/product-image [delete]
+func (h *Handler) deleteProductImage(ctx *gin.Context) {
+	// TODO
+	ctx.JSON(http.StatusNotImplemented, "handler not implemented")
 }
 
 // updateProductVisibility godoc

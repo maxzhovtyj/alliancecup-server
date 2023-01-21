@@ -294,6 +294,24 @@ func (h *Handler) updateCategoryImage(ctx *gin.Context) {
 	})
 }
 
+// deleteCategoryImage godoc
+// @Summary      Delete category image (Minio)
+// @Security 	 ApiKeyAuth
+// @Tags         api/admin
+// @Description  Deletes category image (Minio)
+// @ID 			 deletes category image (Minio)
+// @Accept 	     json
+// @Produce      json
+// @Param        input body category.Category true "category info"
+// @Success      200  {object}  handler.ItemProcessedResponse
+// @Failure      400  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/category-image [delete]
+func (h *Handler) deleteCategoryImage(ctx *gin.Context) {
+	// TODO
+	ctx.JSON(http.StatusNotImplemented, "handler not implemented")
+}
+
 // deleteCategory godoc
 // @Summary      DeleteCategory
 // @Security 	 ApiKeyAuth

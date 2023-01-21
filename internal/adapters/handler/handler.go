@@ -128,16 +128,22 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
 			admin.PUT("product-image", h.updateProductImage)
+			admin.PUT("product-image", h.deleteProductImage)
 			admin.PUT("product-visibility", h.updateProductVisibility)
 			admin.DELETE(productUrl, h.deleteProduct)
 
 			admin.POST(categoryUrl, h.addCategory)
 			admin.PUT(categoryUrl, h.updateCategory)
 			admin.PUT("category-image", h.updateCategoryImage)
+			admin.DELETE("category-image", h.deleteCategoryImage)
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
 			admin.GET("characteristics", h.getFiltrationAllItems)
+
 			admin.POST(filtrationUrl, h.addFiltrationItem)
+			admin.PUT(filtrationUrl, h.updateFiltrationItem)
+			admin.PUT("filtration-image", h.updateFiltrationItemImage)
+			admin.PUT("filtration-image", h.deleteFiltrationItemImage)
 			admin.DELETE(filtrationUrl, h.deleteFiltrationItem)
 
 			admin.GET(ordersUrl, h.adminGetOrders)

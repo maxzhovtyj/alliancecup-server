@@ -18,6 +18,8 @@ type Storage interface {
 	GetFiltration(fkName string, id int) ([]Filtration, error)
 	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(filtration Filtration) (int, error)
+	UpdateFiltration(filtration Filtration) (int, error)
+	UpdateFiltrationItemImage(id int, img string) error
 }
 
 type storage struct {
@@ -260,4 +262,52 @@ func (c *storage) AddFiltration(filtration Filtration) (int, error) {
 	}
 
 	return filtrationId, nil
+}
+
+func (c *storage) UpdateFiltration(filtration Filtration) (int, error) {
+	var filtrationId int
+
+	queryUpdateFiltration := fmt.Sprintf(
+		`
+		UPDATE %s
+		SET search_key = $1,
+			search_characteristic = $2,
+			filtration_title = $3,
+			filtration_description = $4,
+			img_url = $5,
+			category_id = $6,
+			filtration_list_id = $7
+		WHERE id = $8
+		RETURNING id
+		`,
+		postgres.CategoriesFiltrationTable,
+	)
+	row := c.db.QueryRow(
+		queryUpdateFiltration,
+		filtration.SearchKey,
+		filtration.SearchCharacteristic,
+		filtration.FiltrationTitle,
+		filtration.FiltrationDescription,
+		filtration.ImgUrl,
+		filtration.CategoryId,
+		filtration.FiltrationListId,
+		filtration.Id,
+	)
+
+	if err := row.Scan(&filtrationId); err != nil {
+		return 0, fmt.Errorf("failed to execute query to a db due to: %v", err)
+	}
+
+	return filtrationId, nil
+}
+
+func (c *storage) UpdateFiltrationItemImage(id int, img string) error {
+	queryUpdateFiltration := fmt.Sprintf(
+		`UPDATE %s SET img_uuid = $1 WHERE id = $2`,
+		postgres.CategoriesFiltrationTable,
+	)
+
+	_, err := c.db.Exec(queryUpdateFiltration, img, id)
+
+	return err
 }

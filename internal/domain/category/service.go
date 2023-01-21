@@ -15,10 +15,12 @@ type Service interface {
 	UpdateImage(dto UpdateImageDTO) (int, error)
 	Create(dto CreateDTO) (int, error)
 	Delete(id int) error
-	DeleteFiltration(id int) error
 	GetFiltration(fkName string, id int) ([]Filtration, error)
 	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(dto CreateFiltrationDTO) (int, error)
+	UpdateFiltration(dto UpdateFiltrationDTO) (int, error)
+	UpdateFiltrationImage(dto UpdateImageDTO) (int, error)
+	DeleteFiltration(id int) error
 }
 
 type service struct {
@@ -253,4 +255,63 @@ func (s *service) GetFiltration(fkName string, id int) ([]Filtration, error) {
 
 func (s *service) GetFiltrationItems() ([]Filtration, error) {
 	return s.repo.GetFiltrationItems()
+}
+
+func (s *service) UpdateFiltration(dto UpdateFiltrationDTO) (int, error) {
+	return s.repo.UpdateFiltration(Filtration{
+		Id:                    dto.Id,
+		CategoryId:            dto.CategoryId,
+		ImgUrl:                dto.ImgUrl,
+		SearchKey:             dto.SearchKey,
+		SearchCharacteristic:  dto.SearchCharacteristic,
+		FiltrationTitle:       dto.FiltrationTitle,
+		FiltrationDescription: dto.FiltrationDescription,
+		FiltrationListId:      dto.FiltrationListId,
+	})
+}
+
+func (s *service) UpdateFiltrationImage(dto UpdateImageDTO) (int, error) {
+	var imgUUIDPtr *uuid.UUID
+	if dto.Img != nil {
+		imgUUID := uuid.New()
+		imgUUIDPtr = &imgUUID
+	} else {
+		return 0, nil
+	}
+
+	item, err := s.repo.GetFiltrationItem(dto.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	if item.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			item.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return 0, fmt.Errorf("failed to remove filtration item image %v", err)
+		}
+
+		err = s.repo.UpdateFiltrationItemImage(dto.Id, imgUUIDPtr.String())
+		if err != nil {
+			return 0, err
+		}
+
+		_, err = s.fileStorage.PutObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			imgUUIDPtr.String(),
+			dto.Img.Reader,
+			dto.Img.Size,
+			minio.PutObjectOptions{},
+		)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return dto.Id, err
 }

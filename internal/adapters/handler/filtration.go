@@ -118,6 +118,121 @@ func (h *Handler) addFiltrationItem(ctx *gin.Context) {
 	})
 }
 
+// updateFiltrationItemImage godoc
+// @Summary Update filtration image (Minio)
+// @Security ApiKeyAuth
+// @Tags api/admin
+// @Description Updates filtration item image (Minio)
+// @ID update filtration
+// @Accept json
+// @Produce json
+// @Param input body category.Filtration true "filtration info"
+// @Success 201 {object} string
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /api/admin/filtration-image [put]
+func (h *Handler) updateFiltrationItemImage(ctx *gin.Context) {
+	ctx.Writer.Header().Set("Content-Type", "form/json")
+	err := ctx.Request.ParseMultipartForm(32 << 20)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var dto category.UpdateImageDTO
+
+	dto.Id, err = strconv.Atoi(ctx.Request.Form.Get("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("invalid id: %d", dto.Id))
+		return
+	}
+
+	files, ok := ctx.Request.MultipartForm.File["file"]
+	if len(files) != 0 {
+		if !ok {
+			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
+			return
+		}
+
+		fileInfo := files[0]
+		fileReader, err := fileInfo.Open()
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		dto.Img = &models.FileDTO{
+			Name:   fileInfo.Filename,
+			Size:   fileInfo.Size,
+			Reader: fileReader,
+		}
+	}
+
+	id, err := h.services.Category.UpdateFiltrationImage(dto)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      id,
+		Message: "filtration item image updated",
+	})
+}
+
+// deleteFiltrationItemImage godoc
+// @Summary Delete filtration image (Minio)
+// @Security ApiKeyAuth
+// @Tags api/admin
+// @Description Deletes filtration item image (Minio)
+// @ID delete filtration item image (minio)
+// @Accept json
+// @Produce json
+// @Param input body category.Filtration true "filtration info"
+// @Success 201 {object} string
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /api/admin/filtration-image [put]
+func (h *Handler) deleteFiltrationItemImage(ctx *gin.Context) {
+	// TODO
+	ctx.JSON(http.StatusNotImplemented, "handler not implemented")
+}
+
+// updateFiltrationItem godoc
+// @Summary Update filtration
+// @Security ApiKeyAuth
+// @Tags api/admin
+// @Description Updates a filtration item to a category
+// @ID update filtration
+// @Accept json
+// @Produce json
+// @Param input body category.Filtration true "filtration info"
+// @Success 201 {object} string
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /api/admin/filtration [post]
+func (h *Handler) updateFiltrationItem(ctx *gin.Context) {
+	var filtration category.UpdateFiltrationDTO
+	if err := ctx.BindJSON(&filtration); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := h.services.Category.UpdateFiltration(filtration)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, map[string]any{
+		"id":      id,
+		"message": "filtration item updated",
+	})
+}
+
 // deleteFiltrationItem godoc
 // @Summary Delete filtration
 // @Security ApiKeyAuth
