@@ -19,6 +19,7 @@ type Service interface {
 	UpdateImage(dto UpdateImageDTO) (int, error)
 	UpdateVisibility(id int, isActive bool) error
 	Delete(productId int) error
+	DeleteImage(productId int) error
 }
 
 type service struct {
@@ -184,6 +185,32 @@ func (s *service) Delete(productId int) error {
 		)
 		if err != nil {
 			return fmt.Errorf("failed to remove object")
+		}
+	}
+
+	return err
+}
+
+func (s *service) DeleteImage(productId int) error {
+	product, err := s.repo.GetProductById(productId)
+	if err != nil {
+		return err
+	}
+
+	if product.ImgUUID != nil {
+		err = s.repo.DeleteImage(productId)
+		if err != nil {
+			return fmt.Errorf("failed to delete product image, %v", err)
+		}
+
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			product.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to remove object, %v", err)
 		}
 	}
 

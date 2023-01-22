@@ -31,8 +31,12 @@ const (
 	refreshUrl           = "/refresh"
 	categoriesUrl        = "/categories"
 	categoryUrl          = "/category"
+	categoryImageUrl     = "/category-image"
+	filtrationImageUrl   = "/filtration-image"
 	productsUrl          = "/products"
 	productUrl           = "/product"
+	productImageUrl      = "/product-image"
+	productVisibilityUrl = "/product-visibility"
 	reviewsUrl           = "/reviews"
 	reviewUrl            = "/review"
 	cartUrl              = "/cart"
@@ -53,9 +57,10 @@ const (
 	inventoriesUrl       = "/inventories"
 	inventoryProductsUrl = "/inventory-products"
 	//saveInventory        = "/save-inventory"
-	invoiceUrl      = "/invoice"
-	personalInfoUrl = "personal-info"
-	shoppingUrl     = "/shopping"
+	invoiceUrl         = "/invoice"
+	personalInfoUrl    = "/personal-info"
+	shoppingUrl        = "/shopping"
+	restorePasswordUrl = "/restore-password"
 )
 
 type Handler struct {
@@ -109,7 +114,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group(apiUrl, h.userIdentity)
 	{
-		api.GET("category", h.getCategory)
+		api.GET(categoryUrl, h.getCategory)
 		api.GET(categoriesUrl, h.getCategories)
 		api.GET(filtrationUrl, h.getFiltration)
 
@@ -127,23 +132,23 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
-			admin.PUT("product-image", h.updateProductImage)
-			admin.PUT("product-image", h.deleteProductImage)
-			admin.PUT("product-visibility", h.updateProductVisibility)
+			admin.PUT(productImageUrl, h.updateProductImage)
+			admin.DELETE(productImageUrl, h.deleteProductImage)
+			admin.PUT(productVisibilityUrl, h.updateProductVisibility)
 			admin.DELETE(productUrl, h.deleteProduct)
 
 			admin.POST(categoryUrl, h.addCategory)
 			admin.PUT(categoryUrl, h.updateCategory)
-			admin.PUT("category-image", h.updateCategoryImage)
-			admin.DELETE("category-image", h.deleteCategoryImage)
+			admin.PUT(categoryImageUrl, h.updateCategoryImage)
+			admin.DELETE(categoryImageUrl, h.deleteCategoryImage)
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
 			admin.GET("characteristics", h.getFiltrationAllItems)
 
 			admin.POST(filtrationUrl, h.addFiltrationItem)
 			admin.PUT(filtrationUrl, h.updateFiltrationItem)
-			admin.PUT("filtration-image", h.updateFiltrationItemImage)
-			admin.PUT("filtration-image", h.deleteFiltrationItemImage)
+			admin.PUT(filtrationImageUrl, h.updateFiltrationItemImage)
+			admin.DELETE(filtrationImageUrl, h.deleteFiltrationItemImage)
 			admin.DELETE(filtrationUrl, h.deleteFiltrationItem)
 
 			admin.GET(ordersUrl, h.adminGetOrders)
@@ -180,7 +185,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.PUT(personalInfoUrl, h.updatePersonalInfo)
 
 			client.PUT(changePasswordUrl, h.changePassword)
-			client.PUT("restore-password", h.restorePassword)
+			client.PUT(restorePasswordUrl, h.restorePassword)
 			client.DELETE(logoutUrl, h.logout)
 
 			client.GET(userOrdersUrl, h.userOrders)

@@ -20,6 +20,7 @@ type Storage interface {
 	UpdateImage(product Product) (int, error)
 	UpdateVisibility(product Product) error
 	Delete(productId int) error
+	DeleteImage(productId int) error
 }
 
 type storage struct {
@@ -240,6 +241,17 @@ func (s *storage) Delete(productId int) error {
 	}
 
 	return tx.Commit()
+}
+
+func (s *storage) DeleteImage(productId int) error {
+	queryDeleteProductImg := fmt.Sprintf("UPDATE %s SET img_uuid = NULL WHERE id = $1", postgres.ProductsTable)
+
+	_, err := s.db.Exec(queryDeleteProductImg, productId)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (s *storage) GetProductById(id int) (Product, error) {

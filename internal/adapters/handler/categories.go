@@ -308,8 +308,22 @@ func (h *Handler) updateCategoryImage(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/category-image [delete]
 func (h *Handler) deleteCategoryImage(ctx *gin.Context) {
-	// TODO
-	ctx.JSON(http.StatusNotImplemented, "handler not implemented")
+	categoryId, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid id, %v", err).Error())
+		return
+	}
+
+	err = h.services.Category.DeleteImage(categoryId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"id":      categoryId,
+		"message": "category image (Minio) deleted",
+	})
 }
 
 // deleteCategory godoc
@@ -327,8 +341,6 @@ func (h *Handler) deleteCategoryImage(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/category [delete]
 func (h *Handler) deleteCategory(ctx *gin.Context) {
-	// TODO "pq: update or delete on table \"products\" violates foreign key constraint \"orders_products_product_id_fkey\" on table \"orders_products\""
-
 	categoryId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())

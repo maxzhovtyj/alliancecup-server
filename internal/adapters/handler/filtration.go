@@ -189,15 +189,29 @@ func (h *Handler) updateFiltrationItemImage(ctx *gin.Context) {
 // @ID delete filtration item image (minio)
 // @Accept json
 // @Produce json
-// @Param input body category.Filtration true "filtration info"
+// @Param id query int true "filtration id"
 // @Success 201 {object} string
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
-// @Router /api/admin/filtration-image [put]
+// @Router /api/admin/filtration-image [delete]
 func (h *Handler) deleteFiltrationItemImage(ctx *gin.Context) {
-	// TODO
-	ctx.JSON(http.StatusNotImplemented, "handler not implemented")
+	filtrationId, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid id, %v", err).Error())
+		return
+	}
+
+	err = h.services.Category.DeleteFiltrationImage(filtrationId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"id":      filtrationId,
+		"message": "filtration image (Minio) deleted",
+	})
 }
 
 // updateFiltrationItem godoc

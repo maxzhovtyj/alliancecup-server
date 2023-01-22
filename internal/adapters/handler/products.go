@@ -273,7 +273,7 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/product [put]
+// @Router       /api/admin/product [put]
 func (h *Handler) updateProductImage(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
 	err := ctx.Request.ParseMultipartForm(32 << 20)
@@ -333,10 +333,24 @@ func (h *Handler) updateProductImage(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/product-image [delete]
+// @Router       /api/admin/product-image [delete]
 func (h *Handler) deleteProductImage(ctx *gin.Context) {
-	// TODO
-	ctx.JSON(http.StatusNotImplemented, "handler not implemented")
+	productId, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid id, %v", err).Error())
+		return
+	}
+
+	err = h.services.Product.DeleteImage(productId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"id":      productId,
+		"message": "product image (Minio) deleted",
+	})
 }
 
 // updateProductVisibility godoc
@@ -384,8 +398,6 @@ func (h *Handler) updateProductVisibility(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/product [delete]
 func (h *Handler) deleteProduct(ctx *gin.Context) {
-	// TODO "pq: update or delete on table \"products\" violates foreign key constraint \"orders_products_product_id_fkey\" on table \"orders_products\""
-
 	productId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())

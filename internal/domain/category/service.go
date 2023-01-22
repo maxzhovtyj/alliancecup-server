@@ -15,12 +15,14 @@ type Service interface {
 	UpdateImage(dto UpdateImageDTO) (int, error)
 	Create(dto CreateDTO) (int, error)
 	Delete(id int) error
+	DeleteImage(id int) error
 	GetFiltration(fkName string, id int) ([]Filtration, error)
 	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(dto CreateFiltrationDTO) (int, error)
 	UpdateFiltration(dto UpdateFiltrationDTO) (int, error)
 	UpdateFiltrationImage(dto UpdateImageDTO) (int, error)
 	DeleteFiltration(id int) error
+	DeleteFiltrationImage(id int) error
 }
 
 type service struct {
@@ -172,26 +174,26 @@ func (s *service) Delete(id int) error {
 	return err
 }
 
-func (s *service) DeleteFiltration(id int) error {
-	item, err := s.repo.GetFiltrationItem(id)
+func (s *service) DeleteImage(id int) error {
+	category, err := s.repo.GetById(id)
 	if err != nil {
 		return err
 	}
 
-	err = s.repo.DeleteFiltration(id)
-	if err != nil {
-		return err
-	}
+	if category.ImgUUID != nil {
+		err = s.repo.DeleteImage(id)
+		if err != nil {
+			return fmt.Errorf("failed to delete category img due to %v", err)
+		}
 
-	if item.ImgUUID != nil {
 		err = s.fileStorage.RemoveObject(
 			context.Background(),
 			minioPkg.ImagesBucket,
-			item.ImgUUID.String(),
+			category.ImgUUID.String(),
 			minio.RemoveObjectOptions{},
 		)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to remove image object due to %v", err)
 		}
 	}
 
@@ -292,7 +294,7 @@ func (s *service) UpdateFiltrationImage(dto UpdateImageDTO) (int, error) {
 			minio.RemoveObjectOptions{},
 		)
 		if err != nil {
-			return 0, fmt.Errorf("failed to remove filtration item image %v", err)
+			return 0, fmt.Errorf("failed to remove old filtration item image %v", err)
 		}
 
 		err = s.repo.UpdateFiltrationItemImage(dto.Id, imgUUIDPtr.String())
@@ -314,4 +316,56 @@ func (s *service) UpdateFiltrationImage(dto UpdateImageDTO) (int, error) {
 	}
 
 	return dto.Id, err
+}
+
+func (s *service) DeleteFiltration(id int) error {
+	item, err := s.repo.GetFiltrationItem(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.DeleteFiltration(id)
+	if err != nil {
+		return err
+	}
+
+	if item.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			item.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+
+func (s *service) DeleteFiltrationImage(id int) error {
+	filtrationItem, err := s.repo.GetFiltrationItem(id)
+	if err != nil {
+		return err
+	}
+
+	if filtrationItem.ImgUUID != nil {
+		err = s.repo.DeleteFiltrationImage(id)
+		if err != nil {
+			return fmt.Errorf("failed to delete filtration item img due to %v", err)
+		}
+
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			filtrationItem.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to remove image object due to %v", err)
+		}
+	}
+
+	return err
 }

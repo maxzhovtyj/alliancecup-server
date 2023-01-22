@@ -13,13 +13,15 @@ type Storage interface {
 	UpdateImage(category Category) (int, error)
 	Create(category Category) (int, error)
 	Delete(id int) error
-	DeleteFiltration(id int) error
+	DeleteImage(id int) error
 	GetFiltrationItem(id int) (filtrationItem Filtration, err error)
 	GetFiltration(fkName string, id int) ([]Filtration, error)
 	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(filtration Filtration) (int, error)
 	UpdateFiltration(filtration Filtration) (int, error)
 	UpdateFiltrationItemImage(id int, img string) error
+	DeleteFiltration(id int) error
+	DeleteFiltrationImage(id int) error
 }
 
 type storage struct {
@@ -142,6 +144,17 @@ func (c *storage) Create(category Category) (int, error) {
 func (c *storage) Delete(id int) error {
 	queryDeleteCategory := fmt.Sprintf("DELETE FROM %s WHERE id=$1", postgres.CategoriesTable)
 	_, err := c.db.Exec(queryDeleteCategory, id)
+	return err
+}
+
+func (c *storage) DeleteImage(id int) error {
+	queryDeleteCategoryImg := fmt.Sprintf(
+		"UPDATE %s SET img_uuid = NULL WHERE id = $1",
+		postgres.CategoriesTable,
+	)
+
+	_, err := c.db.Exec(queryDeleteCategoryImg, id)
+
 	return err
 }
 
@@ -308,6 +321,17 @@ func (c *storage) UpdateFiltrationItemImage(id int, img string) error {
 	)
 
 	_, err := c.db.Exec(queryUpdateFiltration, img, id)
+
+	return err
+}
+
+func (c *storage) DeleteFiltrationImage(id int) error {
+	queryDeleteFiltrationImg := fmt.Sprintf(
+		"UPDATE %s SET img_uuid = NULL WHERE id = $1",
+		postgres.CategoriesFiltrationTable,
+	)
+
+	_, err := c.db.Exec(queryDeleteFiltrationImg, id)
 
 	return err
 }
