@@ -56,11 +56,11 @@ const (
 	inventoryUrl         = "/inventory"
 	inventoriesUrl       = "/inventories"
 	inventoryProductsUrl = "/inventory-products"
-	//saveInventory        = "/save-inventory"
-	invoiceUrl         = "/invoice"
-	personalInfoUrl    = "/personal-info"
-	shoppingUrl        = "/shopping"
-	restorePasswordUrl = "/restore-password"
+	saveInventory        = "/save-inventory"
+	invoiceUrl           = "/invoice"
+	personalInfoUrl      = "/personal-info"
+	shoppingUrl          = "/shopping"
+	restorePasswordUrl   = "/restore-password"
 )
 
 type Handler struct {
@@ -143,8 +143,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.DELETE(categoryImageUrl, h.deleteCategoryImage)
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
-			admin.GET("characteristics", h.getFiltrationAllItems)
+			admin.GET("/characteristics", h.getFiltrationAllItems)
 
+			admin.GET("/filtration-item", h.getFiltrationItem)
 			admin.POST(filtrationUrl, h.addFiltrationItem)
 			admin.PUT(filtrationUrl, h.updateFiltrationItem)
 			admin.PUT(filtrationImageUrl, h.updateFiltrationItemImage)
@@ -170,7 +171,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				superAdmin.DELETE(moderatorUrl, h.deleteModerator)
 
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
-				//superAdmin.POST(saveInventory, h.saveInventory)
+				superAdmin.PUT(saveInventory, h.saveInventory)
 				superAdmin.POST(inventoryUrl, h.doInventory)
 				superAdmin.GET(inventoriesUrl, h.getInventories)
 				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)

@@ -30,19 +30,8 @@ func (h *Handler) getProductsToInventory(ctx *gin.Context) {
 }
 
 func (h *Handler) saveInventory(ctx *gin.Context) {
-	var products []inventory.CurrentProductDTO
-	if err := ctx.BindJSON(&products); err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	err := h.services.Inventory.Save(products)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	ctx.JSON(http.StatusOK, "inventory successfully saved")
+	// TODO
+	ctx.JSON(http.StatusNotImplemented, "handler is not implemented")
 }
 
 // doInventory godoc

@@ -17,6 +17,7 @@ type Service interface {
 	Delete(id int) error
 	DeleteImage(id int) error
 	GetFiltration(fkName string, id int) ([]Filtration, error)
+	GetFiltrationItem(id int) (Filtration, error)
 	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(dto CreateFiltrationDTO) (int, error)
 	UpdateFiltration(dto UpdateFiltrationDTO) (int, error)
@@ -253,6 +254,10 @@ func (s *service) AddFiltration(dto CreateFiltrationDTO) (int, error) {
 
 func (s *service) GetFiltration(fkName string, id int) ([]Filtration, error) {
 	return s.repo.GetFiltration(fkName, id)
+}
+
+func (s *service) GetFiltrationItem(id int) (Filtration, error) {
+	return s.repo.GetFiltrationItem(id)
 }
 
 func (s *service) GetFiltrationItems() ([]Filtration, error) {

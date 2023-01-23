@@ -9,6 +9,36 @@ import (
 	"strconv"
 )
 
+// getFiltrationItem godoc
+// @Summary Get filtration
+// @Security ApiKeyAuth
+// @Tags api/admin
+// @Description Adds a filtration item to a category
+// @ID add filtration
+// @Accept json
+// @Produce json
+// @Param id query int true "filtration item id"
+// @Success 200 {object} string
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /api/admin/filtration-item [get]
+func (h *Handler) getFiltrationItem(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid id, %v", err).Error())
+		return
+	}
+
+	filtrationItem, err := h.services.Category.GetFiltrationItem(id)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, filtrationItem)
+}
+
 // addFiltrationItem godoc
 // @Summary Add filtration
 // @Security ApiKeyAuth
@@ -104,6 +134,16 @@ func (h *Handler) addFiltrationItem(ctx *gin.Context) {
 			Size:   fileInfo.Size,
 			Reader: fileReader,
 		}
+	}
+
+	if (filtration.FiltrationListId != nil && filtration.CategoryId != nil) ||
+		(filtration.FiltrationListId == nil && filtration.CategoryId == nil) {
+		newErrorResponse(
+			ctx,
+			http.StatusInternalServerError,
+			fmt.Errorf("filtration item must have either list id or category id").Error(),
+		)
+		return
 	}
 
 	id, err := h.services.Category.AddFiltration(filtration)
