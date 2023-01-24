@@ -130,18 +130,6 @@ func (s *service) UpdateImage(dto UpdateImageDTO) (int, error) {
 		return 0, err
 	}
 
-	_, err = s.fileStorage.PutObject(
-		context.Background(),
-		minioPkg.ImagesBucket,
-		imgUUIDPtr.String(),
-		dto.Img.Reader,
-		dto.Img.Size,
-		minio.PutObjectOptions{},
-	)
-	if err != nil {
-		return 0, err
-	}
-
 	if oldProduct.ImgUUID != nil {
 		err = s.fileStorage.RemoveObject(
 			context.Background(),
@@ -152,6 +140,18 @@ func (s *service) UpdateImage(dto UpdateImageDTO) (int, error) {
 		if err != nil {
 			return 0, fmt.Errorf("failed to remove old product image due to %v", err)
 		}
+	}
+
+	_, err = s.fileStorage.PutObject(
+		context.Background(),
+		minioPkg.ImagesBucket,
+		imgUUIDPtr.String(),
+		dto.Img.Reader,
+		dto.Img.Size,
+		minio.PutObjectOptions{},
+	)
+	if err != nil {
+		return 0, err
 	}
 
 	id, err := s.repo.UpdateImage(Product{

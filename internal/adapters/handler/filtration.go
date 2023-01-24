@@ -281,7 +281,7 @@ func (h *Handler) updateFiltrationItem(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, map[string]any{
+	ctx.JSON(http.StatusOK, map[string]any{
 		"id":      id,
 		"message": "filtration item updated",
 	})
