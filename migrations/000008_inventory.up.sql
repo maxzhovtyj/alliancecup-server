@@ -27,4 +27,6 @@ ALTER TABLE products
 ALTER TABLE products
     ADD COLUMN current_write_off DECIMAL(12, 2) DEFAULT 0;
 ALTER TABLE products
+    ADD COLUMN current_real_amount DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE products
     ADD COLUMN last_inventory_id int REFERENCES inventory (id) DEFAULT NULL;
