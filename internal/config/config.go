@@ -95,6 +95,7 @@ func GetConfig() *Config {
 			DBName:   viper.GetString(dbName),
 			SSLMode:  viper.GetString(dbSSLMode),
 		}
+
 		minioInstance := MinIO{
 			Endpoint:  viper.GetString(minioEndpoint),
 			AccessKey: viper.GetString(minioAccessKey),

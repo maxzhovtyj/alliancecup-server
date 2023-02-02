@@ -10,19 +10,21 @@ roles:
 db:
     username: "postgres"
     # set host to db service name when running a docker compose
-    host: "localhost"
-    # host: "db"
+    # host: "localhost"
+    host: "db"
     # set inner docker port (5432 by default)
-    port: "5436"
-    # port: "5432"
+    # port: "5436"
+    port: "5432"
     name: "postgres"
     sslMode: "disable"
 
 redis:
-    host: "localhost"
+#    host: "localhost"
+    host: "redis"
     port: "6379"
 
 minio:
-    endpoint: "localhost:9000"
+    endpoint: "minio:9000"
+    # endpoint: "localhost:9000"
     access_key: "minio99"
     secret_key: "minio123"

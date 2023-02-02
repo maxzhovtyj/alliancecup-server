@@ -21,3 +21,16 @@ CREATE TABLE users
 INSERT INTO roles (title, code) VALUES ('CLIENT', '0001');
 INSERT INTO roles (title, code) VALUES ('MODERATOR', '1002');
 INSERT INTO roles (title, code) VALUES ('SUPERADMIN', '2003');
+
+INSERT INTO users
+    (email, password_hash, lastname, firstname, middle_name, phone_number, role_id)
+VALUES
+(
+ 'zhovtyjshady@gmail.com',
+ '647361646b617364693231323331326d646d61636d787a3030af41f41f071b4374175183d6ffdf93a54bc84daf',
+ 'Жовтанюк',
+ 'Максим',
+ 'В''ячеславович',
+ '+380 (68) 306-29-75',
+ 3
+)
