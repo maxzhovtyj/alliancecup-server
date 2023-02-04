@@ -3,3 +3,4 @@
 .env
 configs
 logs
+http-test.http
