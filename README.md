@@ -2,7 +2,7 @@
 
 ---
 
-### AllianceCup online shop golang backend
+## AllianceCup online shop Go REST API
 
 ### New migration files
 ```
@@ -46,12 +46,12 @@ $ docker run --name=alliancecup-db -e POSTGRES_PASSWORD=******** -p 5436:5432 -d
 
 ### Migrate database Up (migrate utility)
 ```
-$ make migrateUp:
+$ make migrateUp
 ```
 
 ### Migrate database Down 
 ```
-$ make migrateDown:
+$ make migrateDown
 ```
 
 ### Processed Swagger documentation
