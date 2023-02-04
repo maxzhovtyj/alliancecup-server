@@ -14,6 +14,7 @@ type Storage interface {
 	DoInventory(products []InsertProductDTO) error
 	GetInventories(createdAt string) ([]DTO, error)
 	getInventoryProductsById(inventoryId int) ([]SelectProductDTO, error)
+	Save(products []CurrentProductDTO) error
 }
 
 type storage struct {
@@ -38,6 +39,10 @@ var ProductsToInventory = []string{
 	"products.current_write_off * products.price as write_off_price",
 	"products.current_spend",
 	"products.current_supply",
+	"products.current_real_amount",
+	"products.current_real_amount * products.price as real_amount_price",
+	"products.current_real_amount - products.amount_in_stock as difference",
+	"(products.current_real_amount - products.amount_in_stock) * products.price as difference_price",
 	"products.amount_in_stock",
 	"products.last_inventory_id",                       // last inventory id
 	"inventory.created_at as last_inventory",           // last inventory time
@@ -181,4 +186,20 @@ func (s *storage) getInventoryProductsById(inventoryId int) ([]SelectProductDTO,
 	}
 
 	return products, err
+}
+
+func (s *storage) Save(products []CurrentProductDTO) error {
+	queryUpdateCurrentAmount := fmt.Sprintf(
+		"UPDATE %s SET current_real_amount = $1 WHERE id = $2",
+		postgres.ProductsTable,
+	)
+
+	for _, p := range products {
+		_, err := s.db.Exec(queryUpdateCurrentAmount, p.RealAmount, p.ProductId)
+		if err != nil {
+			return fmt.Errorf("failed to update current product real amount, %v", err)
+		}
+	}
+
+	return nil
 }

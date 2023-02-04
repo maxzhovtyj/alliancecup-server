@@ -7,10 +7,6 @@ import (
 	"github.com/zh0vtyj/allincecup-server/internal/config"
 )
 
-const (
-	InventoryProducts = "InventoryProducts"
-)
-
 func NewClient(ctx context.Context, cfg *config.Redis) (*redis.Client, error) {
 	dsn := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 

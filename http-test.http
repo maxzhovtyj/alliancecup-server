@@ -3,6 +3,11 @@ Accept: application/json
 
 ###
 
+GET http://localhost:9000/images/af0b29de-5d4a-4453-85ca-6df256088b4e
+Accept: application/json
+
+###
+
 GET http://localhost:8000/api/all-categories
 Accept: application/json
 

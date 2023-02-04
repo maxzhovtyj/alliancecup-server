@@ -33,3 +33,11 @@ migrateDown:
 swagInit:
 	swag init -g cmd/main.go
 
+# build migrator
+# docker build -t app-migrator .
+
+# migrate up
+# docker run --network host app-migrator -path=/migrations -database "postgresql://postgres:30042003@localhost:5436/postgres?sslmode=disable" up
+
+# run the app
+# docker-compose up --build client server

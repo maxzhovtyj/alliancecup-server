@@ -1,3 +1,6 @@
 .DS_Store
 .idea
 .env
+configs
+logs
+http-test.http

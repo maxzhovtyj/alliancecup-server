@@ -20,7 +20,6 @@ const (
 	PaymentTypesTable         = "payment_types"
 	OrdersTable               = "orders"
 	OrdersProductsTable       = "orders_products"
-	OrdersDeliveryTable       = "orders_delivery"
 	SupplyTable               = "supply"
 	SupplyPaymentTable        = "supply_payment"
 	SupplyProductsTable       = "supply_products"

@@ -122,10 +122,13 @@ func (s *service) Create(dto CreateDTO) (int, error) {
 	if imgUUIDPtr != nil {
 		exists, errBucketExists := s.fileStorage.BucketExists(context.Background(), minioPkg.ImagesBucket)
 		if errBucketExists != nil || !exists {
-			err := s.fileStorage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
-			if err != nil {
-				return 0, fmt.Errorf("failed to create new bucket. err: %w", err)
-			}
+			//TODO
+			return 0, fmt.Errorf("%s bucket does not exists, creatings a new one", minioPkg.ImagesBucket)
+			//log.Printf("%s bucket does not exists, creatings a new one...", minioPkg.ImagesBucket)
+			//err := s.fileStorage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
+			//if err != nil {
+			//	return 0, fmt.Errorf("failed to create new bucket. err: %w", err)
+			//}
 		}
 
 		_, err = s.fileStorage.PutObject(

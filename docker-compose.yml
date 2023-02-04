@@ -1,18 +1,46 @@
 version: "3.9"
 
 services:
-  client:
-    build: ./client
   server:
     build: ./
     command: ./alliancecup
     ports:
-      - 8000:8000
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     environment:
       - DB_PASSWORD=30042003
+  minio:
+    image: quay.io/minio/minio
+    environment:
+      MINIO_ROOT_USER: 'minio99'
+      MINIO_ROOT_PASSWORD: 'minio123'
+    ports:
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  redis:
+    restart: always
+    image: 'redis:6.2-alpine'
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
   db:
     restart: always
     image: postgres
@@ -21,7 +49,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=30042003
     ports:
-      - 5436:5432
+      - "5436:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
