@@ -36,6 +36,11 @@ func main() {
 		logger.Fatalf("error occured while initializing minio client: %v", err)
 	}
 
+	exists, errBucketExists := minioClient.BucketExists(context.Background(), minioPkg.ImagesBucket)
+	if errBucketExists != nil || !exists {
+		logger.Fatalf("failed to find images bucket, create bucket to run application")
+	}
+
 	logger.Info("postgres initializing...")
 	postgresClient, err := postgres.NewPostgresDB(cfg.Storage)
 	if err != nil {

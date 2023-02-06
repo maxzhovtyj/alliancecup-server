@@ -72,14 +72,6 @@ func (s *service) Add(dto CreateDTO) (int, error) {
 	}
 
 	if imgUUIDPtr != nil {
-		exists, errBucketExists := s.fileStorage.BucketExists(context.Background(), minioPkg.ImagesBucket)
-		if errBucketExists != nil || !exists {
-			err = s.fileStorage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
-			if err != nil {
-				return 0, fmt.Errorf("failed to create new bucket. err: %w", err)
-			}
-		}
-
 		_, err = s.fileStorage.PutObject(
 			context.Background(),
 			minioPkg.ImagesBucket,
