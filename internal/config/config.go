@@ -73,14 +73,12 @@ func GetConfig() *Config {
 
 		logger.Info("initializing .yml file")
 		if err := initConfig(); err != nil {
-			logger.Panic("panic while initializing .yml file")
-			panic(err)
+			logger.Fatalf("error while initializing .yml file, %v", err)
 		}
 
 		logger.Info("initializing .env file")
 		if err := godotenv.Load(); err != nil {
-			logger.Panic("panic while initializing .env file")
-			panic(err)
+			logger.Fatalf("error while initializing .env file, %v", err)
 		}
 
 		redisInstance := Redis{
