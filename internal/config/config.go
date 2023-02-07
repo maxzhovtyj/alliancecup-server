@@ -5,27 +5,29 @@ import (
 	"github.com/spf13/viper"
 	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 	"os"
+	"strings"
 	"sync"
 )
 
 const (
-	appPort        = "port"
-	domain         = "domain"
-	guestRole      = "roles.guest"
-	clientRole     = "roles.client"
-	moderatorRole  = "roles.moderator"
-	superAdminRole = "roles.superAdmin"
-	dbPort         = "db.port"
-	dbUsername     = "db.username"
-	dbHost         = "db.host"
-	dbName         = "db.name"
-	dbSSLMode      = "db.sslMode"
-	dbPassword     = "DB_PASSWORD"
-	redisHost      = "redis.host"
-	redisPort      = "redis.port"
-	minioEndpoint  = "minio.endpoint"
-	minioAccessKey = "minio.access_key"
-	minioSecretKey = "minio.secret_key"
+	appPort            = "port"
+	domain             = "domain"
+	guestRole          = "roles.guest"
+	clientRole         = "roles.client"
+	moderatorRole      = "roles.moderator"
+	superAdminRole     = "roles.superAdmin"
+	dbPort             = "db.port"
+	dbUsername         = "db.username"
+	dbHost             = "db.host"
+	dbName             = "db.name"
+	dbSSLMode          = "db.sslMode"
+	dbPassword         = "DB_PASSWORD"
+	redisHost          = "redis.host"
+	redisPort          = "redis.port"
+	corsAllowedOrigins = "cors.allowedOrigins"
+	minioEndpoint      = "minio.endpoint"
+	minioAccessKey     = "minio.access_key"
+	minioSecretKey     = "minio.secret_key"
 )
 
 type Redis struct {
@@ -55,10 +57,15 @@ type Roles struct {
 	SuperAdmin string `yaml:"superAdmin"`
 }
 
+type Cors struct {
+	AllowedOrigins []string `yaml:"allowedOrigins"`
+}
+
 type Config struct {
 	Domain  string `yaml:"domain"`
 	AppPort string `yaml:"port"`
 	Roles
+	Cors
 	Storage
 	Redis
 	MinIO
@@ -85,6 +92,7 @@ func GetConfig() *Config {
 			Host: viper.GetString(redisHost),
 			Port: viper.GetString(redisPort),
 		}
+
 		storageInstance := Storage{
 			Host:     viper.GetString(dbHost),
 			Port:     viper.GetString(dbPort),
@@ -107,9 +115,14 @@ func GetConfig() *Config {
 			SuperAdmin: viper.GetString(superAdminRole),
 		}
 
+		corsInstance := Cors{
+			AllowedOrigins: strings.Split(viper.GetString(corsAllowedOrigins), ","),
+		}
+
 		instance = &Config{
 			Domain:  viper.GetString(domain),
 			AppPort: viper.GetString(appPort),
+			Cors:    corsInstance,
 			Storage: storageInstance,
 			Redis:   redisInstance,
 			MinIO:   minioInstance,

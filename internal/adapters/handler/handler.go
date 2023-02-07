@@ -77,15 +77,11 @@ func NewHandler(services *service.Service, logger *logging.Logger, cfg *config.C
 	}
 }
 
-func (h *Handler) InitRoutes() *gin.Engine {
+func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 	router := gin.New()
 
 	corsConfig := cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:3000",
-			"http://192.168.1.53:3000",
-			"http://172.20.10.3:3000",
-		},
+		AllowOrigins: cfg.Cors.AllowedOrigins,
 		AllowMethods: []string{
 			http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut, http.MethodPatch,
 		},

@@ -64,7 +64,7 @@ func main() {
 
 	logger.Info("running the server...")
 	srv := new(server.Server)
-	if err = srv.Run(cfg.AppPort, handlers.InitRoutes()); err != nil {
+	if err = srv.Run(cfg.AppPort, handlers.InitRoutes(cfg)); err != nil {
 		logger.Fatalf("error occured while running http server: %s", err.Error())
 	}
 }
