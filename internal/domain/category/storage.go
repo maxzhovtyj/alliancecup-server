@@ -3,7 +3,7 @@ package category
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
 )
 
 type Storage interface {

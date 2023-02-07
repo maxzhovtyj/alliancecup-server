@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 	"os"
 	"sync"
 )

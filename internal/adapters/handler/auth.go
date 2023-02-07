@@ -3,9 +3,9 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	_ "github.com/zh0vtyj/allincecup-server/docs"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
+	_ "github.com/zh0vtyj/alliancecup-server/docs"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/user"
 	"net/http"
 	"net/mail"
 	"strconv"

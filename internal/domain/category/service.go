@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
-	minioPkg "github.com/zh0vtyj/allincecup-server/pkg/client/minio"
+	minioPkg "github.com/zh0vtyj/alliancecup-server/pkg/client/minio"
 )
 
 type Service interface {

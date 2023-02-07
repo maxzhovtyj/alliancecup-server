@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	_ "github.com/lib/pq"
-	server "github.com/zh0vtyj/allincecup-server"
-	"github.com/zh0vtyj/allincecup-server/internal/adapters/handler"
-	"github.com/zh0vtyj/allincecup-server/internal/config"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/repository"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/minio"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/redisdb"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	server "github.com/zh0vtyj/alliancecup-server"
+	"github.com/zh0vtyj/alliancecup-server/internal/adapters/handler"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/repository"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/service"
+	minioPkg "github.com/zh0vtyj/alliancecup-server/pkg/client/minio"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/redisdb"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 )
 
 // @title AllianceCup API

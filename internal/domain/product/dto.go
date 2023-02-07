@@ -2,7 +2,7 @@ package product
 
 import (
 	"github.com/jmoiron/sqlx/types"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 )
 
 type CreateDTO struct {

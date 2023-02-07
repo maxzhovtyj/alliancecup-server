@@ -4,8 +4,8 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
+	server "github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
 	"strings"
 )
 

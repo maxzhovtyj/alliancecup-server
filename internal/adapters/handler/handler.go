@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
-	_ "github.com/zh0vtyj/allincecup-server/docs"
-	"github.com/zh0vtyj/allincecup-server/internal/config"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	_ "github.com/zh0vtyj/alliancecup-server/docs"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/service"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 	"net/http"
 )
 

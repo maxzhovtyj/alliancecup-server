@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 	"net/smtp"
 	"time"
 )

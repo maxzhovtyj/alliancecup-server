@@ -3,7 +3,7 @@ package postgres
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/internal/config"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
 )
 
 const (

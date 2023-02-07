@@ -3,8 +3,8 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/category"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 	"net/http"
 	"strconv"
 )

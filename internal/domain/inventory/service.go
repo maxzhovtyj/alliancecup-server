@@ -2,7 +2,7 @@ package inventory
 
 import (
 	"github.com/go-redis/redis/v9"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 )
 
 type Service interface {

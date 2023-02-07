@@ -2,7 +2,7 @@ package category
 
 import (
 	"github.com/google/uuid"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 )
 
 type Category struct {
