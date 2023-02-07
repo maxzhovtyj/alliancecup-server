@@ -40,21 +40,5 @@ CREATE TABLE carts_products
     CONSTRAINT valid_quantity CHECK ( quantity > 0 )
 );
 
--- CREATE TABLE shopping_sessions
--- (
---     id INT PRIMARY KEY,
---     session UUID PRIMARY KEY,
---     created_at TIMESTAMPTZ DEFAULT (now() AT TIME ZONE 'utc-3')
--- );
---
--- CREATE TABLE shopping_sessions_products
--- (
---     shopping_session_id INT REFERENCES shopping_sessions (id) ON DELETE CASCADE NOT NULL,
---     product_id INT REFERENCES products (id) ON DELETE CASCADE NOT NULL,
---     PRIMARY KEY (shopping_session_id, product_id)
--- );
-
--- When we create a new session for user in cache we add to a database too.
--- If admin/moderator want to edit or delete a product we just search in table shopping_sessions_products
--- for product that has been changed and clear the session in redis with joined session uuid from shopping_sessions
--- if session UUID wasn't found in cache we delete a current shopping session from database
+INSERT INTO carts (user_id)
+VALUES ((SELECT id FROM users WHERE email = 'zhovtyjshady@gmail.com'));
