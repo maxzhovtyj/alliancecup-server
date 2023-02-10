@@ -32,7 +32,6 @@ const (
 	categoriesUrl        = "/categories"
 	categoryUrl          = "/category"
 	categoryImageUrl     = "/category-image"
-	filtrationImageUrl   = "/filtration-image"
 	productsUrl          = "/products"
 	productUrl           = "/product"
 	productImageUrl      = "/product-image"
@@ -42,13 +41,15 @@ const (
 	cartUrl              = "/cart"
 	favouritesUrl        = "/favourites"
 	filtrationUrl        = "/filtration"
+	filtrationListUrl    = "/filtration-list"
+	filtrationItemUrl    = "/filtration-item"
+	filtrationImageUrl   = "/filtration-image"
 	ordersUrl            = "/orders"
 	orderUrl             = "/order"
 	userOrdersUrl        = "/user-orders"
 	orderInfoTypesUrl    = "/order-info-types"
 	processedOrder       = "/processed-order"
 	completeOrder        = "/complete-order"
-	forgotPassword       = "/forgot-password"
 	moderatorUrl         = "/moderator"
 	superAdminUrl        = "/super"
 	supplyUrl            = "/supply"
@@ -60,6 +61,7 @@ const (
 	invoiceUrl           = "/invoice"
 	personalInfoUrl      = "/personal-info"
 	shoppingUrl          = "/shopping"
+	forgotPassword       = "/forgot-password"
 	restorePasswordUrl   = "/restore-password"
 )
 
@@ -139,9 +141,9 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 			admin.DELETE(categoryImageUrl, h.deleteCategoryImage)
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
-			admin.GET("/characteristics", h.getFiltrationAllItems)
+			admin.GET(filtrationListUrl, h.getFiltrationAllItems)
 
-			admin.GET("/filtration-item", h.getFiltrationItem)
+			admin.GET(filtrationItemUrl, h.getFiltrationItem)
 			admin.POST(filtrationUrl, h.addFiltrationItem)
 			admin.PUT(filtrationUrl, h.updateFiltrationItem)
 			admin.PUT(filtrationImageUrl, h.updateFiltrationItemImage)
@@ -155,13 +157,14 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 			admin.POST(supplyUrl, h.newSupply)
 			admin.GET(supplyUrl, h.getAllSupply)
 			admin.GET(supplyProductsUrl, h.getSupplyProducts)
-			admin.DELETE(supplyUrl, h.deleteSupply)
 
 			admin.GET(orderUrl, h.getOrderById)
 			admin.POST(orderUrl, h.adminNewOrder)
 
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
+				superAdmin.DELETE(supplyUrl, h.deleteSupply)
+
 				superAdmin.GET(moderatorUrl, h.getModerators)
 				superAdmin.POST(moderatorUrl, h.createModerator)
 				superAdmin.DELETE(moderatorUrl, h.deleteModerator)

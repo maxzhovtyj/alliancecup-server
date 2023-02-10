@@ -40,7 +40,6 @@ func (h *Handler) getAllSupply(ctx *gin.Context) {
 // @ID 			 get supply products
 // @Produce      json
 // @Param        id query int true "Supply id"
-// @Param        createdAt query string false "Last item createdAt for pagination"
 // @Success      200  {array}   supply.ProductDTO
 // @Failure      400  {object}  Error
 // @Failure      500  {object}  Error
@@ -52,9 +51,7 @@ func (h *Handler) getSupplyProducts(ctx *gin.Context) {
 		return
 	}
 
-	createdAt := ctx.Query("createdAt")
-
-	products, err := h.services.Supply.Products(id, createdAt)
+	products, err := h.services.Supply.Products(id)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -71,7 +68,7 @@ func (h *Handler) getSupplyProducts(ctx *gin.Context) {
 // @ID 			 creates new supply
 // @Accept       json
 // @Produce      json
-// @Param        supply body supply.Supply true "Supply info"
+// @Param        supplyInfo body supply.Supply true "Supply info"
 // @Success      200  {object}  object
 // @Failure      400  {object}  Error
 // @Failure      500  {object}  Error

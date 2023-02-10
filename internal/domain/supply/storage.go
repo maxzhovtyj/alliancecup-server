@@ -11,8 +11,8 @@ type Storage interface {
 	New(supply Supply) error
 	GetAll(createdAt string) ([]InfoDTO, error)
 	UpdateProductsAmount(products []ProductDTO, operation string) error
-	DeleteAndGetProducts(id int) ([]ProductDTO, error)
-	Products(id int, createdAt string) ([]ProductDTO, error)
+	Delete(id int) error
+	Products(id int) ([]ProductDTO, error)
 }
 
 type storage struct {
@@ -115,8 +115,6 @@ func (s *storage) New(supply Supply) error {
 func (s *storage) UpdateProductsAmount(products []ProductDTO, operation string) error {
 	tx, _ := s.db.Begin()
 
-	// TODO check if amount_in_stock is less than amount to delete
-
 	queryUpdateAmount := fmt.Sprintf(
 		`
 		UPDATE %s 
@@ -141,22 +139,15 @@ func (s *storage) UpdateProductsAmount(products []ProductDTO, operation string) 
 	return tx.Commit()
 }
 
-func (s *storage) DeleteAndGetProducts(id int) ([]ProductDTO, error) {
-	var products []ProductDTO
-	queryGetProducts := fmt.Sprintf("SELECT * FROM %s WHERE supply_id=$1", postgres.SupplyProductsTable)
+func (s *storage) Delete(id int) error {
+	queryDeleteSupply := fmt.Sprintf("DELETE FROM %s WHERE id = $1", postgres.SupplyTable)
 
-	err := s.db.Select(&products, queryGetProducts, id)
+	_, err := s.db.Exec(queryDeleteSupply, id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	queryDeleteSupply := fmt.Sprintf("DELETE FROM %s WHERE id=$1", postgres.SupplyTable)
-	_, err = s.db.Exec(queryDeleteSupply, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return products, nil
+	return nil
 }
 
 var selectProductsColumn = []string{
@@ -169,23 +160,25 @@ var selectProductsColumn = []string{
 	"supply_products.price_for_unit",
 	"supply_products.price_for_unit * supply_products.amount as sum_without_tax",
 	"supply_products.tax",
-	"supply_products.price_for_unit * supply_products.amount * (supply_products.tax / 100) as total_sum",
+	`
+	CASE 
+		WHEN (supply_products.tax / 100) = 0 THEN supply_products.price_for_unit * supply_products.amount
+		ELSE supply_products.price_for_unit * supply_products.amount * (supply_products.tax / 100) 
+	END
+	AS total_sum
+	`,
 }
 
-func (s *storage) Products(id int, createdAt string) ([]ProductDTO, error) {
+func (s *storage) Products(id int) ([]ProductDTO, error) {
 	var products []ProductDTO
-	query := s.qb.
+	querySelectProducts, args, err := s.qb.
 		Select(selectProductsColumn...).
 		LeftJoin(postgres.ProductsTable + " ON products.id = supply_products.product_id").
 		From(postgres.SupplyProductsTable).
-		Where(sq.Eq{"supply_products.supply_id": id})
+		Where(sq.Eq{"supply_products.supply_id": id}).
+		ToSql()
 
-	if createdAt != "" {
-		query = query.Where(sq.Lt{"products.created_at": createdAt})
-	}
-
-	querySql, args, err := query.OrderBy("products.created_at DESC").Limit(12).ToSql()
-	err = s.db.Select(&products, querySql, args...)
+	err = s.db.Select(&products, querySelectProducts, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to select supply products due to: %v", err)
 	}
