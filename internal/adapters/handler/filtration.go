@@ -55,7 +55,7 @@ func (h *Handler) getFiltrationItem(ctx *gin.Context) {
 // @Router /api/admin/filtration [post]
 func (h *Handler) addFiltrationItem(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
-	err := ctx.Request.ParseMultipartForm(32 << 20)
+	err := ctx.Request.ParseMultipartForm(fileMaxSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -174,7 +174,7 @@ func (h *Handler) addFiltrationItem(ctx *gin.Context) {
 // @Router /api/admin/filtration-image [put]
 func (h *Handler) updateFiltrationItemImage(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
-	err := ctx.Request.ParseMultipartForm(32 << 20)
+	err := ctx.Request.ParseMultipartForm(fileMaxSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return

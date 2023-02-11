@@ -110,7 +110,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Router       /api/admin/product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
-	err := ctx.Request.ParseMultipartForm(32 << 20)
+	err := ctx.Request.ParseMultipartForm(fileMaxSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -276,7 +276,7 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 // @Router       /api/admin/product [put]
 func (h *Handler) updateProductImage(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
-	err := ctx.Request.ParseMultipartForm(32 << 20)
+	err := ctx.Request.ParseMultipartForm(fileMaxSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return

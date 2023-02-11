@@ -17,6 +17,7 @@ const (
 	StatusProcessed    = "PROCESSED"
 	StatusCompleted    = "COMPLETED"
 	refreshTokenCookie = "refresh_token"
+	fileMaxSize        = 5 << 20
 )
 
 const (

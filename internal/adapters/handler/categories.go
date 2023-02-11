@@ -142,7 +142,7 @@ func (h *Handler) getFiltrationAllItems(ctx *gin.Context) {
 // @Router  /api/admin/category [post]
 func (h *Handler) addCategory(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
-	err := ctx.Request.ParseMultipartForm(32 << 20)
+	err := ctx.Request.ParseMultipartForm(fileMaxSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -247,7 +247,7 @@ func (h *Handler) updateCategory(ctx *gin.Context) {
 // @Router       /api/admin/category [put]
 func (h *Handler) updateCategoryImage(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
-	err := ctx.Request.ParseMultipartForm(32 << 20)
+	err := ctx.Request.ParseMultipartForm(fileMaxSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
