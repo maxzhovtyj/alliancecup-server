@@ -100,7 +100,7 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 	}
 
 	c := cors.New(corsConfig)
-	router.Use(c)
+	router.Use(c, gin.Recovery())
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
