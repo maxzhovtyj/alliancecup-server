@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/category"
-	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 	"net/http"
 	"strconv"
 )
@@ -166,24 +166,11 @@ func (h *Handler) addCategory(ctx *gin.Context) {
 		dto.ImgUrl = &imgUrl
 	}
 
-	files, ok := ctx.Request.MultipartForm.File["file"]
-	if len(files) != 0 {
-		if !ok {
-			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
-			return
-		}
-
-		fileInfo := files[0]
-		fileReader, err := fileInfo.Open()
-		if err != nil {
+	dto.Img, err = parseFile(ctx.Request.MultipartForm.File)
+	if err != nil {
+		if !errors.Is(err, ErrEmptyFile) {
 			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 			return
-		}
-
-		dto.Img = &models.FileDTO{
-			Name:   fileInfo.Filename,
-			Size:   fileInfo.Size,
-			Reader: fileReader,
 		}
 	}
 
@@ -261,25 +248,10 @@ func (h *Handler) updateCategoryImage(ctx *gin.Context) {
 		return
 	}
 
-	files, ok := ctx.Request.MultipartForm.File["file"]
-	if len(files) != 0 {
-		if !ok {
-			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
-			return
-		}
-
-		fileInfo := files[0]
-		fileReader, err := fileInfo.Open()
-		if err != nil {
-			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		dto.Img = &models.FileDTO{
-			Name:   fileInfo.Filename,
-			Size:   fileInfo.Size,
-			Reader: fileReader,
-		}
+	dto.Img, err = parseFile(ctx.Request.MultipartForm.File)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	id, err := h.services.Category.UpdateImage(dto)

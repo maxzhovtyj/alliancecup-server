@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"       // swagger embed files
@@ -65,6 +66,8 @@ const (
 	forgotPassword       = "/forgot-password"
 	restorePasswordUrl   = "/restore-password"
 )
+
+var ErrEmptyFile = errors.New("file is empty")
 
 type Handler struct {
 	services *service.Service
