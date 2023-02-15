@@ -4,10 +4,39 @@
 
 Create .env file with the following values:
 
-```
+```dotenv
 DB_PASSWORD=<database_password>
 MINIO_ACCESS_KEY=<minio_access_key>
 MINIO_SECRET_KEY=<minio_secret_key>
+```
+
+Also create directory with the name configs in the root with config.yml inside it, fill it with the following values:
+```yaml
+port: "YOUR_APP_PORT"
+domain: "LOCALHOST_OR_CUSTOM_DOMAIN"
+
+roles:
+  guest: "SOME_USER_ROLE_VALUE"
+  client: "SOME_USER_ROLE_VALUE"
+  moderator: "SOME_USER_ROLE_VALUE"
+  superAdmin: "SOME_USER_ROLE_VALUE"
+
+cors:
+  allowedOrigins: "https://example.com,http://localhost:3000"
+
+db:
+  username: "DB_USERNAME"
+  host: "DB_HOST"
+  port: "DB_PORT"
+  name: "DB_NAME"
+  sslMode: "DB_SSL_MODE"
+
+redis:
+  host: "REDIS_HOST"
+  port: "REDIS_PORT"
+
+minio:
+  endpoint: "localhost:9000"
 ```
 
 ---
