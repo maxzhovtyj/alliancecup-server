@@ -26,8 +26,8 @@ const (
 	redisPort          = "redis.port"
 	corsAllowedOrigins = "cors.allowedOrigins"
 	minioEndpoint      = "minio.endpoint"
-	minioAccessKey     = "minio.access_key"
-	minioSecretKey     = "minio.secret_key"
+	minioAccessKey     = "MINIO_ACCESS_KEY"
+	minioSecretKey     = "MINIO_SECRET_KEY"
 )
 
 type Redis struct {
@@ -46,8 +46,8 @@ type Storage struct {
 
 type MinIO struct {
 	Endpoint  string `yaml:"endpoint"`
-	AccessKey string `yaml:"access_key"`
-	SecretKey string `yaml:"secret_key"`
+	AccessKey string `env:"MINIO_ACCESS_KEY"`
+	SecretKey string `env:"MINIO_SECRET_KEY"`
 }
 
 type Roles struct {
@@ -104,8 +104,8 @@ func GetConfig() *Config {
 
 		minioInstance := MinIO{
 			Endpoint:  viper.GetString(minioEndpoint),
-			AccessKey: viper.GetString(minioAccessKey),
-			SecretKey: viper.GetString(minioSecretKey),
+			AccessKey: os.Getenv(minioAccessKey),
+			SecretKey: os.Getenv(minioSecretKey),
 		}
 
 		rolesInstance := Roles{

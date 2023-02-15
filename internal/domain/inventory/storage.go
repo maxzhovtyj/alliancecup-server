@@ -86,6 +86,7 @@ func (s *storage) DoInventory(products []InsertProductDTO) error {
 			current_supply = 0,
 			current_spend = 0,
 			current_write_off = 0,
+			current_real_amount = 0,
 			last_inventory_id = $1
 		WHERE id = $2
 		`,
