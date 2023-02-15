@@ -66,67 +66,6 @@ func (h *Handler) getCategories(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, categories)
 }
 
-// getFiltration godoc
-// @Summary GetFiltration
-// @Tags api
-// @Description gets filtration list for a products
-// @ID get filtration
-// @Accept json
-// @Produce json
-// @Param id query int true "parent id"
-// @Param parentName query string true "parent name"
-// @Success 200 {array} category.Filtration
-// @Failure 400 {object} Error
-// @Failure 500 {object} Error
-// @Router /api/filtration [get]
-func (h *Handler) getFiltration(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Query("id"))
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to parse to int id due to %v", err).Error())
-		return
-	}
-
-	parentName := ctx.Query("parentName")
-	if parentName != categoryIdName && parentName != filtrationListIdName {
-		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid parent name, can be either category_id or filtration_list_id").Error())
-		return
-	}
-
-	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	filtrationList, err := h.services.Category.GetFiltration(parentName, id)
-	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	ctx.JSON(http.StatusOK, filtrationList)
-}
-
-// getFiltrationAllItems godoc
-// @Summary Get all filtration items
-// @Tags api/admin/characteristics
-// @Description gets all filtration items
-// @ID get filtration items
-// @Accept json
-// @Produce json
-// @Success 200 {array}  category.Filtration
-// @Failure 400 {object} Error
-// @Failure 500 {object} Error
-// @Router /api/admin/characteristics [get]
-func (h *Handler) getFiltrationAllItems(ctx *gin.Context) {
-	filtrationItems, err := h.services.Category.GetFiltrationItems()
-	if err != nil {
-		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	ctx.JSON(http.StatusOK, filtrationItems)
-}
-
 // addCategory godoc
 // @Summary AddCategory
 // @Security ApiKeyAuth

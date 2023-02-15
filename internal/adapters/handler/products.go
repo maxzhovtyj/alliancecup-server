@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx/types"
-	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/product"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
 	"net/http"
@@ -168,24 +168,11 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 		dto.Description = &description
 	}
 
-	files, ok := ctx.Request.MultipartForm.File["file"]
-	if len(files) != 0 {
-		if !ok {
-			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
-			return
-		}
-
-		fileInfo := files[0]
-		fileReader, err := fileInfo.Open()
-		if err != nil {
+	dto.Img, err = parseFile(ctx.Request.MultipartForm.File)
+	if err != nil {
+		if !errors.Is(err, ErrEmptyFile) {
 			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 			return
-		}
-
-		dto.Img = &models.FileDTO{
-			Name:   fileInfo.Filename,
-			Size:   fileInfo.Size,
-			Reader: fileReader,
 		}
 	}
 
@@ -290,25 +277,10 @@ func (h *Handler) updateProductImage(ctx *gin.Context) {
 		return
 	}
 
-	files, ok := ctx.Request.MultipartForm.File["file"]
-	if len(files) != 0 {
-		if !ok {
-			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
-			return
-		}
-
-		fileInfo := files[0]
-		fileReader, err := fileInfo.Open()
-		if err != nil {
-			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		dto.Img = &models.FileDTO{
-			Name:   fileInfo.Filename,
-			Size:   fileInfo.Size,
-			Reader: fileReader,
-		}
+	dto.Img, err = parseFile(ctx.Request.MultipartForm.File)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	id, err := h.services.Product.UpdateImage(dto)
