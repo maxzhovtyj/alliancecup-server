@@ -151,6 +151,11 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 		return
 	}
 
+	if dto.Price <= 0 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("price must be greater that 0: %f", dto.Price))
+		return
+	}
+
 	characteristics := ctx.Request.Form.Get("characteristic")
 	if characteristics != "" {
 		char := types.JSONText(characteristics)

@@ -51,6 +51,16 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 		return
 	}
 
+	if input.Quantity <= 0 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("product quantity must be greater that 0: %d", input.Quantity))
+		return
+	}
+
+	if input.Price <= 0 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("product price must be greater that 0: %f", input.Price))
+		return
+	}
+
 	err = h.services.Shopping.AddToCart(input, userCartId, userId)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
