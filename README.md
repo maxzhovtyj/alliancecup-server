@@ -1,5 +1,12 @@
 # AllianceCup online shop Go REST API
 
+* Go 1.18.1 
+* [Gin framework](https://github.com/gin-gonic/gin)
+* PostgreSQL
+* Redis
+* Minio
+* Docker & docker-compose
+
 ---
 
 Create .env file with the following values:
