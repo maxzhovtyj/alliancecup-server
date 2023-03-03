@@ -55,8 +55,9 @@ func (c *storage) GetAll() ([]Category, error) {
 			   category_title,
 			   img_url,
 			   img_uuid,
-			   description 
+			   description
 		FROM %s
+		ORDER BY id ASC
 		`,
 		postgres.CategoriesTable,
 	)
