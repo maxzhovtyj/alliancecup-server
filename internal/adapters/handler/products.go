@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx/types"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/product"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
 	"net/http"
 	"strconv"
 	"strings"
@@ -16,10 +16,15 @@ type ProductIdInput struct {
 	Id int `json:"id"`
 }
 
+type ProductVisibility struct {
+	Id       int  `json:"id"`
+	IsActive bool `json:"isActive"`
+}
+
 // getProducts godoc
 // @Summary      GetProducts
 // @Tags         api
-// @Product  	 get products from certain category with params
+// @Description  	 get products from certain category with params
 // @ID 			 gets products
 // @Produce      json
 // @Param 		 category query string false "Category"
@@ -33,7 +38,7 @@ type ProductIdInput struct {
 // @Failure      500  {object}  Error
 // @Router       /api/products [post]
 func (h *Handler) getProducts(ctx *gin.Context) {
-	// Example http://localhost:8000/api/products?characteristic=Колір:Білий+Розмір:110мл
+	// Example http://localhost:8000/api/products?characteristic=Колір:Білий|Розмір:110мл
 	var params shopping.SearchParams
 
 	category := ctx.Query("category")
@@ -46,31 +51,41 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 		}
 	}
 
-	params.PriceRange = ctx.Query("priceRange") // TODO price validation
+	params.PriceRange = ctx.Query("priceRange")
 	params.CreatedAt = ctx.Query("createdAt")
 	params.Search = ctx.Query("search")
-	characteristic := ctx.Query("characteristic")
 
+	isActive := ctx.Query("isActive")
+	if isActive != "" {
+		parseBool, err := strconv.ParseBool(isActive)
+		if err != nil {
+			newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to parse isActive field %v", err).Error())
+			return
+		}
+		params.IsActive = &parseBool
+	}
+
+	characteristic := ctx.Query("characteristic")
 	if characteristic != "" {
 		arr := strings.Split(characteristic, "|")
 		for _, e := range arr {
 			var paramChar shopping.CharacteristicParam
 
 			eArr := strings.Split(e, ":")
-			paramChar.Name = eArr[0]
-			paramChar.Value = eArr[1]
+			if len(eArr) == 2 {
+				paramChar.Name = eArr[0]
+				paramChar.Value = eArr[1]
+			}
 
 			params.Characteristic = append(params.Characteristic, paramChar)
 		}
 	}
-
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	products, err := h.services.Product.GetWithParams(params)
-
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -83,11 +98,11 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Summary      Create
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  	 Adds a new product
+// @Description  Adds a new product
 // @ID 			 adds product
 // @Accept 	     json
 // @Produce      json
-// @Param        input body product.Product true "product info"
+// @Param        input body product.Product true "product info" // TODO
 // @Success      201  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -95,7 +110,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @Router       /api/admin/product [post]
 func (h *Handler) addProduct(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
-	err := ctx.Request.ParseMultipartForm(32 << 20)
+	err := ctx.Request.ParseMultipartForm(fileMaxSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -136,6 +151,11 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 		return
 	}
 
+	if dto.Price <= 0 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("price must be greater that 0: %f", dto.Price))
+		return
+	}
+
 	characteristics := ctx.Request.Form.Get("characteristic")
 	if characteristics != "" {
 		char := types.JSONText(characteristics)
@@ -153,24 +173,11 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 		dto.Description = &description
 	}
 
-	files, ok := ctx.Request.MultipartForm.File["file"]
-	if len(files) != 0 {
-		if !ok {
-			newErrorResponse(ctx, http.StatusBadRequest, "something wrong with file you provided")
-			return
-		}
-
-		fileInfo := files[0]
-		fileReader, err := fileInfo.Open()
-		if err != nil {
+	dto.Img, err = parseFile(ctx.Request.MultipartForm.File)
+	if err != nil {
+		if !errors.Is(err, ErrEmptyFile) {
 			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 			return
-		}
-
-		dto.Img = &models.FileDTO{
-			Name:   fileInfo.Filename,
-			Size:   fileInfo.Size,
-			Reader: fileReader,
 		}
 	}
 
@@ -189,7 +196,7 @@ func (h *Handler) addProduct(ctx *gin.Context) {
 // getProductById godoc
 // @Summary      GetProductById
 // @Tags         api
-// @Product  get product full info by its id
+// @Description  get product full info by its id
 // @ID 			 gets full product info
 // @Produce      json
 // @Param 		 id query int true "Product id"
@@ -218,7 +225,7 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Summary      UpdateProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  	 Updates product
+// @Description  Updates product
 // @ID 			 updates product
 // @Accept 	     json
 // @Produce      json
@@ -227,10 +234,9 @@ func (h *Handler) getProductById(ctx *gin.Context) {
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
 // @Failure      500  {object}  Error
-// @Router       /api/admin/product [put]
+// @Router       /api/admin/product-image [put]
 func (h *Handler) updateProduct(ctx *gin.Context) {
 	var input product.Product
-
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -248,11 +254,117 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 	})
 }
 
+// updateProductImage godoc
+// @Summary      Update product
+// @Tags         api
+// @Description  Update product image
+// @ID 			 updates product image
+// @Produce      json
+// @Param 		 id query int true "Product id"
+// @Success      200  {object}
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/product [put]
+func (h *Handler) updateProductImage(ctx *gin.Context) {
+	ctx.Writer.Header().Set("Content-Type", "form/json")
+	err := ctx.Request.ParseMultipartForm(fileMaxSize)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var dto product.UpdateImageDTO
+
+	dto.Id, err = strconv.Atoi(ctx.Request.Form.Get("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("invalid id: %d", dto.Id))
+		return
+	}
+
+	dto.Img, err = parseFile(ctx.Request.MultipartForm.File)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := h.services.Product.UpdateImage(dto)
+	if err != nil {
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      id,
+		Message: "product image updated",
+	})
+}
+
+// deleteProductImage godoc
+// @Summary      Delete product image (Minio)
+// @Tags         api
+// @Description  Delete product image (Minio)
+// @ID 			 delete product image (minio)
+// @Produce      json
+// @Param 		 id query int true "Product id"
+// @Success      200  {object}
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/admin/product-image [delete]
+func (h *Handler) deleteProductImage(ctx *gin.Context) {
+	productId, err := strconv.Atoi(ctx.Query("id"))
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid id, %v", err).Error())
+		return
+	}
+
+	err = h.services.Product.DeleteImage(productId)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"id":      productId,
+		"message": "product image (Minio) deleted",
+	})
+}
+
+// updateProductVisibility godoc
+// @Summary      Update product visibility
+// @Tags         api
+// @Description  Update product image
+// @ID 			 updates product image
+// @Produce      json
+// @Param 		 id body bool true "Product id"
+// @Success      200  {object}
+// @Failure      400  {object}  Error
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /api/product-visibility [put]
+func (h *Handler) updateProductVisibility(ctx *gin.Context) {
+	var input ProductVisibility
+	if err := ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.services.Product.UpdateVisibility(input.Id, input.IsActive)
+	if err != nil {
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ItemProcessedResponse{
+		Id:      input.Id,
+		Message: "product visibility changed",
+	})
+}
+
 // deleteProduct godoc
 // @Summary      DeleteProduct
 // @Security 	 ApiKeyAuth
 // @Tags         api/admin
-// @Product  	 Deletes product
+// @Description  	 Deletes product
 // @ID 			 delete product
 // @Accept 	     json
 // @Produce      json
@@ -263,8 +375,6 @@ func (h *Handler) updateProduct(ctx *gin.Context) {
 // @Failure      500  {object}  Error
 // @Router       /api/admin/product [delete]
 func (h *Handler) deleteProduct(ctx *gin.Context) {
-	// TODO "pq: update or delete on table \"products\" violates foreign key constraint \"orders_products_product_id_fkey\" on table \"orders_products\""
-
 	productId, err := strconv.Atoi(ctx.Query("id"))
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())

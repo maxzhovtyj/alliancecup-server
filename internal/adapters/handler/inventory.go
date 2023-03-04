@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/inventory"
 	"net/http"
 	"strconv"
 )

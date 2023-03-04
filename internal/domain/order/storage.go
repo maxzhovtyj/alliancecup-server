@@ -4,8 +4,8 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
+	server "github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
 	"strings"
 )
 
@@ -266,12 +266,12 @@ func (s *storage) GetOrderById(orderId int) (SelectDTO, error) {
 		Select(
 			"orders_products.quantity",
 			"orders_products.price * orders_products.quantity as price_for_quantity",
+			"orders_products.price",
 			"products.id",
 			"products.article",
 			"products.product_title",
 			"products.img_url",
 			"products.amount_in_stock",
-			"products.price",
 			"products.packaging",
 			"products.created_at",
 		).

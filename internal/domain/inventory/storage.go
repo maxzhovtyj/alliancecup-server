@@ -4,8 +4,8 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 	"time"
 )
 
@@ -14,6 +14,7 @@ type Storage interface {
 	DoInventory(products []InsertProductDTO) error
 	GetInventories(createdAt string) ([]DTO, error)
 	getInventoryProductsById(inventoryId int) ([]SelectProductDTO, error)
+	Save(products []CurrentProductDTO) error
 }
 
 type storage struct {
@@ -38,6 +39,10 @@ var ProductsToInventory = []string{
 	"products.current_write_off * products.price as write_off_price",
 	"products.current_spend",
 	"products.current_supply",
+	"products.current_real_amount",
+	"products.current_real_amount * products.price as real_amount_price",
+	"products.current_real_amount - products.amount_in_stock as difference",
+	"(products.current_real_amount - products.amount_in_stock) * products.price as difference_price",
 	"products.amount_in_stock",
 	"products.last_inventory_id",                       // last inventory id
 	"inventory.created_at as last_inventory",           // last inventory time
@@ -81,6 +86,7 @@ func (s *storage) DoInventory(products []InsertProductDTO) error {
 			current_supply = 0,
 			current_spend = 0,
 			current_write_off = 0,
+			current_real_amount = 0,
 			last_inventory_id = $1
 		WHERE id = $2
 		`,
@@ -109,7 +115,6 @@ func (s *storage) DoInventory(products []InsertProductDTO) error {
 			return fmt.Errorf("failed to insert inventory product, %v", err)
 		}
 
-		// TODO update product fields
 		_, err = tx.Exec(queryUpdateProduct, inventoryId, p.ProductId)
 		if err != nil {
 			_ = tx.Rollback()
@@ -166,7 +171,6 @@ var inventoryProducts = []string{
 func (s *storage) getInventoryProductsById(inventoryId int) ([]SelectProductDTO, error) {
 	var products []SelectProductDTO
 
-	// TODO createdAt
 	query, args, err := s.qb.
 		Select(inventoryProducts...).
 		Join(postgres.ProductsTable + " ON products.id = inventory_products.product_id").
@@ -183,4 +187,20 @@ func (s *storage) getInventoryProductsById(inventoryId int) ([]SelectProductDTO,
 	}
 
 	return products, err
+}
+
+func (s *storage) Save(products []CurrentProductDTO) error {
+	queryUpdateCurrentAmount := fmt.Sprintf(
+		"UPDATE %s SET current_real_amount = $1 WHERE id = $2",
+		postgres.ProductsTable,
+	)
+
+	for _, p := range products {
+		_, err := s.db.Exec(queryUpdateCurrentAmount, p.RealAmount, p.ProductId)
+		if err != nil {
+			return fmt.Errorf("failed to update current product real amount, %v", err)
+		}
+	}
+
+	return nil
 }

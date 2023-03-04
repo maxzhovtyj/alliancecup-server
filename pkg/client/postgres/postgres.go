@@ -3,7 +3,7 @@ package postgres
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/internal/config"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
 )
 
 const (
@@ -20,7 +20,6 @@ const (
 	PaymentTypesTable         = "payment_types"
 	OrdersTable               = "orders"
 	OrdersProductsTable       = "orders_products"
-	OrdersDeliveryTable       = "orders_delivery"
 	SupplyTable               = "supply"
 	SupplyPaymentTable        = "supply_payment"
 	SupplyProductsTable       = "supply_products"

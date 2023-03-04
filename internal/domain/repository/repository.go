@@ -3,15 +3,15 @@ package repository
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/category"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/inventory"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/review"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/supply"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/category"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/inventory"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/order"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/product"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/review"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/supply"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/user"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 )
 
 type Repository struct {

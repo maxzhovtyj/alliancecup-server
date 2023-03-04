@@ -3,29 +3,31 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 	"os"
+	"strings"
 	"sync"
 )
 
 const (
-	appPort        = "port"
-	domain         = "domain"
-	guestRole      = "roles.guest"
-	clientRole     = "roles.client"
-	moderatorRole  = "roles.moderator"
-	superAdminRole = "roles.superAdmin"
-	dbPort         = "db.port"
-	dbUsername     = "db.username"
-	dbHost         = "db.host"
-	dbName         = "db.name"
-	dbSSLMode      = "db.sslMode"
-	dbPassword     = "DB_PASSWORD"
-	redisHost      = "redis.host"
-	redisPort      = "redis.port"
-	minioEndpoint  = "minio.endpoint"
-	minioAccessKey = "minio.access_key"
-	minioSecretKey = "minio.secret_key"
+	appPort            = "port"
+	domain             = "domain"
+	guestRole          = "roles.guest"
+	clientRole         = "roles.client"
+	moderatorRole      = "roles.moderator"
+	superAdminRole     = "roles.superAdmin"
+	dbPort             = "db.port"
+	dbUsername         = "db.username"
+	dbHost             = "db.host"
+	dbName             = "db.name"
+	dbSSLMode          = "db.sslMode"
+	dbPassword         = "DB_PASSWORD"
+	redisHost          = "redis.host"
+	redisPort          = "redis.port"
+	corsAllowedOrigins = "cors.allowedOrigins"
+	minioEndpoint      = "minio.endpoint"
+	minioAccessKey     = "MINIO_ACCESS_KEY"
+	minioSecretKey     = "MINIO_SECRET_KEY"
 )
 
 type Redis struct {
@@ -44,8 +46,8 @@ type Storage struct {
 
 type MinIO struct {
 	Endpoint  string `yaml:"endpoint"`
-	AccessKey string `yaml:"access_key"`
-	SecretKey string `yaml:"secret_key"`
+	AccessKey string `env:"MINIO_ACCESS_KEY"`
+	SecretKey string `env:"MINIO_SECRET_KEY"`
 }
 
 type Roles struct {
@@ -55,10 +57,15 @@ type Roles struct {
 	SuperAdmin string `yaml:"superAdmin"`
 }
 
+type Cors struct {
+	AllowedOrigins []string `yaml:"allowedOrigins"`
+}
+
 type Config struct {
 	Domain  string `yaml:"domain"`
 	AppPort string `yaml:"port"`
 	Roles
+	Cors
 	Storage
 	Redis
 	MinIO
@@ -73,20 +80,19 @@ func GetConfig() *Config {
 
 		logger.Info("initializing .yml file")
 		if err := initConfig(); err != nil {
-			logger.Panic("panic while initializing .yml file")
-			panic(err)
+			logger.Fatalf("error while initializing .yml file, %v", err)
 		}
 
 		logger.Info("initializing .env file")
 		if err := godotenv.Load(); err != nil {
-			logger.Panic("panic while initializing .env file")
-			panic(err)
+			logger.Fatalf("error while initializing .env file, %v", err)
 		}
 
 		redisInstance := Redis{
 			Host: viper.GetString(redisHost),
 			Port: viper.GetString(redisPort),
 		}
+
 		storageInstance := Storage{
 			Host:     viper.GetString(dbHost),
 			Port:     viper.GetString(dbPort),
@@ -95,10 +101,11 @@ func GetConfig() *Config {
 			DBName:   viper.GetString(dbName),
 			SSLMode:  viper.GetString(dbSSLMode),
 		}
+
 		minioInstance := MinIO{
 			Endpoint:  viper.GetString(minioEndpoint),
-			AccessKey: viper.GetString(minioAccessKey),
-			SecretKey: viper.GetString(minioSecretKey),
+			AccessKey: os.Getenv(minioAccessKey),
+			SecretKey: os.Getenv(minioSecretKey),
 		}
 
 		rolesInstance := Roles{
@@ -108,9 +115,14 @@ func GetConfig() *Config {
 			SuperAdmin: viper.GetString(superAdminRole),
 		}
 
+		corsInstance := Cors{
+			AllowedOrigins: strings.Split(viper.GetString(corsAllowedOrigins), ","),
+		}
+
 		instance = &Config{
 			Domain:  viper.GetString(domain),
 			AppPort: viper.GetString(appPort),
+			Cors:    corsInstance,
 			Storage: storageInstance,
 			Redis:   redisInstance,
 			MinIO:   minioInstance,

@@ -5,7 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
+	"net/smtp"
 	"time"
 )
 
@@ -27,6 +28,7 @@ type Service interface {
 	CreateNewSession(session models.Session) (models.Session, error)
 	Logout(id int) error
 	ChangePassword(userId int, oldPassword, newPassword string) error
+	RestorePassword(userId int, newPassword string) error
 	UserForgotPassword(email string) error
 	UserInfo(id int) (InfoDTO, error)
 	ChangePersonalInfo(user InfoDTO, id int) error
@@ -233,6 +235,17 @@ func (s *service) ChangePassword(userId int, oldPassword, newPassword string) er
 	return nil
 }
 
+func (s *service) RestorePassword(userId int, newPassword string) error {
+	newPasswordHash := generatePasswordHash(newPassword)
+
+	err := s.repo.UpdatePassword(userId, newPasswordHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *service) UserForgotPassword(email string) error {
 	// check whether user with such email exists
 	userId, userRoleCode, err := s.repo.UserExists(email)
@@ -241,7 +254,7 @@ func (s *service) UserForgotPassword(email string) error {
 	}
 
 	// generate a token for changing a password
-	_ = jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
@@ -250,9 +263,45 @@ func (s *service) UserForgotPassword(email string) error {
 		userRoleCode,
 	})
 
-	// TODO send a letter to an email
+	signedStringToken, err := token.SignedString([]byte(signingKey))
+	if err != nil {
+		return err
+	}
 
-	return nil
+	// https://alliancecup.com.ua/forgot-password?token=fmfkamsdk132m131k23kk##!k2mee1
+	restorePasswordUrl := fmt.Sprintf(
+		"https://localhost:3000/restore-password?token=%s",
+		signedStringToken,
+	)
+
+	from := "sp.alliancecup@gmail.com"
+	password := "qbcqenedddbwkzaw"
+	to := []string{email}
+	host := "smtp.gmail.com"
+	port := "587"
+	address := host + ":" + port
+	subject := "Subject: Alliancecup відновлення пароля\n"
+	body := fmt.Sprintf(
+		`
+Увага! Для відновлення пароля перейдіть за наступним посиланням:
+
+%s 
+
+Воно буде дійсне впродовж 30 хвилин. Не надавайте його стороннім особам.
+З повагою,
+Підтримка сайту alliancecup.com.ua
+		`,
+		restorePasswordUrl,
+	)
+	message := []byte(subject + body)
+
+	auth := smtp.PlainAuth("", from, password, host)
+	err = smtp.SendMail(address, auth, from, to, message)
+	if err != nil {
+		return fmt.Errorf("failed to send password recovery letter due to %v", err)
+	}
+
+	return err
 }
 
 func (s *service) UserInfo(id int) (InfoDTO, error) {

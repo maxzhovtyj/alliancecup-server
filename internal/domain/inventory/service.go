@@ -1,11 +1,8 @@
 package inventory
 
 import (
-	"context"
-	"encoding/json"
 	"github.com/go-redis/redis/v9"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/redisdb"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 )
 
 type Service interface {
@@ -31,38 +28,11 @@ func NewInventoryService(repo Storage, cache *redis.Client, logger *logging.Logg
 }
 
 func (s *service) Products() (products []CurrentProductDTO, err error) {
-	get := s.cache.Get(context.Background(), redisdb.InventoryProducts)
-	if get.Err() == redis.Nil {
-		s.logger.Printf("Cache %s key does not exist", redisdb.InventoryProducts)
-		products, err = s.repo.GetProducts()
-
-		s.cache.Set(context.Background(), redisdb.InventoryProducts, products, 0)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		jsonBytes, err := get.Bytes()
-		err = json.Unmarshal(jsonBytes, &products)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return products, err
+	return s.repo.GetProducts()
 }
 
 func (s *service) Save(products []CurrentProductDTO) error {
-	productsBytes, err := json.Marshal(products)
-	if err != nil {
-		return err
-	}
-
-	set := s.cache.Set(context.Background(), redisdb.InventoryProducts, productsBytes, 0)
-	if err = set.Err(); err != nil {
-		return err
-	}
-
-	return nil
+	return s.repo.Save(products)
 }
 
 func (s *service) New(dto []InsertProductDTO) error {

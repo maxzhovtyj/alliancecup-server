@@ -4,11 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v9"
-	"github.com/zh0vtyj/allincecup-server/internal/config"
-)
-
-const (
-	InventoryProducts = "InventoryProducts"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
 )
 
 func NewClient(ctx context.Context, cfg *config.Redis) (*redis.Client, error) {

@@ -3,19 +3,25 @@ package category
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
 )
 
 type Storage interface {
+	GetById(id int) (Category, error)
 	GetAll() ([]Category, error)
 	Update(category Category) (int, error)
+	UpdateImage(category Category) (int, error)
 	Create(category Category) (int, error)
 	Delete(id int) error
-	DeleteFiltration(id int) error
+	DeleteImage(id int) error
 	GetFiltrationItem(id int) (filtrationItem Filtration, err error)
 	GetFiltration(fkName string, id int) ([]Filtration, error)
 	GetFiltrationItems() ([]Filtration, error)
 	AddFiltration(filtration Filtration) (int, error)
+	UpdateFiltration(filtration Filtration) (int, error)
+	UpdateFiltrationItemImage(id int, img string) error
+	DeleteFiltration(id int) error
+	DeleteFiltrationImage(id int) error
 }
 
 type storage struct {
@@ -24,6 +30,20 @@ type storage struct {
 
 func NewCategoryPostgres(db *sqlx.DB) *storage {
 	return &storage{db: db}
+}
+
+func (c *storage) GetById(id int) (category Category, err error) {
+	queryGetCategory := fmt.Sprintf(
+		"SELECT id, category_title, img_url, img_uuid, description FROM %s WHERE id = $1",
+		postgres.CategoriesTable,
+	)
+
+	err = c.db.Get(&category, queryGetCategory, id)
+	if err != nil {
+		return Category{}, err
+	}
+
+	return category, err
 }
 
 func (c *storage) GetAll() ([]Category, error) {
@@ -35,8 +55,9 @@ func (c *storage) GetAll() ([]Category, error) {
 			   category_title,
 			   img_url,
 			   img_uuid,
-			   description 
+			   description
 		FROM %s
+		ORDER BY id ASC
 		`,
 		postgres.CategoriesTable,
 	)
@@ -51,14 +72,42 @@ func (c *storage) Update(category Category) (int, error) {
 	queryUpdate := fmt.Sprintf(
 		`
 		UPDATE %s 
-		SET category_title=$1,
-			img_url=$2 
-		WHERE id=$3 
+		SET category_title = $1,
+			img_url = $2,
+			description = $3
+		WHERE id = $4 
 		RETURNING id
 		`,
 		postgres.CategoriesTable,
 	)
-	row := c.db.QueryRow(queryUpdate, category.CategoryTitle, category.ImgUrl, category.Id)
+
+	row := c.db.QueryRow(
+		queryUpdate,
+		category.CategoryTitle,
+		category.ImgUrl,
+		category.Description,
+		category.Id,
+	)
+	if err := row.Scan(&id); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (c *storage) UpdateImage(category Category) (int, error) {
+	var id int
+
+	queryUpdate := fmt.Sprintf(
+		`UPDATE %s SET img_uuid = $1 WHERE id = $2 RETURNING id`,
+		postgres.CategoriesTable,
+	)
+
+	row := c.db.QueryRow(
+		queryUpdate,
+		category.ImgUUID,
+		category.Id,
+	)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
@@ -96,6 +145,17 @@ func (c *storage) Create(category Category) (int, error) {
 func (c *storage) Delete(id int) error {
 	queryDeleteCategory := fmt.Sprintf("DELETE FROM %s WHERE id=$1", postgres.CategoriesTable)
 	_, err := c.db.Exec(queryDeleteCategory, id)
+	return err
+}
+
+func (c *storage) DeleteImage(id int) error {
+	queryDeleteCategoryImg := fmt.Sprintf(
+		"UPDATE %s SET img_uuid = NULL WHERE id = $1",
+		postgres.CategoriesTable,
+	)
+
+	_, err := c.db.Exec(queryDeleteCategoryImg, id)
+
 	return err
 }
 
@@ -216,4 +276,63 @@ func (c *storage) AddFiltration(filtration Filtration) (int, error) {
 	}
 
 	return filtrationId, nil
+}
+
+func (c *storage) UpdateFiltration(filtration Filtration) (int, error) {
+	var filtrationId int
+
+	queryUpdateFiltration := fmt.Sprintf(
+		`
+		UPDATE %s
+		SET search_key = $1,
+			search_characteristic = $2,
+			filtration_title = $3,
+			filtration_description = $4,
+			img_url = $5,
+			category_id = $6,
+			filtration_list_id = $7
+		WHERE id = $8
+		RETURNING id
+		`,
+		postgres.CategoriesFiltrationTable,
+	)
+	row := c.db.QueryRow(
+		queryUpdateFiltration,
+		filtration.SearchKey,
+		filtration.SearchCharacteristic,
+		filtration.FiltrationTitle,
+		filtration.FiltrationDescription,
+		filtration.ImgUrl,
+		filtration.CategoryId,
+		filtration.FiltrationListId,
+		filtration.Id,
+	)
+
+	if err := row.Scan(&filtrationId); err != nil {
+		return 0, fmt.Errorf("failed to execute query to a db due to: %v", err)
+	}
+
+	return filtrationId, nil
+}
+
+func (c *storage) UpdateFiltrationItemImage(id int, img string) error {
+	queryUpdateFiltration := fmt.Sprintf(
+		`UPDATE %s SET img_uuid = $1 WHERE id = $2`,
+		postgres.CategoriesFiltrationTable,
+	)
+
+	_, err := c.db.Exec(queryUpdateFiltration, img, id)
+
+	return err
+}
+
+func (c *storage) DeleteFiltrationImage(id int) error {
+	queryDeleteFiltrationImg := fmt.Sprintf(
+		"UPDATE %s SET img_uuid = NULL WHERE id = $1",
+		postgres.CategoriesFiltrationTable,
+	)
+
+	_, err := c.db.Exec(queryDeleteFiltrationImg, id)
+
+	return err
 }

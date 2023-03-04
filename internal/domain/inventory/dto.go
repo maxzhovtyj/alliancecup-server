@@ -43,10 +43,10 @@ type CurrentProductDTO struct {
 	CurrentWriteOff float64    `json:"currentWriteOff" db:"current_write_off"`
 	WriteOffPrice   float64    `json:"writeOffPrice" db:"write_off_price"`
 	CurrentAmount   float64    `json:"currentAmount" db:"amount_in_stock"`
-	RealAmount      float64    `json:"realAmount" db:"-"`
-	RealAmountPrice float64    `json:"realAmountPrice" db:"-"`
-	Difference      float64    `json:"difference" db:"-"`
-	DifferencePrice float64    `json:"differencePrice" db:"-"`
+	RealAmount      float64    `json:"realAmount" db:"current_real_amount"`
+	RealAmountPrice float64    `json:"realAmountPrice" db:"real_amount_price"`
+	Difference      float64    `json:"difference" db:"difference"`
+	DifferencePrice float64    `json:"differencePrice" db:"difference_price"`
 	LastInventoryId *int       `json:"lastInventoryId" db:"last_inventory_id"`
 	LastInventory   *time.Time `json:"lastInventory" db:"last_inventory"`
 }

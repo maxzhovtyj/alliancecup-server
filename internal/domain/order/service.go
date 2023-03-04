@@ -6,8 +6,8 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/jung-kurt/gofpdf"
 	goinvoice "github.com/maxzhovtyj/go-invoice"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/product"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/product"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
 	"os"
 )
 

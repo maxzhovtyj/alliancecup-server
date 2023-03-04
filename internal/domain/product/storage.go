@@ -4,8 +4,8 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
+	server "github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
 	"strconv"
 	"strings"
 )
@@ -17,7 +17,10 @@ type Storage interface {
 	Create(product Product) (int, error)
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
+	UpdateImage(product Product) (int, error)
+	UpdateVisibility(product Product) error
 	Delete(productId int) error
+	DeleteImage(productId int) error
 }
 
 type storage struct {
@@ -32,8 +35,6 @@ func NewProductsPostgres(db *sqlx.DB, psql sq.StatementBuilderType) *storage {
 	}
 }
 
-//TODO product discount
-
 var productsColumnsSelect = []string{
 	"products.id",
 	"products.article",
@@ -45,6 +46,7 @@ var productsColumnsSelect = []string{
 	"products.price",
 	"products.characteristics",
 	"products.packaging",
+	"products.is_active",
 	"products.created_at",
 }
 
@@ -79,7 +81,11 @@ func (s *storage) GetWithParams(params server.SearchParams) ([]Product, error) {
 	}
 
 	if params.CategoryId != 0 {
-		query = query.Where("products.category_id=?", params.CategoryId)
+		query = query.Where("products.category_id = ?", params.CategoryId)
+	}
+
+	if params.IsActive != nil {
+		query = query.Where("products.is_active = ?", params.IsActive)
 	}
 
 	ordered := query.OrderBy("products.created_at DESC").Limit(9)
@@ -148,7 +154,6 @@ func (s *storage) Create(product Product) (int, error) {
 }
 
 func (s *storage) Update(product Product) (int, error) {
-	//TODO update product
 	tx, _ := s.db.Begin()
 
 	queryUpdateProduct := fmt.Sprintf(
@@ -158,14 +163,13 @@ func (s *storage) Update(product Product) (int, error) {
 			category_id = (SELECT id FROM %s WHERE category_title = $2),
 			product_title = $3,
 			img_url = $4,
-			amount_in_stock = $5,
-			price = $6,
-			characteristics = $7,
-			packaging = $8
-		WHERE id = $9
+			price = $5,
+			characteristics = $6,
+			packaging = $7
+		WHERE id = $8
 		`,
-		postgres.CategoriesTable,
 		postgres.ProductsTable,
+		postgres.CategoriesTable,
 	)
 
 	_, err := tx.Exec(
@@ -174,7 +178,6 @@ func (s *storage) Update(product Product) (int, error) {
 		product.CategoryTitle,
 		product.ProductTitle,
 		product.ImgUrl,
-		product.AmountInStock,
 		product.Price,
 		product.Characteristics,
 		product.Packaging,
@@ -188,6 +191,45 @@ func (s *storage) Update(product Product) (int, error) {
 	return product.Id, tx.Commit()
 }
 
+func (s *storage) UpdateImage(product Product) (int, error) {
+	tx, _ := s.db.Begin()
+
+	queryUpdateProduct := fmt.Sprintf(
+		`UPDATE %s SET img_uuid = $1 WHERE id = $2`,
+		postgres.ProductsTable,
+	)
+
+	_, err := tx.Exec(
+		queryUpdateProduct,
+		product.ImgUUID,
+		product.Id,
+	)
+	if err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+
+	return product.Id, tx.Commit()
+}
+
+func (s *storage) UpdateVisibility(product Product) error {
+	queryUpdateProduct := fmt.Sprintf(
+		`UPDATE %s SET is_active = $1 WHERE id = $2`,
+		postgres.ProductsTable,
+	)
+
+	_, err := s.db.Exec(
+		queryUpdateProduct,
+		product.IsActive,
+		product.Id,
+	)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
 func (s *storage) Delete(productId int) error {
 	tx, _ := s.db.Begin()
 
@@ -199,6 +241,17 @@ func (s *storage) Delete(productId int) error {
 	}
 
 	return tx.Commit()
+}
+
+func (s *storage) DeleteImage(productId int) error {
+	queryDeleteProductImg := fmt.Sprintf("UPDATE %s SET img_uuid = NULL WHERE id = $1", postgres.ProductsTable)
+
+	_, err := s.db.Exec(queryDeleteProductImg, productId)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (s *storage) GetProductById(id int) (Product, error) {

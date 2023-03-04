@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	_ "github.com/lib/pq"
-	server "github.com/zh0vtyj/allincecup-server"
-	"github.com/zh0vtyj/allincecup-server/internal/adapters/handler"
-	"github.com/zh0vtyj/allincecup-server/internal/config"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/repository"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/minio"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/redisdb"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	server "github.com/zh0vtyj/alliancecup-server"
+	"github.com/zh0vtyj/alliancecup-server/internal/adapters/handler"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/repository"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/service"
+	minioPkg "github.com/zh0vtyj/alliancecup-server/pkg/client/minio"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/redisdb"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 )
 
 // @title AllianceCup API
@@ -34,6 +34,11 @@ func main() {
 	minioClient, err := minioPkg.NewClient(cfg.MinIO)
 	if err != nil {
 		logger.Fatalf("error occured while initializing minio client: %v", err)
+	}
+
+	exists, errBucketExists := minioClient.BucketExists(context.Background(), minioPkg.ImagesBucket)
+	if errBucketExists != nil || !exists {
+		logger.Fatalf("failed to find images bucket, create bucket to run application")
 	}
 
 	logger.Info("postgres initializing...")
@@ -59,7 +64,7 @@ func main() {
 
 	logger.Info("running the server...")
 	srv := new(server.Server)
-	if err = srv.Run(cfg.AppPort, handlers.InitRoutes()); err != nil {
+	if err = srv.Run(cfg.AppPort, handlers.InitRoutes(cfg)); err != nil {
 		logger.Fatalf("error occured while running http server: %s", err.Error())
 	}
 }

@@ -3,8 +3,8 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
 	"net/http"
 	"strconv"
 )
@@ -48,6 +48,16 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 	var input shopping.CartProduct
 	if err = ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if input.Quantity <= 0 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("product quantity must be greater that 0: %d", input.Quantity))
+		return
+	}
+
+	if input.Price <= 0 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("product price must be greater that 0: %f", input.Price))
 		return
 	}
 

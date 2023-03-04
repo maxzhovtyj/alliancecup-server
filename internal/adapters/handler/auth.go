@@ -3,9 +3,9 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	_ "github.com/zh0vtyj/allincecup-server/docs"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/user"
+	_ "github.com/zh0vtyj/alliancecup-server/docs"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/user"
 	"net/http"
 	"net/mail"
 	"strconv"
@@ -26,9 +26,17 @@ type SignInInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type ForgotPasswordInput struct {
+	Email string `json:"email" binding:"required"`
+}
+
 type ChangePasswordInput struct {
 	OldPassword string `json:"oldPassword" binding:"required"`
 	NewPassword string `json:"newPassword" binding:"required"`
+}
+
+type RestorePasswordInput struct {
+	NewPassword string `json:"password" binding:"required"`
 }
 
 // signUp godoc
@@ -282,16 +290,58 @@ func (h *Handler) changePassword(ctx *gin.Context) {
 	})
 }
 
-// TODO
+// restorePassword godoc
+// @Summary Client restore password
+// @Security ApiKeyAuth
+// @Tags api/client
+// @Description Restores user password
+// @ID change user password
+// @Accept json
+// @Produce json
+// @Param input body handler.ChangePasswordInput true "Info to change password"
+// @Success 200  {object} object
+// @Failure 400  {object} Error
+// @Failure 401  {object} Error
+// @Failure 500  {object} Error
+// @Router /api/client/restore-password [put]
+func (h *Handler) restorePassword(ctx *gin.Context) {
+	id, err := getUserId(ctx)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var input RestorePasswordInput
+	if err = ctx.BindJSON(&input); err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(input.NewPassword) < 4 {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid password lenght").Error())
+		return
+	}
+
+	err = h.services.Authorization.RestorePassword(id, input.NewPassword)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"message": "password changed",
+	})
+}
+
 func (h *Handler) forgotPassword(ctx *gin.Context) {
-	var input string
+	var input ForgotPasswordInput
 
 	if err := ctx.BindJSON(&input); err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err := h.services.Authorization.UserForgotPassword(input)
+	err := h.services.Authorization.UserForgotPassword(input.Email)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return

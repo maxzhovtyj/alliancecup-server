@@ -1,14 +1,15 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
-	_ "github.com/zh0vtyj/allincecup-server/docs"
-	"github.com/zh0vtyj/allincecup-server/internal/config"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/service"
-	"github.com/zh0vtyj/allincecup-server/pkg/logging"
+	_ "github.com/zh0vtyj/alliancecup-server/docs"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/service"
+	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 	"net/http"
 )
 
@@ -17,6 +18,7 @@ const (
 	StatusProcessed    = "PROCESSED"
 	StatusCompleted    = "COMPLETED"
 	refreshTokenCookie = "refresh_token"
+	fileMaxSize        = 5 << 20
 )
 
 const (
@@ -31,20 +33,25 @@ const (
 	refreshUrl           = "/refresh"
 	categoriesUrl        = "/categories"
 	categoryUrl          = "/category"
+	categoryImageUrl     = "/category-image"
 	productsUrl          = "/products"
 	productUrl           = "/product"
+	productImageUrl      = "/product-image"
+	productVisibilityUrl = "/product-visibility"
 	reviewsUrl           = "/reviews"
 	reviewUrl            = "/review"
 	cartUrl              = "/cart"
 	favouritesUrl        = "/favourites"
 	filtrationUrl        = "/filtration"
+	filtrationListUrl    = "/filtration-list"
+	filtrationItemUrl    = "/filtration-item"
+	filtrationImageUrl   = "/filtration-image"
 	ordersUrl            = "/orders"
 	orderUrl             = "/order"
 	userOrdersUrl        = "/user-orders"
 	orderInfoTypesUrl    = "/order-info-types"
 	processedOrder       = "/processed-order"
 	completeOrder        = "/complete-order"
-	forgotPassword       = "/forgot-password"
 	moderatorUrl         = "/moderator"
 	superAdminUrl        = "/super"
 	supplyUrl            = "/supply"
@@ -54,9 +61,13 @@ const (
 	inventoryProductsUrl = "/inventory-products"
 	saveInventory        = "/save-inventory"
 	invoiceUrl           = "/invoice"
-	personalInfoUrl      = "personal-info"
+	personalInfoUrl      = "/personal-info"
 	shoppingUrl          = "/shopping"
+	forgotPassword       = "/forgot-password"
+	restorePasswordUrl   = "/restore-password"
 )
+
+var ErrEmptyFile = errors.New("file is empty")
 
 type Handler struct {
 	services *service.Service
@@ -72,14 +83,13 @@ func NewHandler(services *service.Service, logger *logging.Logger, cfg *config.C
 	}
 }
 
-func (h *Handler) InitRoutes() *gin.Engine {
+func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 	router := gin.New()
-	c := cors.New(cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:3000",
-		},
+
+	corsConfig := cors.Config{
+		AllowOrigins: cfg.Cors.AllowedOrigins,
 		AllowMethods: []string{
-			http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut,
+			http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut, http.MethodPatch,
 		},
 		AllowHeaders: []string{
 			"Authorization",
@@ -90,9 +100,10 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{},
-	})
+	}
 
-	router.Use(c)
+	c := cors.New(corsConfig)
+	router.Use(c, gin.Recovery())
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -105,10 +116,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group(apiUrl, h.userIdentity)
 	{
+		api.GET(categoryUrl, h.getCategory)
 		api.GET(categoriesUrl, h.getCategories)
 		api.GET(filtrationUrl, h.getFiltration)
+
 		api.GET(productsUrl, h.getProducts)
 		api.GET(productUrl, h.getProductById)
+
 		api.POST(reviewUrl, h.addReview)
 		api.GET(reviewsUrl, h.getReviews)
 
@@ -120,14 +134,24 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			admin.POST(productUrl, h.addProduct)
 			admin.PUT(productUrl, h.updateProduct)
+			admin.PUT(productImageUrl, h.updateProductImage)
+			admin.DELETE(productImageUrl, h.deleteProductImage)
+			admin.PUT(productVisibilityUrl, h.updateProductVisibility)
 			admin.DELETE(productUrl, h.deleteProduct)
 
 			admin.POST(categoryUrl, h.addCategory)
 			admin.PUT(categoryUrl, h.updateCategory)
+			admin.PUT(categoryImageUrl, h.updateCategoryImage)
+			admin.DELETE(categoryImageUrl, h.deleteCategoryImage)
 			admin.DELETE(categoryUrl, h.deleteCategory)
 
-			admin.GET("characteristics", h.getFiltrationAllItems)
+			admin.GET(filtrationListUrl, h.getFiltrationAllItems)
+
+			admin.GET(filtrationItemUrl, h.getFiltrationItem)
 			admin.POST(filtrationUrl, h.addFiltrationItem)
+			admin.PUT(filtrationUrl, h.updateFiltrationItem)
+			admin.PUT(filtrationImageUrl, h.updateFiltrationItemImage)
+			admin.DELETE(filtrationImageUrl, h.deleteFiltrationItemImage)
 			admin.DELETE(filtrationUrl, h.deleteFiltrationItem)
 
 			admin.GET(ordersUrl, h.adminGetOrders)
@@ -137,19 +161,20 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			admin.POST(supplyUrl, h.newSupply)
 			admin.GET(supplyUrl, h.getAllSupply)
 			admin.GET(supplyProductsUrl, h.getSupplyProducts)
-			admin.DELETE(supplyUrl, h.deleteSupply)
 
 			admin.GET(orderUrl, h.getOrderById)
 			admin.POST(orderUrl, h.adminNewOrder)
 
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
+				superAdmin.DELETE(supplyUrl, h.deleteSupply)
+
 				superAdmin.GET(moderatorUrl, h.getModerators)
 				superAdmin.POST(moderatorUrl, h.createModerator)
 				superAdmin.DELETE(moderatorUrl, h.deleteModerator)
 
 				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
-				superAdmin.POST(saveInventory, h.saveInventory)
+				superAdmin.PUT(saveInventory, h.saveInventory)
 				superAdmin.POST(inventoryUrl, h.doInventory)
 				superAdmin.GET(inventoriesUrl, h.getInventories)
 				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)
@@ -164,6 +189,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			client.PUT(personalInfoUrl, h.updatePersonalInfo)
 
 			client.PUT(changePasswordUrl, h.changePassword)
+			client.PUT(restorePasswordUrl, h.restorePassword)
 			client.DELETE(logoutUrl, h.logout)
 
 			client.GET(userOrdersUrl, h.userOrders)

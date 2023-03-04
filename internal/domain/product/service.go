@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
-	server "github.com/zh0vtyj/allincecup-server/internal/domain/shopping"
-	minioPkg "github.com/zh0vtyj/allincecup-server/pkg/client/minio"
+	server "github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
+	minioPkg "github.com/zh0vtyj/alliancecup-server/pkg/client/minio"
 )
 
 type Service interface {
@@ -16,7 +16,10 @@ type Service interface {
 	Add(product CreateDTO) (int, error)
 	GetFavourites(userId int) ([]Product, error)
 	Update(product Product) (int, error)
+	UpdateImage(dto UpdateImageDTO) (int, error)
+	UpdateVisibility(id int, isActive bool) error
 	Delete(productId int) error
+	DeleteImage(productId int) error
 }
 
 type service struct {
@@ -53,7 +56,7 @@ func (s *service) Add(dto CreateDTO) (int, error) {
 
 	product := Product{
 		Article:         dto.Article,
-		CategoryTitle:   dto.CategoryTitle,
+		CategoryTitle:   &dto.CategoryTitle,
 		ProductTitle:    dto.ProductTitle,
 		AmountInStock:   dto.AmountInStock,
 		ImgUUID:         imgUUIDPtr,
@@ -69,14 +72,6 @@ func (s *service) Add(dto CreateDTO) (int, error) {
 	}
 
 	if imgUUIDPtr != nil {
-		exists, errBucketExists := s.fileStorage.BucketExists(context.Background(), minioPkg.ImagesBucket)
-		if errBucketExists != nil || !exists {
-			err = s.fileStorage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
-			if err != nil {
-				return 0, fmt.Errorf("failed to create new bucket. err: %w", err)
-			}
-		}
-
 		_, err = s.fileStorage.PutObject(
 			context.Background(),
 			minioPkg.ImagesBucket,
@@ -106,8 +101,112 @@ func (s *service) Update(product Product) (int, error) {
 	return s.repo.Update(product)
 }
 
+func (s *service) UpdateVisibility(id int, isActive bool) error {
+	return s.repo.UpdateVisibility(Product{
+		Id:       id,
+		IsActive: isActive,
+	})
+}
+
+func (s *service) UpdateImage(dto UpdateImageDTO) (int, error) {
+	var imgUUIDPtr *uuid.UUID
+	if dto.Img != nil {
+		imgUUID := uuid.New()
+		imgUUIDPtr = &imgUUID
+	} else {
+		return 0, nil
+	}
+
+	oldProduct, err := s.repo.GetProductById(dto.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	if oldProduct.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			oldProduct.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return 0, fmt.Errorf("failed to remove old product image due to %v", err)
+		}
+	}
+
+	_, err = s.fileStorage.PutObject(
+		context.Background(),
+		minioPkg.ImagesBucket,
+		imgUUIDPtr.String(),
+		dto.Img.Reader,
+		dto.Img.Size,
+		minio.PutObjectOptions{},
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := s.repo.UpdateImage(Product{
+		Id:      dto.Id,
+		ImgUUID: imgUUIDPtr,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to update product image uuid")
+	}
+
+	return id, err
+}
+
 func (s *service) Delete(productId int) error {
-	return s.repo.Delete(productId)
+	product, err := s.repo.GetProductById(productId)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.Delete(productId)
+	if err != nil {
+		return fmt.Errorf("failed to delete product %d due to %v", productId, err)
+	}
+
+	if product.ImgUUID != nil {
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			product.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to remove object")
+		}
+	}
+
+	return err
+}
+
+func (s *service) DeleteImage(productId int) error {
+	product, err := s.repo.GetProductById(productId)
+	if err != nil {
+		return err
+	}
+
+	if product.ImgUUID != nil {
+		err = s.repo.DeleteImage(productId)
+		if err != nil {
+			return fmt.Errorf("failed to delete product image, %v", err)
+		}
+
+		err = s.fileStorage.RemoveObject(
+			context.Background(),
+			minioPkg.ImagesBucket,
+			product.ImgUUID.String(),
+			minio.RemoveObjectOptions{},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to remove object, %v", err)
+		}
+	}
+
+	return err
 }
 
 func (s *service) GetProductById(id int) (Product, error) {

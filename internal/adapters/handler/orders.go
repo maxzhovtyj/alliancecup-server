@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/order"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/order"
 	"net/http"
 	"os"
 	"strconv"

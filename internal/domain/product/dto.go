@@ -2,7 +2,7 @@ package product
 
 import (
 	"github.com/jmoiron/sqlx/types"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 )
 
 type CreateDTO struct {
@@ -16,4 +16,9 @@ type CreateDTO struct {
 	Characteristics *types.JSONText `json:"characteristics" db:"characteristics"`
 	Packaging       *types.JSONText `json:"packaging" db:"packaging"`
 	Description     *string         `json:"description" db:"description"`
+}
+
+type UpdateImageDTO struct {
+	Id  int             `json:"id" example:"15"`
+	Img *models.FileDTO `json:"file"`
 }

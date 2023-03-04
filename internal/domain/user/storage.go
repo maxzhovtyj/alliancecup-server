@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
-	"github.com/zh0vtyj/allincecup-server/pkg/client/postgres"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
 )
 
 type Storage interface {
@@ -213,7 +213,7 @@ func (s *storage) GetUserPasswordHash(userId int) (string, error) {
 }
 
 func (s *storage) UpdatePassword(userId int, newPassword string) error {
-	queryUpdatePassword := fmt.Sprintf("UPDATE %s SET password_hash=$1 WHERE id=$2", postgres.UsersTable)
+	queryUpdatePassword := fmt.Sprintf("UPDATE %s SET password_hash = $1 WHERE id = $2", postgres.UsersTable)
 
 	_, err := s.db.Exec(queryUpdatePassword, newPassword, userId)
 	if err != nil {
@@ -234,7 +234,7 @@ func (s *storage) UserExists(email string) (int, string, error) {
 	)
 
 	row := s.db.QueryRow(queryGetUserId, email)
-	if err := row.Scan(&userId, userRoleCode); err != nil {
+	if err := row.Scan(&userId, &userRoleCode); err != nil {
 		return 0, "", err
 	}
 

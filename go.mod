@@ -1,4 +1,4 @@
-module github.com/zh0vtyj/allincecup-server
+module github.com/zh0vtyj/alliancecup-server
 
 go 1.18
 

@@ -30,6 +30,7 @@ type SearchParams struct {
 	CategoryId     int
 	PriceRange     string
 	CreatedAt      string
+	IsActive       *bool
 	Characteristic []CharacteristicParam
 	Search         string
 }

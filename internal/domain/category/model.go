@@ -2,7 +2,7 @@ package category
 
 import (
 	"github.com/google/uuid"
-	"github.com/zh0vtyj/allincecup-server/internal/domain/models"
+	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 )
 
 type Category struct {
@@ -20,6 +20,16 @@ type CreateDTO struct {
 	CategoryDescription *string
 }
 
+type UpdateImageDTO struct {
+	Id  int
+	Img *models.FileDTO
+}
+
+type DeleteImageDTO struct {
+	Id  int
+	Img *models.FileDTO
+}
+
 type CreateFiltrationDTO struct {
 	Id                    int
 	CategoryId            *int
@@ -30,6 +40,17 @@ type CreateFiltrationDTO struct {
 	FiltrationTitle       string
 	FiltrationDescription *string
 	FiltrationListId      *int
+}
+
+type UpdateFiltrationDTO struct {
+	Id                    int     `json:"id" binding:"required"`
+	CategoryId            *int    `json:"categoryId"`
+	FiltrationListId      *int    `json:"filtrationListId"`
+	ImgUrl                *string `json:"imgUrl"`
+	SearchKey             string  `json:"searchKey" binding:"required"`
+	SearchCharacteristic  string  `json:"searchCharacteristic" binding:"required"`
+	FiltrationTitle       string  `json:"filtrationTitle" binding:"required"`
+	FiltrationDescription *string `json:"filtrationDescription"`
 }
 
 type Filtration struct {

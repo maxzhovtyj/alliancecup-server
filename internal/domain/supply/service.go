@@ -10,7 +10,7 @@ type Service interface {
 	Update() error
 	Delete(id int) error
 	GetAll(createdAt string) ([]InfoDTO, error)
-	Products(id int, createdAt string) ([]ProductDTO, error)
+	Products(id int) ([]ProductDTO, error)
 }
 
 type service struct {
@@ -77,23 +77,29 @@ func (s *service) Update() error {
 }
 
 func (s *service) Delete(id int) error {
-	//TODO
-	// delete from supplies
-	//products, err := s.repo.DeleteAndGetProducts(id)
+	products, err := s.repo.Products(id)
+	if err != nil {
+		return fmt.Errorf("failed to get supply products from db, %v", err)
+	}
+
+	err = s.repo.Delete(id)
+	if err != nil {
+		return fmt.Errorf("failed to delete supply from db, %v", err)
+	}
 
 	// delete amount from products
-	//err = s.repo.UpdateProductsAmount(products, "-")
-	//if err != nil {
-	//	return err
-	//}
+	err = s.repo.UpdateProductsAmount(products, "-")
+	if err != nil {
+		return fmt.Errorf("failed to update product amount after deleting supply, %v", err)
+	}
 
-	return nil
+	return err
 }
 
 func (s *service) GetAll(createdAt string) ([]InfoDTO, error) {
 	return s.repo.GetAll(createdAt)
 }
 
-func (s *service) Products(id int, createdAt string) ([]ProductDTO, error) {
-	return s.repo.Products(id, createdAt)
+func (s *service) Products(id int) ([]ProductDTO, error) {
+	return s.repo.Products(id)
 }
