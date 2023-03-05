@@ -9,6 +9,11 @@ import (
 	"strconv"
 )
 
+const (
+	cartUrl       = "/cart"
+	favouritesUrl = "/favourites"
+)
+
 func (h *Handler) initShoppingShoppingRoutes(group *gin.RouterGroup) {
 	group.GET(cartUrl, h.getFromCartById)
 	group.POST(cartUrl, h.addToCart)

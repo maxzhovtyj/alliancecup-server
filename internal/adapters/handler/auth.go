@@ -15,11 +15,15 @@ import (
 const refreshTokenTTL = 1440 * time.Hour
 
 const (
-	authUrl      = "/auth"
-	signInUrl    = "/sign-in"
-	signUpUrl    = "/sign-up"
-	refreshUrl   = "/refresh"
-	moderatorUrl = "/moderator"
+	authUrl            = "/auth"
+	signInUrl          = "/sign-in"
+	signUpUrl          = "/sign-up"
+	refreshUrl         = "/refresh"
+	moderatorUrl       = "/moderator"
+	logoutUrl          = "/logout"
+	changePasswordUrl  = "/change-password"
+	restorePasswordUrl = "/restore-password"
+	personalInfoUrl    = "/personal-info"
 )
 
 func (h *Handler) initAuthRoutes(router *gin.Engine) {

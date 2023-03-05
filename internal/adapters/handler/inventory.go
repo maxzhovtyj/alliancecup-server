@@ -7,6 +7,13 @@ import (
 	"strconv"
 )
 
+const (
+	inventoryUrl         = "/inventory"
+	inventoriesUrl       = "/inventories"
+	inventoryProductsUrl = "/inventory-products"
+	saveInventory        = "/save-inventory"
+)
+
 func (h *Handler) initAdminInventoryRoutes(group *gin.RouterGroup) {
 	group.GET(inventoryUrl, h.getProductsToInventory)
 	group.PUT(saveInventory, h.saveInventory)

@@ -7,6 +7,12 @@ import (
 	"strconv"
 )
 
+func (h *Handler) initAdminSupplyRoutes(group *gin.RouterGroup) {
+	group.POST(supplyUrl, h.newSupply)
+	group.GET(supplyUrl, h.getAllSupply)
+	group.GET(supplyProductsUrl, h.getSupplyProducts)
+}
+
 // getAllSupply godoc
 // @Summary      Get Supplies
 // @Security 	 ApiKeyAuth

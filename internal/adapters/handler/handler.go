@@ -22,45 +22,40 @@ const (
 )
 
 const (
-	apiUrl               = "/api"
-	adminUrl             = "/admin"
-	clientUrl            = "/client"
-	logoutUrl            = "/logout"
-	changePasswordUrl    = "/change-password"
-	categoriesUrl        = "/categories"
-	categoryUrl          = "/category"
-	categoryImageUrl     = "/category-image"
+	apiUrl        = "/api"
+	superAdminUrl = "/super"
+	adminUrl      = "/admin"
+	clientUrl     = "/client"
+
+	categoriesUrl    = "/categories"
+	categoryUrl      = "/category"
+	categoryImageUrl = "/category-image"
+
 	productsUrl          = "/products"
 	productUrl           = "/product"
 	productImageUrl      = "/product-image"
 	productVisibilityUrl = "/product-visibility"
-	reviewsUrl           = "/reviews"
-	reviewUrl            = "/review"
-	cartUrl              = "/cart"
-	favouritesUrl        = "/favourites"
-	filtrationUrl        = "/filtration"
-	filtrationListUrl    = "/filtration-list"
-	filtrationItemUrl    = "/filtration-item"
-	filtrationImageUrl   = "/filtration-image"
-	ordersUrl            = "/orders"
-	orderUrl             = "/order"
-	userOrdersUrl        = "/user-orders"
-	orderInfoTypesUrl    = "/order-info-types"
-	processedOrder       = "/processed-order"
-	completeOrder        = "/complete-order"
 
-	superAdminUrl        = "/super"
-	supplyUrl            = "/supply"
-	supplyProductsUrl    = "/supply-products"
-	inventoryUrl         = "/inventory"
-	inventoriesUrl       = "/inventories"
-	inventoryProductsUrl = "/inventory-products"
-	saveInventory        = "/save-inventory"
-	invoiceUrl           = "/invoice"
-	personalInfoUrl      = "/personal-info"
-	shoppingUrl          = "/shopping"
-	forgotPassword       = "/forgot-password"
-	restorePasswordUrl   = "/restore-password"
+	reviewsUrl = "/reviews"
+	reviewUrl  = "/review"
+
+	filtrationUrl      = "/filtration"
+	filtrationListUrl  = "/filtration-list"
+	filtrationItemUrl  = "/filtration-item"
+	filtrationImageUrl = "/filtration-image"
+
+	ordersUrl         = "/orders"
+	orderUrl          = "/order"
+	userOrdersUrl     = "/user-orders"
+	orderInfoTypesUrl = "/order-info-types"
+	processedOrder    = "/processed-order"
+	completeOrder     = "/complete-order"
+
+	supplyUrl         = "/supply"
+	supplyProductsUrl = "/supply-products"
+	invoiceUrl        = "/invoice"
+	shoppingUrl       = "/shopping"
+	forgotPassword    = "/forgot-password"
 )
 
 var ErrEmptyFile = errors.New("file is empty")
@@ -131,10 +126,7 @@ func (h *Handler) initApi(router *gin.Engine) {
 			h.initAdminCategoriesRoutes(admin)
 			h.initAdminFiltrationRoutes(admin)
 			h.initAdminOrderRoutes(admin)
-
-			admin.POST(supplyUrl, h.newSupply)
-			admin.GET(supplyUrl, h.getAllSupply)
-			admin.GET(supplyProductsUrl, h.getSupplyProducts)
+			h.initAdminSupplyRoutes(admin)
 
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
