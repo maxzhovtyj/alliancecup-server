@@ -22,15 +22,11 @@ const (
 )
 
 const (
-	authUrl              = "/auth"
 	apiUrl               = "/api"
 	adminUrl             = "/admin"
 	clientUrl            = "/client"
-	signInUrl            = "/sign-in"
-	signUpUrl            = "/sign-up"
 	logoutUrl            = "/logout"
 	changePasswordUrl    = "/change-password"
-	refreshUrl           = "/refresh"
 	categoriesUrl        = "/categories"
 	categoryUrl          = "/category"
 	categoryImageUrl     = "/category-image"
@@ -52,7 +48,7 @@ const (
 	orderInfoTypesUrl    = "/order-info-types"
 	processedOrder       = "/processed-order"
 	completeOrder        = "/complete-order"
-	moderatorUrl         = "/moderator"
+
 	superAdminUrl        = "/super"
 	supplyUrl            = "/supply"
 	supplyProductsUrl    = "/supply-products"
@@ -107,13 +103,13 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	auth := router.Group(authUrl)
-	{
-		auth.POST(signUpUrl, h.signUp)
-		auth.POST(signInUrl, h.signIn)
-		auth.POST(refreshUrl, h.refresh)
-	}
+	h.initAuthRoutes(router)
+	h.initApi(router)
 
+	return router
+}
+
+func (h *Handler) initApi(router *gin.Engine) {
 	api := router.Group(apiUrl, h.userIdentity)
 	{
 		api.GET(categoryUrl, h.getCategory)
@@ -123,8 +119,7 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 		api.GET(productsUrl, h.getProducts)
 		api.GET(productUrl, h.getProductById)
 
-		api.POST(reviewUrl, h.addReview)
-		api.GET(reviewsUrl, h.getReviews)
+		h.initReviewsRoutes(api)
 
 		api.POST(forgotPassword, h.forgotPassword)
 
@@ -132,52 +127,21 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 
 		admin := api.Group(adminUrl, h.moderatorPermission)
 		{
-			admin.POST(productUrl, h.addProduct)
-			admin.PUT(productUrl, h.updateProduct)
-			admin.PUT(productImageUrl, h.updateProductImage)
-			admin.DELETE(productImageUrl, h.deleteProductImage)
-			admin.PUT(productVisibilityUrl, h.updateProductVisibility)
-			admin.DELETE(productUrl, h.deleteProduct)
-
-			admin.POST(categoryUrl, h.addCategory)
-			admin.PUT(categoryUrl, h.updateCategory)
-			admin.PUT(categoryImageUrl, h.updateCategoryImage)
-			admin.DELETE(categoryImageUrl, h.deleteCategoryImage)
-			admin.DELETE(categoryUrl, h.deleteCategory)
-
-			admin.GET(filtrationListUrl, h.getFiltrationAllItems)
-
-			admin.GET(filtrationItemUrl, h.getFiltrationItem)
-			admin.POST(filtrationUrl, h.addFiltrationItem)
-			admin.PUT(filtrationUrl, h.updateFiltrationItem)
-			admin.PUT(filtrationImageUrl, h.updateFiltrationItemImage)
-			admin.DELETE(filtrationImageUrl, h.deleteFiltrationItemImage)
-			admin.DELETE(filtrationUrl, h.deleteFiltrationItem)
-
-			admin.GET(ordersUrl, h.adminGetOrders)
-			admin.PUT(processedOrder, h.processedOrder)
-			admin.PUT(completeOrder, h.completeOrder)
+			h.initAdminProductsRoutes(admin)
+			h.initAdminCategoriesRoutes(admin)
+			h.initAdminFiltrationRoutes(admin)
+			h.initAdminOrderRoutes(admin)
 
 			admin.POST(supplyUrl, h.newSupply)
 			admin.GET(supplyUrl, h.getAllSupply)
 			admin.GET(supplyProductsUrl, h.getSupplyProducts)
 
-			admin.GET(orderUrl, h.getOrderById)
-			admin.POST(orderUrl, h.adminNewOrder)
-
 			superAdmin := admin.Group(superAdminUrl, h.superAdmin)
 			{
 				superAdmin.DELETE(supplyUrl, h.deleteSupply)
 
-				superAdmin.GET(moderatorUrl, h.getModerators)
-				superAdmin.POST(moderatorUrl, h.createModerator)
-				superAdmin.DELETE(moderatorUrl, h.deleteModerator)
-
-				superAdmin.GET(inventoryUrl, h.getProductsToInventory)
-				superAdmin.PUT(saveInventory, h.saveInventory)
-				superAdmin.POST(inventoryUrl, h.doInventory)
-				superAdmin.GET(inventoriesUrl, h.getInventories)
-				superAdmin.GET(inventoryProductsUrl, h.getInventoryProducts)
+				h.initAdminModeratorsRoutes(superAdmin)
+				h.initAdminInventoryRoutes(superAdmin)
 			}
 
 			admin.DELETE(reviewUrl, h.deleteReview)
@@ -185,12 +149,7 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 
 		client := api.Group(clientUrl, h.userAuthorized)
 		{
-			client.GET(personalInfoUrl, h.personalInfo)
-			client.PUT(personalInfoUrl, h.updatePersonalInfo)
-
-			client.PUT(changePasswordUrl, h.changePassword)
-			client.PUT(restorePasswordUrl, h.restorePassword)
-			client.DELETE(logoutUrl, h.logout)
+			h.initClientRoutes(client)
 
 			client.GET(userOrdersUrl, h.userOrders)
 		}
@@ -200,15 +159,7 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 			shopping.GET(orderInfoTypesUrl, h.deliveryPaymentTypes)
 			shopping.POST(orderUrl, h.newOrder)
 
-			shopping.GET(cartUrl, h.getFromCartById)
-			shopping.POST(cartUrl, h.addToCart)
-			shopping.DELETE(cartUrl, h.deleteFromCart)
-
-			shopping.GET(favouritesUrl, h.getFavourites)
-			shopping.POST(favouritesUrl, h.addToFavourites)
-			shopping.DELETE(favouritesUrl, h.deleteFromFavourites)
+			h.initShoppingShoppingRoutes(shopping)
 		}
 	}
-
-	return router
 }

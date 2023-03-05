@@ -12,13 +12,16 @@ import (
 	"strings"
 )
 
-type ProductIdInput struct {
-	Id int `json:"id"`
-}
+func (h *Handler) initAdminProductsRoutes(group *gin.RouterGroup) {
+	group.POST(productUrl, h.addProduct)
+	group.PUT(productUrl, h.updateProduct)
+	group.DELETE(productUrl, h.deleteProduct)
 
-type ProductVisibility struct {
-	Id       int  `json:"id"`
-	IsActive bool `json:"isActive"`
+	group.PUT(productImageUrl, h.updateProductImage)
+	group.DELETE(productImageUrl, h.deleteProductImage)
+
+	group.PUT(productVisibilityUrl, h.updateProductVisibility)
+
 }
 
 // getProducts godoc
@@ -102,7 +105,7 @@ func (h *Handler) getProducts(ctx *gin.Context) {
 // @ID 			 adds product
 // @Accept 	     json
 // @Produce      json
-// @Param        input body product.Product true "product info" // TODO
+// @Param        input body product.Product true "product info"
 // @Success      201  {object}  handler.ItemProcessedResponse
 // @Failure      400  {object}  Error
 // @Failure      404  {object}  Error
@@ -328,6 +331,11 @@ func (h *Handler) deleteProductImage(ctx *gin.Context) {
 		"id":      productId,
 		"message": "product image (Minio) deleted",
 	})
+}
+
+type ProductVisibility struct {
+	Id       int  `json:"id"`
+	IsActive bool `json:"isActive"`
 }
 
 // updateProductVisibility godoc

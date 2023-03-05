@@ -9,13 +9,18 @@ import (
 	"strconv"
 )
 
+func (h *Handler) initAdminOrderRoutes(group *gin.RouterGroup) {
+	group.GET(ordersUrl, h.adminGetOrders)
+	group.PUT(processedOrder, h.processedOrder)
+	group.PUT(completeOrder, h.completeOrder)
+
+	group.GET(orderUrl, h.getOrderById)
+	group.POST(orderUrl, h.adminNewOrder)
+}
+
 type OrderResponse struct {
 	Id      int    `json:"id"`
 	Message string `json:"message"`
-}
-
-type HandleOrderStatus struct {
-	OrderId int `json:"orderId" binding:"required"`
 }
 
 // newOrder godoc
@@ -226,6 +231,10 @@ func (h *Handler) deliveryPaymentTypes(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, deliveryTypes)
+}
+
+type HandleOrderStatus struct {
+	OrderId int `json:"orderId" binding:"required"`
 }
 
 // processedOrder godoc

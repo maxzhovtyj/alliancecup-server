@@ -14,29 +14,36 @@ import (
 
 const refreshTokenTTL = 1440 * time.Hour
 
-type SignInResponse struct {
-	AccessToken  string `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo"`
-	SessionId    int    `json:"sessionId" example:"15"`
-	UserId       int    `json:"userId" example:"5"`
-	UserRoleCode string `json:"userRoleCode" example:"5000"`
+const (
+	authUrl      = "/auth"
+	signInUrl    = "/sign-in"
+	signUpUrl    = "/sign-up"
+	refreshUrl   = "/refresh"
+	moderatorUrl = "/moderator"
+)
+
+func (h *Handler) initAuthRoutes(router *gin.Engine) {
+	auth := router.Group(authUrl)
+	{
+		auth.POST(signUpUrl, h.signUp)
+		auth.POST(signInUrl, h.signIn)
+		auth.POST(refreshUrl, h.refresh)
+	}
 }
 
-type SignInInput struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+func (h *Handler) initAdminModeratorsRoutes(router *gin.RouterGroup) {
+	router.GET(moderatorUrl, h.getModerators)
+	router.POST(moderatorUrl, h.createModerator)
+	router.DELETE(moderatorUrl, h.deleteModerator)
 }
 
-type ForgotPasswordInput struct {
-	Email string `json:"email" binding:"required"`
-}
+func (h *Handler) initClientRoutes(group *gin.RouterGroup) {
+	group.GET(personalInfoUrl, h.personalInfo)
+	group.PUT(personalInfoUrl, h.updatePersonalInfo)
 
-type ChangePasswordInput struct {
-	OldPassword string `json:"oldPassword" binding:"required"`
-	NewPassword string `json:"newPassword" binding:"required"`
-}
-
-type RestorePasswordInput struct {
-	NewPassword string `json:"password" binding:"required"`
+	group.PUT(changePasswordUrl, h.changePassword)
+	group.PUT(restorePasswordUrl, h.restorePassword)
+	group.DELETE(logoutUrl, h.logout)
 }
 
 // signUp godoc
@@ -86,6 +93,18 @@ func (h *Handler) signUp(ctx *gin.Context) {
 		"id":       id,
 		"roleCode": roleCode,
 	})
+}
+
+type SignInResponse struct {
+	AccessToken  string `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjA5MDI0NzAsImlhdCI6MTY2MDg5NTI3MCwidXNlcl9pZCI6MSwidXNlcl9yb2xlX2lkIjozfQ.OTiwDdjjCkYkN7LfyOL6VWF7maKvuIpXWH2XWKFzZEo"`
+	SessionId    int    `json:"sessionId" example:"15"`
+	UserId       int    `json:"userId" example:"5"`
+	UserRoleCode string `json:"userRoleCode" example:"5000"`
+}
+
+type SignInInput struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 // signIn godoc
@@ -247,6 +266,11 @@ func (h *Handler) refresh(ctx *gin.Context) {
 
 }
 
+type ChangePasswordInput struct {
+	OldPassword string `json:"oldPassword" binding:"required"`
+	NewPassword string `json:"newPassword" binding:"required"`
+}
+
 // changePassword godoc
 // @Summary Client change password
 // @Security ApiKeyAuth
@@ -290,6 +314,10 @@ func (h *Handler) changePassword(ctx *gin.Context) {
 	})
 }
 
+type RestorePasswordInput struct {
+	NewPassword string `json:"password" binding:"required"`
+}
+
 // restorePassword godoc
 // @Summary Client restore password
 // @Security ApiKeyAuth
@@ -331,6 +359,10 @@ func (h *Handler) restorePassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, map[string]any{
 		"message": "password changed",
 	})
+}
+
+type ForgotPasswordInput struct {
+	Email string `json:"email" binding:"required"`
 }
 
 func (h *Handler) forgotPassword(ctx *gin.Context) {

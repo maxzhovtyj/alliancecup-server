@@ -14,9 +14,12 @@ const (
 	filtrationListIdName = "filtration_list_id"
 )
 
-type DeleteCategoryInput struct {
-	Id            int    `json:"id"`
-	CategoryTitle string `json:"category_title"`
+func (h *Handler) initAdminCategoriesRoutes(group *gin.RouterGroup) {
+	group.POST(categoryUrl, h.addCategory)
+	group.PUT(categoryUrl, h.updateCategory)
+	group.PUT(categoryImageUrl, h.updateCategoryImage)
+	group.DELETE(categoryImageUrl, h.deleteCategoryImage)
+	group.DELETE(categoryUrl, h.deleteCategory)
 }
 
 // getCategory godoc

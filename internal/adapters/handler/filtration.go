@@ -9,6 +9,16 @@ import (
 	"strconv"
 )
 
+func (h *Handler) initAdminFiltrationRoutes(group *gin.RouterGroup) {
+	group.GET(filtrationListUrl, h.getFiltrationAllItems)
+	group.GET(filtrationItemUrl, h.getFiltrationItem)
+	group.POST(filtrationUrl, h.addFiltrationItem)
+	group.PUT(filtrationUrl, h.updateFiltrationItem)
+	group.PUT(filtrationImageUrl, h.updateFiltrationItemImage)
+	group.DELETE(filtrationImageUrl, h.deleteFiltrationItemImage)
+	group.DELETE(filtrationUrl, h.deleteFiltrationItem)
+}
+
 // getFiltration godoc
 // @Summary GetFiltration
 // @Tags api

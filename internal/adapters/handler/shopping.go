@@ -9,13 +9,14 @@ import (
 	"strconv"
 )
 
-type CartProductsResponse struct {
-	Products []shopping.CartProduct `json:"products"`
-	Sum      float64                `json:"sum"`
-}
+func (h *Handler) initShoppingShoppingRoutes(group *gin.RouterGroup) {
+	group.GET(cartUrl, h.getFromCartById)
+	group.POST(cartUrl, h.addToCart)
+	group.DELETE(cartUrl, h.deleteFromCart)
 
-type AddToFavouritesInput struct {
-	ProductId int `json:"product_id"`
+	group.GET(favouritesUrl, h.getFavourites)
+	group.POST(favouritesUrl, h.addToFavourites)
+	group.DELETE(favouritesUrl, h.deleteFromFavourites)
 }
 
 // addToCart godoc
@@ -68,6 +69,11 @@ func (h *Handler) addToCart(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, "product added")
+}
+
+type CartProductsResponse struct {
+	Products []shopping.CartProduct `json:"products"`
+	Sum      float64                `json:"sum"`
 }
 
 // getFromCart godoc

@@ -7,6 +7,14 @@ import (
 	"strconv"
 )
 
+func (h *Handler) initAdminInventoryRoutes(group *gin.RouterGroup) {
+	group.GET(inventoryUrl, h.getProductsToInventory)
+	group.PUT(saveInventory, h.saveInventory)
+	group.POST(inventoryUrl, h.doInventory)
+	group.GET(inventoriesUrl, h.getInventories)
+	group.GET(inventoryProductsUrl, h.getInventoryProducts)
+}
+
 // getProductsToInventory godoc
 // @Summary      Get products to inventory them
 // @Security 	 ApiKeyAuth

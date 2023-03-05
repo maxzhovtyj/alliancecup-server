@@ -8,6 +8,11 @@ import (
 	"strconv"
 )
 
+func (h *Handler) initReviewsRoutes(group *gin.RouterGroup) {
+	group.GET(reviewsUrl, h.getReviews)
+	group.POST(reviewUrl, h.addReview)
+}
+
 // addReview godoc
 // @Summary AddReview
 // @Tags api
