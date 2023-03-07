@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
@@ -156,8 +155,6 @@ func GetConfig() *Config {
 			Roles:   rolesInstance,
 		}
 	})
-
-	fmt.Println(instance.Auth.JWT, instance.Auth.PasswordSalt)
 
 	return instance
 }
