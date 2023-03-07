@@ -66,7 +66,7 @@ type Handler struct {
 	cfg      *config.Config
 }
 
-func NewHandler(services *service.Service, logger *logging.Logger, cfg *config.Config) *Handler {
+func New(services *service.Service, logger *logging.Logger, cfg *config.Config) *Handler {
 	return &Handler{
 		services: services,
 		logger:   logger,

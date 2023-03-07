@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/go-redis/redis/v9"
 	"github.com/minio/minio-go/v7"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/category"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/inventory"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/order"
@@ -24,17 +25,17 @@ type Service struct {
 	Supply        supply.Service
 	Review        review.Service
 	Inventory     inventory.Service
-	logger        *logging.Logger
 }
 
-func NewService(
+func New(
 	repos *repository.Repository,
+	auth config.Auth,
 	logger *logging.Logger,
 	cache *redis.Client,
 	fileStorage *minio.Client,
 ) *Service {
 	return &Service{
-		Authorization: user.NewAuthService(repos.Authorization),
+		Authorization: user.NewAuthService(repos.Authorization, auth),
 		Product:       product.NewProductsService(repos.Product, fileStorage),
 		Category:      category.NewCategoryService(repos.Category, fileStorage),
 		Order:         order.NewOrdersService(repos.Order, repos.Product, cache),
@@ -42,6 +43,5 @@ func NewService(
 		Supply:        supply.NewSupplyService(repos.Supply),
 		Review:        review.NewReviewService(repos.Review),
 		Inventory:     inventory.NewInventoryService(repos.Inventory, cache, logger),
-		logger:        logger,
 	}
 }

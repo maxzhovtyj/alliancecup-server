@@ -5,18 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/zh0vtyj/alliancecup-server/internal/config"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/models"
 	"net/smtp"
 	"time"
-)
-
-const (
-	salt = "dsadkasdi212312mdmacmxz00"
-	//tokenTTL          = 30 * time.Minute // RELEASE VERSION
-	tokenTTL          = 120 * time.Minute
-	signingKey        = "das345=FF@!a;212&&dsDFCwW12e112d%#d$c"
-	refreshTokenTTL   = 1440 * time.Hour
-	refreshSigningKey = "Sepasd213*99921@@#dsad+-=SXxassd@lLL;"
 )
 
 type Service interface {
@@ -44,26 +36,27 @@ type tokenClaims struct {
 
 type service struct {
 	repo Storage
+	auth config.Auth
 }
 
-func NewAuthService(repo Storage) Service {
-	return &service{repo: repo}
+func NewAuthService(repo Storage, auth config.Auth) Service {
+	return &service{repo: repo, auth: auth}
 }
 
 func (s *service) CreateUser(user User, role string) (int, string, error) {
-	user.Password = generatePasswordHash(user.Password)
+	user.Password = s.generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user, role)
 }
 
 func (s *service) GenerateTokens(email, password string) (string, string, error) {
-	selectedUser, err := s.repo.GetUser(email, generatePasswordHash(password))
+	selectedUser, err := s.repo.GetUser(email, s.generatePasswordHash(password))
 	if err != nil {
 		return "", "", fmt.Errorf("user are not found")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+			ExpiresAt: time.Now().Add(s.auth.JWT.AccessTokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		selectedUser.Id,
@@ -75,7 +68,7 @@ func (s *service) GenerateTokens(email, password string) (string, string, error)
 		return "", "", err
 	}
 
-	accessToken, err := token.SignedString([]byte(signingKey))
+	accessToken, err := token.SignedString([]byte(s.auth.JWT.SigningKey))
 	if err != nil {
 		return "", "", err
 	}
@@ -85,11 +78,11 @@ func (s *service) GenerateTokens(email, password string) (string, string, error)
 
 func (s *service) GenerateRefreshToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(refreshTokenTTL).Unix(),
+		ExpiresAt: time.Now().Add(s.auth.JWT.RefreshTokenTTL).Unix(),
 		IssuedAt:  time.Now().Unix(),
 	})
 
-	refreshToken, err := token.SignedString([]byte(refreshSigningKey))
+	refreshToken, err := token.SignedString([]byte(s.auth.JWT.SigningKey))
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +96,7 @@ func (s *service) ParseToken(accessToken string) (int, string, error) {
 			return nil, errors.New("invalid signing method")
 		}
 
-		return []byte(signingKey), nil
+		return []byte(s.auth.JWT.SigningKey), nil
 	})
 	if err != nil {
 		return 0, "", err
@@ -123,7 +116,7 @@ func (s *service) ParseRefreshToken(refreshToken string) error {
 			return nil, errors.New("invalid signing method")
 		}
 
-		return []byte(refreshSigningKey), nil
+		return []byte(s.auth.JWT.SigningKey), nil
 	})
 	if err != nil {
 		return err
@@ -137,11 +130,11 @@ func (s *service) ParseRefreshToken(refreshToken string) error {
 	return nil
 }
 
-func generatePasswordHash(password string) string {
+func (s *service) generatePasswordHash(password string) string {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 
-	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+	return fmt.Sprintf("%x", hash.Sum([]byte(s.auth.PasswordSalt)))
 }
 
 func (s *service) RefreshTokens(refreshToken, clientIp, userAgent string) (string, string, int, string, error) {
@@ -187,13 +180,13 @@ func (s *service) RefreshTokens(refreshToken, clientIp, userAgent string) (strin
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+			ExpiresAt: time.Now().Add(s.auth.JWT.AccessTokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		session.UserId,
 		session.RoleCode,
 	})
-	accessToken, err := token.SignedString([]byte(signingKey))
+	accessToken, err := token.SignedString([]byte(s.auth.JWT.SigningKey))
 	if err != nil {
 		return "", "", 0, "", err
 	}
@@ -219,13 +212,13 @@ func (s *service) ChangePassword(userId int, oldPassword, newPassword string) er
 		return err
 	}
 
-	passwordHash := generatePasswordHash(oldPassword)
+	passwordHash := s.generatePasswordHash(oldPassword)
 
 	if hash != passwordHash {
 		return fmt.Errorf("invalid input password")
 	}
 
-	newPasswordHash := generatePasswordHash(newPassword)
+	newPasswordHash := s.generatePasswordHash(newPassword)
 
 	err = s.repo.UpdatePassword(userId, newPasswordHash)
 	if err != nil {
@@ -236,7 +229,7 @@ func (s *service) ChangePassword(userId int, oldPassword, newPassword string) er
 }
 
 func (s *service) RestorePassword(userId int, newPassword string) error {
-	newPasswordHash := generatePasswordHash(newPassword)
+	newPasswordHash := s.generatePasswordHash(newPassword)
 
 	err := s.repo.UpdatePassword(userId, newPasswordHash)
 	if err != nil {
@@ -256,14 +249,14 @@ func (s *service) UserForgotPassword(email string) error {
 	// generate a token for changing a password
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+			ExpiresAt: time.Now().Add(s.auth.JWT.AccessTokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		userId,
 		userRoleCode,
 	})
 
-	signedStringToken, err := token.SignedString([]byte(signingKey))
+	signedStringToken, err := token.SignedString([]byte(s.auth.JWT.SigningKey))
 	if err != nil {
 		return err
 	}

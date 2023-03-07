@@ -1,12 +1,14 @@
 package config
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -28,48 +30,64 @@ const (
 	minioEndpoint      = "minio.endpoint"
 	minioAccessKey     = "MINIO_ACCESS_KEY"
 	minioSecretKey     = "MINIO_SECRET_KEY"
+	passwordSaltEnv    = "PASSWORD_SALT"
+	jwtSigningKeyEnv   = "JWT_SIGNING_KEY"
 )
 
-type Redis struct {
-	Host string `yml:"host"`
-	Port string `yml:"port"`
-}
+type (
+	Auth struct {
+		JWT          JWT
+		PasswordSalt string `env:"PASSWORD_SALT"`
+	}
 
-type Storage struct {
-	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
-	Username string `yaml:"username"`
-	Password string `env:"DB_PASSWORD"`
-	DBName   string `yaml:"name"`
-	SSLMode  string `yaml:"sslMode"`
-}
+	JWT struct {
+		AccessTokenTTL  time.Duration `mapstructure:"accessTokenTTL"`
+		RefreshTokenTTL time.Duration `mapstructure:"refreshTokenTTL"`
+		SigningKey      string        `env:"JWT_SIGNING_KEY"`
+	}
 
-type MinIO struct {
-	Endpoint  string `yaml:"endpoint"`
-	AccessKey string `env:"MINIO_ACCESS_KEY"`
-	SecretKey string `env:"MINIO_SECRET_KEY"`
-}
+	Redis struct {
+		Host string `yml:"host"`
+		Port string `yml:"port"`
+	}
 
-type Roles struct {
-	Guest      string `yaml:"guest"`
-	Client     string `yaml:"client"`
-	Moderator  string `yaml:"moderator"`
-	SuperAdmin string `yaml:"superAdmin"`
-}
+	Storage struct {
+		Host     string `yaml:"host"`
+		Port     string `yaml:"port"`
+		Username string `yaml:"username"`
+		Password string `env:"DB_PASSWORD"`
+		DBName   string `yaml:"name"`
+		SSLMode  string `yaml:"sslMode"`
+	}
 
-type Cors struct {
-	AllowedOrigins []string `yaml:"allowedOrigins"`
-}
+	MinIO struct {
+		Endpoint  string `yaml:"endpoint"`
+		AccessKey string `env:"MINIO_ACCESS_KEY"`
+		SecretKey string `env:"MINIO_SECRET_KEY"`
+	}
 
-type Config struct {
-	Domain  string `yaml:"domain"`
-	AppPort string `yaml:"port"`
-	Roles
-	Cors
-	Storage
-	Redis
-	MinIO
-}
+	Roles struct {
+		Guest      string `yaml:"guest"`
+		Client     string `yaml:"client"`
+		Moderator  string `yaml:"moderator"`
+		SuperAdmin string `yaml:"superAdmin"`
+	}
+
+	Cors struct {
+		AllowedOrigins []string `yaml:"allowedOrigins"`
+	}
+
+	Config struct {
+		Domain  string `yaml:"domain"`
+		AppPort string `yaml:"port"`
+		Auth
+		Roles
+		Cors
+		Storage
+		Redis
+		MinIO
+	}
+)
 
 var instance *Config
 var once sync.Once
@@ -87,6 +105,14 @@ func GetConfig() *Config {
 		if err := godotenv.Load(); err != nil {
 			logger.Fatalf("error while initializing .env file, %v", err)
 		}
+
+		var authInstance Auth
+		if err := viper.UnmarshalKey("auth", &authInstance.JWT); err != nil {
+			return
+		}
+
+		authInstance.PasswordSalt = os.Getenv(passwordSaltEnv)
+		authInstance.JWT.SigningKey = os.Getenv(jwtSigningKeyEnv)
 
 		redisInstance := Redis{
 			Host: viper.GetString(redisHost),
@@ -122,6 +148,7 @@ func GetConfig() *Config {
 		instance = &Config{
 			Domain:  viper.GetString(domain),
 			AppPort: viper.GetString(appPort),
+			Auth:    authInstance,
 			Cors:    corsInstance,
 			Storage: storageInstance,
 			Redis:   redisInstance,
@@ -129,6 +156,8 @@ func GetConfig() *Config {
 			Roles:   rolesInstance,
 		}
 	})
+
+	fmt.Println(instance.Auth.JWT, instance.Auth.PasswordSalt)
 
 	return instance
 }

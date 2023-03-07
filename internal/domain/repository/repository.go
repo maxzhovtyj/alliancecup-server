@@ -26,7 +26,7 @@ type Repository struct {
 	logger        *logging.Logger
 }
 
-func NewRepository(db *sqlx.DB, logger *logging.Logger) *Repository {
+func New(db *sqlx.DB, logger *logging.Logger) *Repository {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	return &Repository{

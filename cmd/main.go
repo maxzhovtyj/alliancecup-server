@@ -54,13 +54,13 @@ func main() {
 	}
 
 	logger.Info("repository initializing...")
-	repos := repository.NewRepository(postgresClient, logger)
+	repos := repository.New(postgresClient, logger)
 
 	logger.Info("service initializing...")
-	services := service.NewService(repos, logger, redisClient, minioClient)
+	services := service.New(repos, cfg.Auth, logger, redisClient, minioClient)
 
 	logger.Info("handler initializing...")
-	handlers := handler.NewHandler(services, logger, cfg)
+	handlers := handler.New(services, logger, cfg)
 
 	logger.Info("running the server...")
 	srv := new(server.Server)

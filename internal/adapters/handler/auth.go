@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-const refreshTokenTTL = 1440 * time.Hour
-
 const (
 	authUrl            = "/auth"
 	signInUrl          = "/sign-in"
@@ -150,7 +148,7 @@ func (h *Handler) signIn(ctx *gin.Context) {
 		RefreshToken: refreshToken,
 		ClientIp:     ctx.ClientIP(),
 		UserAgent:    ctx.Request.UserAgent(),
-		ExpiresAt:    time.Now().Add(refreshTokenTTL),
+		ExpiresAt:    time.Now().Add(h.cfg.Auth.JWT.RefreshTokenTTL),
 		CreatedAt:    time.Now(),
 	})
 
