@@ -1,0 +1,29 @@
+port: "8000"
+domain: "localhost"
+
+auth:
+  accessTokenTTL: 2h
+  refreshTokenTTL: 720h # 30 days
+
+cors:
+  allowedOrigins: "http://localhost:3000,http://164.92.172.181:3000"
+
+roles:
+  guest: "0000"
+  client: "0001"
+  moderator: "1002"
+  superAdmin: "2003"
+
+db:
+  username: "postgres"
+  host: "localhost"
+  port: "5436"
+  name: "postgres"
+  sslMode: "disable"
+
+redis:
+  host: "localhost"
+  port: "6379"
+
+minio:
+  endpoint: "localhost:9000"

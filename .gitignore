@@ -3,7 +3,6 @@
 
 # enviroment variables and configs
 .env
-configs
 
 # application logs
 logs
