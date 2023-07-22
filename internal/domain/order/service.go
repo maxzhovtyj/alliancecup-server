@@ -6,9 +6,12 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/jung-kurt/gofpdf"
 	goinvoice "github.com/maxzhovtyj/go-invoice"
+	"github.com/sirupsen/logrus"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/product"
 	"github.com/zh0vtyj/alliancecup-server/internal/domain/shopping"
+	"github.com/zh0vtyj/alliancecup-server/pkg/telegram"
 	"os"
+	"strings"
 )
 
 type Service interface {
@@ -23,16 +26,23 @@ type Service interface {
 }
 
 type service struct {
-	repo        Storage
-	productRepo product.Storage
-	cache       *redis.Client
+	repo         Storage
+	productRepo  product.Storage
+	cache        *redis.Client
+	tgBotManager telegram.Manager
 }
 
-func NewOrdersService(repo Storage, productRepo product.Storage, cache *redis.Client) Service {
+func NewOrdersService(
+	repo Storage,
+	productRepo product.Storage,
+	cache *redis.Client,
+	tgBotManager telegram.Manager,
+) Service {
 	return &service{
-		repo:        repo,
-		productRepo: productRepo,
-		cache:       cache,
+		repo:         repo,
+		productRepo:  productRepo,
+		cache:        cache,
+		tgBotManager: tgBotManager,
 	}
 }
 
@@ -46,6 +56,8 @@ func (s *service) New(order CreateDTO, cartUUID string) (int, error) {
 	if delCartCache.Err() != nil {
 		return 0, fmt.Errorf("failed to delete cart from cache")
 	}
+
+	s.sentTelegramNewOrder(id)
 
 	return id, nil
 }
@@ -176,4 +188,81 @@ func (s *service) GetInvoice(orderId int) (gofpdf.Fpdf, error) {
 	}
 
 	return pdf, err
+}
+
+func (s *service) sentTelegramNewOrder(oid int) {
+	newOrder, err := s.GetOrderById(oid)
+	if err != nil {
+		errMsg := fmt.Sprintf(`Створено нове замовлення №%d. Не вдалося отримати інформацію`, oid)
+		err = s.tgBotManager.Send(errMsg)
+		if err != nil {
+			logrus.Error("failed to send telegram message")
+		}
+	}
+
+	msg := s.getNewOrderMessage(newOrder)
+
+	err = s.tgBotManager.Send(msg)
+	if err != nil {
+		logrus.Error("failed to send telegram message")
+	}
+}
+
+func (s *service) getNewOrderMessage(order SelectDTO) string {
+	var orderProductsMsg string
+	for i, p := range order.Products {
+		orderProductsMsg += fmt.Sprintf(
+			`
+
+Товар %d, id #%d
+Назва: %s
+Арктикул: %s
+Пакування: %s
+Кількість на складі: %f
+Ціна: %f,
+Кількість: %d,
+Сума: %f,
+
+`,
+			i,
+			p.Id,
+			p.ProductTitle,
+			p.Article,
+			p.Packaging.String(),
+			p.AmountInStock,
+			p.Price,
+			p.Quantity,
+			p.PriceForQuantity,
+		)
+	}
+
+	newOrderMessage := fmt.Sprintf(`
+Нове Замовлення №%d:
+ПІБ: №%d %s
+Номер телефону: %s
+Email: %s
+Доставка: %s %s
+Оплата: %s
+Сума: %f
+Виконано адміністратором: %d,
+Коментар: %s
+
+Товари:
+%s
+`,
+		order.Info.Id,
+		order.Info.UserId,
+		strings.Join([]string{order.Info.UserLastName, order.Info.UserFirstName, order.Info.UserMiddleName}, " "),
+		order.Info.UserEmail,
+		order.Info.UserPhoneNumber,
+		order.Info.DeliveryTypeTitle,
+		order.Info.Delivery.String(),
+		order.Info.PaymentTypeTitle,
+		order.Info.SumPrice,
+		order.Info.ExecutedBy,
+		*order.Info.Comment,
+		orderProductsMsg,
+	)
+
+	return newOrderMessage
 }

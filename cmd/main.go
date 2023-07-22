@@ -12,6 +12,7 @@ import (
 	"github.com/zh0vtyj/alliancecup-server/pkg/client/postgres"
 	"github.com/zh0vtyj/alliancecup-server/pkg/client/redisdb"
 	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
+	"github.com/zh0vtyj/alliancecup-server/pkg/telegram"
 )
 
 // @title AllianceCup API
@@ -56,8 +57,11 @@ func main() {
 	logger.Info("repository initializing...")
 	repos := repository.New(postgresClient, logger)
 
+	logger.Info("telegram bot manager initializing...")
+	tgManager := telegram.NewManager(cfg.Telegram.Token, cfg.Telegram.ChatID)
+
 	logger.Info("service initializing...")
-	services := service.New(repos, cfg.Auth, logger, redisClient, minioClient)
+	services := service.New(repos, cfg.Auth, logger, redisClient, minioClient, tgManager)
 
 	logger.Info("handler initializing...")
 	handlers := handler.New(services, logger, cfg)

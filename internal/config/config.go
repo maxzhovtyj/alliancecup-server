@@ -2,9 +2,11 @@ package config
 
 import (
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/zh0vtyj/alliancecup-server/pkg/logging"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -29,6 +31,8 @@ const (
 	minioEndpoint      = "minio.endpoint"
 	minioAccessKey     = "MINIO_ACCESS_KEY"
 	minioSecretKey     = "MINIO_SECRET_KEY"
+	tgBotToken         = "TG_BOT_TOKEN"
+	tgChatID           = "TG_CHAT_ID"
 	passwordSaltEnv    = "PASSWORD_SALT"
 	jwtSigningKeyEnv   = "JWT_SIGNING_KEY"
 )
@@ -65,6 +69,11 @@ type (
 		SecretKey string `env:"MINIO_SECRET_KEY"`
 	}
 
+	Telegram struct {
+		Token  string `env:"TG_BOT_TOKEN"`
+		ChatID int64  `env:"TG_CHAT_ID"`
+	}
+
 	Roles struct {
 		Guest      string `yaml:"guest"`
 		Client     string `yaml:"client"`
@@ -85,6 +94,7 @@ type (
 		Storage
 		Redis
 		MinIO
+		Telegram
 	}
 )
 
@@ -133,6 +143,16 @@ func GetConfig() *Config {
 			SecretKey: os.Getenv(minioSecretKey),
 		}
 
+		tgCID, err := strconv.ParseInt(os.Getenv(tgChatID), 10, 64)
+		if err != nil {
+			logrus.Fatalf("failed to parse tgChatID, %v", err)
+		}
+
+		tgInstance := Telegram{
+			Token:  os.Getenv(tgBotToken),
+			ChatID: tgCID,
+		}
+
 		rolesInstance := Roles{
 			Guest:      viper.GetString(guestRole),
 			Client:     viper.GetString(clientRole),
@@ -145,14 +165,15 @@ func GetConfig() *Config {
 		}
 
 		instance = &Config{
-			Domain:  viper.GetString(domain),
-			AppPort: viper.GetString(appPort),
-			Auth:    authInstance,
-			Cors:    corsInstance,
-			Storage: storageInstance,
-			Redis:   redisInstance,
-			MinIO:   minioInstance,
-			Roles:   rolesInstance,
+			Domain:   viper.GetString(domain),
+			AppPort:  viper.GetString(appPort),
+			Auth:     authInstance,
+			Cors:     corsInstance,
+			Storage:  storageInstance,
+			Redis:    redisInstance,
+			MinIO:    minioInstance,
+			Telegram: tgInstance,
+			Roles:    rolesInstance,
 		}
 	})
 
