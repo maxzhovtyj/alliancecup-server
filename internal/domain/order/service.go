@@ -68,6 +68,8 @@ func (s *service) AdminNew(order CreateDTO) (int, error) {
 		return 0, err
 	}
 
+	s.sentTelegramNewOrder(id)
+
 	return id, nil
 }
 
